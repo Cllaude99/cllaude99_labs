@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-import { useTheme } from '@emotion/react';
+import { Button } from '@cllaude99/ui';
 
 import Layout from '@/components/Layout';
 
@@ -17,40 +17,34 @@ const SomethingWentWrong = ({
   status,
   errorMessage,
 }: SomethingWentWrongProps) => {
-  const theme = useTheme();
   const navigate = useNavigate();
 
   return (
     <Layout
       layoutStyle={{
-        backgroundColor: theme.palette.gray['gray-10'],
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
       }}
     >
-      <S.Container>
-        <S.IconWrapper>
-          <S.ErrorImage
-            src="/SomethingWentWrong.png"
-            alt="오류가 발생했습니다"
-          />
-        </S.IconWrapper>
-        <S.ContentWrapper>
-          <S.Title>오류가 발생하였습니다.</S.Title>
-          <S.Description>
-            문제를 해결하기 위해 열심히 노력하고 있어요.
-            {'\n'}잠시 후 다시 시도해 주세요!
-          </S.Description>
-          {status && <S.ErrorText>{status}</S.ErrorText>}
-          {errorMessage && <S.ErrorText>{errorMessage}</S.ErrorText>}
-        </S.ContentWrapper>
-        <S.ButtonWrapper>
-          {onRetry && (
-            <S.StyledButton onClick={onRetry}>다시 시도하기</S.StyledButton>
-          )}
-          <S.StyledButton onClick={() => navigate('/')}>
-            홈으로 이동
-          </S.StyledButton>
-        </S.ButtonWrapper>
-      </S.Container>
+      <S.ErrorImage src="/SomethingWentWrong.png" alt="오류가 발생했습니다" />
+      <S.Title>오류가 발생하였습니다.</S.Title>
+      <S.Description>
+        문제를 해결하기 위해 열심히 노력하고 있어요.
+        {'\n'}잠시 후 다시 시도해 주세요!
+      </S.Description>
+      {status && <S.ErrorText>{status}</S.ErrorText>}
+      {errorMessage && <S.ErrorText>{errorMessage}</S.ErrorText>}
+      <S.ButtonWrapper>
+        {onRetry && (
+          <Button variant="primary" size="medium" onClick={onRetry}>
+            다시 시도하기
+          </Button>
+        )}
+        <Button variant="primary" size="medium" onClick={() => navigate('/')}>
+          홈으로 이동
+        </Button>
+      </S.ButtonWrapper>
     </Layout>
   );
 };

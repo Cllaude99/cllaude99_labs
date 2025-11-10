@@ -30,7 +30,7 @@ const ButtonContainer = styled.button<ButtonProps>`
     switch (size) {
       case 'small':
         return `
-          height: 36px;
+          height: 40px;
           padding: 0 16px;
           gap: 6px;
           font-size: ${theme.typography.body.body2.fontSize};
@@ -40,7 +40,7 @@ const ButtonContainer = styled.button<ButtonProps>`
         `;
       case 'medium':
         return `
-          height: 44px;
+          height: 48px;
           padding: 0 20px;
           gap: 8px;
           font-size: ${theme.typography.body.body1.fontSize};
@@ -50,7 +50,7 @@ const ButtonContainer = styled.button<ButtonProps>`
         `;
       case 'large':
         return `
-          height: 52px;
+          height: 56px;
           padding: 0 24px;
           gap: 10px;
           font-size: ${theme.typography.title.subhead2.fontSize};
