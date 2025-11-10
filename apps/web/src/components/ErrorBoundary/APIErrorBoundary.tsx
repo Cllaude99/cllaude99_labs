@@ -8,7 +8,10 @@ import { getAPIErrorInfo } from '@cllaude99/apis';
 import SomethingWentWrong from '@/components/ErrorPage/SomethingWentWrong';
 
 const APIErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
-  if (isAxiosError(error)) {
+  const isDevelopmentMode = import.meta.env.MODE === 'development';
+  const isApiFetchingError = isAxiosError(error);
+
+  if (isApiFetchingError && isDevelopmentMode) {
     const { status, message: errorMessage } = getAPIErrorInfo(error);
 
     return (

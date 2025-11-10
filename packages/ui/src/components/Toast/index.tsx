@@ -1,6 +1,10 @@
 import { Toaster, ToastPosition } from 'react-hot-toast';
 
+import { palette } from '../../design-system';
+
 const Toast = () => {
+  const TOAST_DURATION = 2000;
+
   const toastOptions = {
     style: {
       borderRadius: '8px',
@@ -9,15 +13,15 @@ const Toast = () => {
     },
     error: {
       style: {
-        background: '#FEE',
-        color: '#C33',
+        background: palette.main.red[95],
+        color: palette.main.red[50],
       },
       iconTheme: {
-        primary: '#C33',
-        secondary: '#FFF',
+        primary: palette.main.red[50],
+        secondary: palette.common.white,
       },
     },
-    duration: 2000,
+    duration: TOAST_DURATION,
     position: 'top-center' as ToastPosition,
   };
 

@@ -3,7 +3,7 @@ import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import SomethingWentWrong from '@/components/ErrorPage/SomethingWentWrong';
 
 const UnknownErrorFallback = ({ error }: FallbackProps) => {
-  if (import.meta.env.DEV) {
+  if (import.meta.env.MODE === 'development') {
     console.log('UnknownError: ', error);
   }
 
