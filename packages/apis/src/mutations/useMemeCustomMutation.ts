@@ -6,7 +6,7 @@ interface MemeCustomRequest {
   id: string;
 }
 
-export const useMemeCustomMutation = () => {
+const useMemeCustomMutation = () => {
   return useMutation({
     mutationFn: (data: MemeCustomRequest) => {
       return fetchApiData<void, MemeCustomRequest>({
@@ -17,3 +17,5 @@ export const useMemeCustomMutation = () => {
     },
   });
 };
+
+export default useMemeCustomMutation;

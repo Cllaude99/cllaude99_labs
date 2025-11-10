@@ -26,13 +26,15 @@ interface MemeQuizResponse {
   error: MemeQuizErrorResponse;
 }
 
-export const useMemeQuizQuery = () => {
+const useMemeQuizQuery = () => {
   return useQuery({
     queryKey: QUERY_KEY.MEME_QUIZ(),
     queryFn: () =>
-      fetchApiData<MemeQuizResponse>({
+      fetchApiData<MemeQuizResponse, void>({
         method: 'GET',
         url: 'https://api.meme-wiki.net/api/quizzes',
       }),
   });
 };
+
+export default useMemeQuizQuery;

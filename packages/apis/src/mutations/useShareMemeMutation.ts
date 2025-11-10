@@ -6,7 +6,7 @@ interface ShareMemeRequest {
   id: string;
 }
 
-export const useShareMemeMutation = () => {
+const useShareMemeMutation = () => {
   return useMutation({
     mutationFn: (data: ShareMemeRequest) => {
       return fetchApiData<void, ShareMemeRequest>({
@@ -17,3 +17,5 @@ export const useShareMemeMutation = () => {
     },
   });
 };
+
+export default useShareMemeMutation;

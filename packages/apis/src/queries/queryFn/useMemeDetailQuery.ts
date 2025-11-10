@@ -25,13 +25,15 @@ interface MemeDetailResponse {
   error: MemeDetailErrorResponse;
 }
 
-export const useMemeDetailQuery = (id: string) => {
+const useMemeDetailQuery = (id: string) => {
   return useQuery({
     queryKey: QUERY_KEY.MEME_DETAIL(id),
     queryFn: () =>
-      fetchApiData<MemeDetailResponse>({
+      fetchApiData<MemeDetailResponse, void>({
         method: 'GET',
         url: `https://api.meme-wiki.net/api/memes/${id}`,
       }),
   });
 };
+
+export default useMemeDetailQuery;

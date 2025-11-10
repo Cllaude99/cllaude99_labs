@@ -1,4 +1,4 @@
-import { useMemeDetailQuery } from './useMemeDetailQuery';
-import { useMemeQuizQuery } from './useMemeQuizQuery';
+import useMemeDetailQuery from './useMemeDetailQuery';
+import useMemeQuizQuery from './useMemeQuizQuery';
 
 export { useMemeDetailQuery, useMemeQuizQuery };

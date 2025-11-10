@@ -1,3 +1,5 @@
+import toast from 'react-hot-toast';
+
 import {
   QueryClient,
   QueryClientProvider as BaseQueryClientProvider,
@@ -14,25 +16,28 @@ const queryClient = new QueryClient({
     },
     mutations: {
       onError: (error: unknown) => {
-        if (isAxiosError(error)) {
+        const isDevelopmentMode = import.meta.env.MODE === 'development';
+        const isApiFetchingError = isAxiosError(error);
+
+        if (isApiFetchingError && isDevelopmentMode) {
           const errorInfo = getAPIErrorInfo(error);
-          alert(errorInfo); // 에러 처리 로직 필요 (현재는 콘솔 출력으로만 대체하였으나 추후에 토스트 메세지를 띄우는 방법등 다른 대안 필요)
+          toast.error(errorInfo.message);
         } else {
-          // 알 수 없는 에러에 대한 처리 필요
+          toast.error(
+            '알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
         }
       },
     },
   },
 });
 
-export const QueryClientProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+const QueryClientProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <BaseQueryClientProvider client={queryClient}>
       {children}
     </BaseQueryClientProvider>
   );
 };
+
+export default QueryClientProvider;

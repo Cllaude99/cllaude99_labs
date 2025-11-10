@@ -10,7 +10,7 @@ interface MemeQuizResponse {
   score: number;
 }
 
-export const useMemeQuizMutation = () => {
+const useMemeQuizMutation = () => {
   return useMutation({
     mutationFn: (data: MemeQuizRequest) => {
       return fetchApiData<MemeQuizResponse, MemeQuizRequest>({
@@ -21,3 +21,5 @@ export const useMemeQuizMutation = () => {
     },
   });
 };
+
+export default useMemeQuizMutation;
