@@ -1,7 +1,7 @@
 {
   "name": "@cllaude99/ui",
-  "version": "0.1.1",
-  "description": "Cllaude99 Design System - 일관성 있고 확장 가능한 UI 컴포넌트 라이브러리",
+  "version": "0.1.2",
+  "description": "Cllaude99 Design System",
   "keywords": [
     "react",
     "ui",
