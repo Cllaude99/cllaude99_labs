@@ -14,6 +14,7 @@ const ButtonContainer = styled.button<ButtonProps>`
   display: flex;
   justify-content: center;
   align-items: center;
+  border: none;
   border-radius: 8px;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
@@ -66,17 +67,14 @@ const ButtonContainer = styled.button<ButtonProps>`
       case 'primary':
         return `
           color: ${theme.palette.common.white};
-          border-color: ${theme.palette.main.blue[50]};
-          background-color: ${theme.palette.main.blue[50]};          
+          background-color: ${theme.palette.main.blue[50]};
 
           &:hover:not(:disabled) {
-            border-color: ${theme.palette.main.blue[40]};
             background-color: ${theme.palette.main.blue[40]};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
-            border-color: ${theme.palette.main.blue[30]};
             background-color: ${theme.palette.main.blue[30]};
             transform: translateY(0);
           }
@@ -84,17 +82,14 @@ const ButtonContainer = styled.button<ButtonProps>`
       case 'secondary':
         return `
           color: ${theme.palette.main.blue[50]};
-          border-color: ${theme.palette.main.blue[90]};
           background-color: ${theme.palette.main.blue[99]};
 
           &:hover:not(:disabled) {
-            border-color: ${theme.palette.main.blue[80]};
             background-color: ${theme.palette.main.blue[95]};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
-            border-color: ${theme.palette.main.blue[70]};
             background-color: ${theme.palette.main.blue[90]};
             transform: translateY(0);
           }
@@ -102,16 +97,18 @@ const ButtonContainer = styled.button<ButtonProps>`
       case 'outline':
         return `
           color: ${theme.palette.main.blue[50]};
-          border: 1px solid ${theme.palette.main.blue[50]};          
+          border: 1px solid ${theme.palette.main.blue[50]};
+          background-color: transparent;
 
-          &:hover:not(:disabled) {            
+          &:hover:not(:disabled) {
+            border: 1px solid ${theme.palette.main.blue[50]};
             color: ${theme.palette.main.blue[50]};
             background-color: ${theme.palette.main.blue[99]};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
-            border-color: ${theme.palette.main.blue[40]};
+            border: 1px solid ${theme.palette.main.blue[40]};
             color: ${theme.palette.main.blue[40]};
             background-color: ${theme.palette.main.blue[95]};
             transform: translateY(0);
@@ -120,17 +117,14 @@ const ButtonContainer = styled.button<ButtonProps>`
       case 'danger':
         return `
           color: ${theme.palette.common.white};
-          border-color: ${theme.palette.main.red[50]};
           background-color: ${theme.palette.main.red[50]};
 
           &:hover:not(:disabled) {
-            border-color: ${theme.palette.main.red[40]};
             background-color: ${theme.palette.main.red[40]};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
-            border-color: ${theme.palette.main.red[30]};
             background-color: ${theme.palette.main.red[30]};
             transform: translateY(0);
           }

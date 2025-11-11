@@ -1,0 +1,25 @@
+# 설정 파일
+tsconfig.json
+.eslintrc.cjs
+tsconfig.tsbuildinfo
+
+# 개발 관련
+node_modules/
+.turbo/
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# 문서 (README.md는 포함)
+*.md
+!README.md
+
+# 테스트
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+
