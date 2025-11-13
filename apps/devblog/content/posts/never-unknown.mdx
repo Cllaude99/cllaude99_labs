@@ -1,0 +1,204 @@
+---
+title: 'never과 unknown 알아보기'
+description: 'TypeScript의 never와 unknown 타입을 이해하고, 실제 프로젝트에서 활용하는 방법을 학습합니다'
+date: '2025-11-04'
+published: true
+category: 'General'
+tags: ['TypeScript', 'never', 'unknown', 'Type Safety']
+author: 'Cllaude99'
+---
+
+TanStack Query 공식문서에서 에러 처리와 관련하여 `onError` 콜백의 `error` 파라미터에 `unknown` 타입으로 선언되어 있는 것을 보고, 다른 타입이 아닌 `unknown`을 사용하는 이유가 뭘까?" 하는 궁금증이 생겼습니다.
+이번 글에서는 TypeScript의 `never`와 `unknown` 타입에 대해 알아보고, 실제 프로젝트에서 어떻게 활용하였는지 정리해보겠습니다.
+
+## unknown 타입
+
+### unknown은 무엇을 의미하는 걸까?
+
+`unknown`은 TypeScript 3.0에서 도입된 타입으로, "어떤 타입인지 알 수 없다"는 것을 명시적으로 표현하는 타입입니다.
+`any`와 비슷하게 모든 타입의 값을 받을 수 있지만, 타입을 좁히기 전까지는 해당 값을 사용할 수 없다는 점에서 차이가 있습니다.
+
+```typescript
+let unknownValue: unknown = 10;
+let anyValue: any = 10;
+
+// any는 타입 체크 없이 모든 것을 허용
+anyValue.toUpperCase(); // 컴파일 에러 없음 (런타임 오류 발생)
+anyValue(); // 컴파일 에러 없음 (런타임 오류 발생)
+
+// unknown은 타입을 확인하기 전까지 사용 불가
+unknownValue.toUpperCase(); // ❌ 컴파일 에러
+unknownValue(); // ❌ 컴파일 에러
+
+// 타입 가드로 안전하게 사용
+if (typeof unknownValue === 'string') {
+  unknownValue.toUpperCase(); // ✅ OK
+}
+```
+
+### any와는 어떻게 다른걸까?
+
+`any`는 TypeScript의 타입 체크를 완전히 끄는 것과 같습니다.
+어떤 연산이든 허용하기 때문에 컴파일 타임에는 문제가 없어 보이지만, 런타임에 오류가 발생할 수 있습니다.
+
+반면 `unknown`은 "타입을 모른다"는 것을 명시적으로 표현하면서도, 사용하기 전에 반드시 타입을 확인하도록 강제합니다.
+이를 통해 타입 안전성을 유지하면서도 유연하게 코드를 작성할 수 있습니다.
+
+```typescript
+// any: 타입 체크를 건너뛰고 무엇이든 허용
+function processAny(value: any) {
+  return value.toUpperCase(); // 컴파일 에러 없음
+}
+
+processAny(123); // 런타임 오류 발생!
+
+// unknown: 타입 체크를 강제
+function processUnknown(value: unknown) {
+  return value.toUpperCase(); // ❌ 컴파일 에러
+}
+
+function processUnknownSafe(value: unknown) {
+  if (typeof value === 'string') {
+    return value.toUpperCase(); // ✅ OK
+  }
+  throw new Error('문자열이 아닙니다');
+}
+```
+
+### unknown은 어떻게 사용할 수 있을까?
+
+> TanStack Query의 에러 처리
+
+저는 실제로 TanStack Query를 사용하면서 에러 부분에서 타입을 좁힐 때 `unknown`을 활용한 경험이 있습니다.
+공식문서를 확인해보니 TanStack Query v4에서는 `error` 타입이 기본적으로 `unknown`으로 설정되어 있고 이는 TypeScript의 catch 절에서 기본적으로 제공하는 타입과 일치한다고 합니다.
+반면, v5에서는 기본값이 `Error`로 변경되었지만, 더 엄격한 타입 체크를 원한다면 `unknown`으로 설정할 수 있다고 나와있습니다.
+
+- [TanStack Query v5 - TypeScript](https://tanstack.com/query/v5/docs/framework/react/typescript)
+- [TanStack Query v4 - TypeScript](https://tanstack.com/query/v4/docs/framework/react/typescript)
+
+저는 `onError` 콜백의 `error` 파라미터를 타입 네로잉을 통해 처리하였습니다.
+
+```typescript
+import { isAxiosError } from 'axios';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      throwOnError: true,
+    },
+    mutations: {
+      onError: (error: unknown) => {
+        const isDevelopmentMode = import.meta.env.MODE === 'development';
+        const isApiFetchingError = isAxiosError(error);
+
+        if (isApiFetchingError && isDevelopmentMode) {
+          const errorInfo = getAPIErrorInfo(error);
+          toast.error(errorInfo.message);
+        } else {
+          toast.error(
+            '알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
+        }
+      },
+    },
+  },
+});
+```
+
+위 코드에서 타입 가드 함수인 `isAxiosError`를 통해 `error`가 Axios 에러인지 확인하였고
+비동기 요청으로 발생한 에러에 대해서는 백엔드 개발자와 논의한 에러 코드를 통해 어떠한 에러인지 파악할 수 있도록 하였습니다.
+실제로 프로덕션 환경이 아닌 개발 환경에서는 해당 처리를 통해 화면에서 (GET요청시) 또는 알럿(POST요청시)으로 에러를 확인할 수 있었습니다.
+
+## never 타입
+
+### never는 무엇을 의미하는 걸까?
+
+`never`는 "절대 발생하지 않는 값의 타입"을 의미합니다. 함수가 절대 반환하지 않거나, 도달할 수 없는 코드를 나타낼 때 사용됩니다.
+never의 경우 실제로 개발을 하면서 직접 사용해본 적은 없지만 여러 공식문서들에서 확인할 수 있었습니다.
+
+```typescript
+// 1. 절대 반환하지 않는 함수
+function throwError(message: string): never {
+  throw new Error(message);
+}
+
+function infiniteLoop(): never {
+  while (true) {
+    // 무한 루프
+  }
+}
+
+// 2. 도달할 수 없는 코드
+function processValue(value: string | number) {
+  if (typeof value === 'string') {
+    return value.toUpperCase();
+  } else if (typeof value === 'number') {
+    return value.toFixed(2);
+  }
+
+  // 여기는 절대 도달할 수 없음
+  const _exhaustiveCheck: never = value;
+  return _exhaustiveCheck;
+}
+```
+
+### never 타입을 어떻게 사용할 수 있을까?
+
+[TypeScript Deep Dive - never](https://basarat.gitbook.io/typescript/type-system/never)를 참고하여 never에 대해 정리해보았습니다.
+
+> `never`의 가장 유용한 활용은 모든 케이스를 처리했는지 컴파일 타임에 검증하는 것입니다.
+
+```typescript
+type Status = 'idle' | 'loading' | 'success' | 'error';
+
+function getStatusMessage(status: Status): string {
+  switch (status) {
+    case 'idle':
+      return '대기 중';
+    case 'loading':
+      return '로딩 중';
+    case 'success':
+      return '성공';
+    case 'error':
+      return '에러 발생';
+    default:
+      // 모든 케이스를 처리했다면 여기는 never 타입
+      const _exhaustiveCheck: never = status;
+      return _exhaustiveCheck;
+  }
+}
+
+// 새로운 상태가 추가되면?
+type Status = 'idle' | 'loading' | 'success' | 'error' | 'pending';
+
+// 이제 getStatusMessage 함수에서 컴파일 에러 발생
+// 'pending' 케이스를 처리하지 않았기 때문
+```
+
+이 패턴은 유니온 타입에 새로운 타입이 추가되었을 때, 처리하지 않은 케이스가 있으면 컴파일 에러를 발생시켜 실수를 방지합니다.
+
+> `never`는 조건부 타입에서 특정 타입을 제외할 때도 사용됩니다.
+
+```typescript
+// null과 undefined 제외
+type NonNullable<T> = T extends null | undefined ? never : T;
+
+type Result = NonNullable<string | number | null | undefined>;
+// 결과: string | number
+```
+
+## 마치며
+
+TypeScript에서 `any`는 타입 체크를 완전히 무력화시켜, 컴파일 타임에는 문제가 없어 보이지만 런타임에 예상치 못한 오류가 발생할 수 있다는 것을 알게되었습니다.
+TypeScript를 사용하는 이유가 바로 이러한 런타임 오류를 사전에 방지하기 위함인데, `any`를 남용하면 그 이점을 잃게 될 수 있다는 것이죠.
+또한 이번에 `never`와 `unknown` 타입에 대해 공부하면서, TypeScript가 타입 안전성을 위해 얼마나 세심하게 설계되었는지 알게 되었습니다.
+`unknown`은 "타입을 모른다"는 것을 명시적으로 표현하면서도, 사용하기 전에 반드시 타입을 확인하도록 강제하는 타입이라는 것을 알게 되었습니다.
+`never` 타입은 실제로 사용해본 적은 없지만, 공식 문서와 여러 레퍼런스를 통해 그 유용성을 알 수 있었고 exhaustive type checking 패턴은 유니온 타입에 새로운 케이스가 추가되었을 때 컴파일 에러를 발생시켜, 실수로 케이스를 빠뜨리는 것을 방지해준다는 것을 알게 되었습니다.
+
+## 참고 자료
+
+- [TypeScript Deep Dive - never](https://basarat.gitbook.io/typescript/type-system/never)
+- [TypeScript Deep Dive - unknown](https://basarat.gitbook.io/typescript/type-system/moving-types#unknown)
+- [TanStack Query v5 - TypeScript](https://tanstack.com/query/v5/docs/framework/react/typescript)
+- [TanStack Query v4 - TypeScript](https://tanstack.com/query/v4/docs/framework/react/typescript)
