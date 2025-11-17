@@ -2,5 +2,6 @@
   "buildCommand": "pnpm build-storybook",
   "outputDirectory": "storybook-static",
   "framework": null,
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "ignoreCommand": "bash vercel-ignore-build.sh"
 }
