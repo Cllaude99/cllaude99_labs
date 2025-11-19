@@ -20,7 +20,7 @@ export function Comments() {
     <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
       <Giscus
         id="comments"
-        repo="Cllaude99/claude_code"
+        repo="Cllaude99/cllaude99_labs"
         repoId="R_kgDOPj97Mg"
         category="General"
         categoryId="DIC_kwDOPj97Ms4CwjWM"
