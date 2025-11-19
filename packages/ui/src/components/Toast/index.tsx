@@ -13,12 +13,12 @@ const Toast = () => {
     },
     error: {
       style: {
-        background: palette.main.red[95],
-        color: palette.main.red[50],
+        background: palette.red50,
+        color: palette.red500,
       },
       iconTheme: {
-        primary: palette.main.red[50],
-        secondary: palette.common.white,
+        primary: palette.red500,
+        secondary: palette.white,
       },
     },
     duration: TOAST_DURATION,

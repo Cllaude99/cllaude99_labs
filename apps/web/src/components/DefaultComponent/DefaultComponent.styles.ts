@@ -5,7 +5,7 @@ import { mq } from '@cllaude99/ui';
 const Container = styled.div`
   padding: 16px;
   min-height: 100vh;
-  background-color: ${({ theme }) => theme.palette.gray['gray-1']};
+  background-color: ${({ theme }) => theme.palette.grey50};
 
   ${mq.tablet} {
     padding: 24px;
@@ -42,27 +42,27 @@ const Section = styled.section`
 `;
 
 const Title = styled.h1`
-  ${({ theme }) => theme.typography.title['subhead-long1']};
-  color: ${({ theme }) => theme.palette.gray['gray-9']};
+  ${({ theme }) => theme.typography.title2};
+  color: ${({ theme }) => theme.palette.grey800};
   margin-bottom: 16px;
 
   ${mq.tablet} {
-    ${({ theme }) => theme.typography.title['subhead-long1']};
+    ${({ theme }) => theme.typography.title1};
     margin-bottom: 24px;
   }
 
   ${mq.desktop} {
-    ${({ theme }) => theme.typography.title['subhead-long1']};
+    ${({ theme }) => theme.typography.heading4};
   }
 `;
 
 const Description = styled.p`
-  ${({ theme }) => theme.typography.body['body-long1']};
-  color: ${({ theme }) => theme.palette.gray['gray-6']};
+  ${({ theme }) => theme.typography.body3};
+  color: ${({ theme }) => theme.palette.grey600};
   margin-bottom: 24px;
 
   ${mq.tablet} {
-    ${({ theme }) => theme.typography.body['body-long1']};
+    ${({ theme }) => theme.typography.body2};
     max-width: 80%;
     margin: 0 auto 32px;
   }
@@ -84,7 +84,7 @@ const ButtonContainer = styled.div`
 `;
 
 const Button = styled.a`
-  ${({ theme }) => theme.typography.title['subhead-long1']};
+  ${({ theme }) => theme.typography.title2};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,25 +92,25 @@ const Button = styled.a`
   border-radius: 8px;
   text-decoration: none;
   transition: all 0.2s ease-in-out;
-  background-color: ${({ theme }) => theme.palette.main.blue[50]};
-  color: ${({ theme }) => theme.palette.common.white};
+  background-color: ${({ theme }) => theme.palette.blue500};
+  color: ${({ theme }) => theme.palette.white};
   border: none;
 
   &:hover {
-    background-color: ${({ theme }) => theme.palette.main.blue[40]};
+    background-color: ${({ theme }) => theme.palette.blue600};
   }
 
   ${mq.tablet} {
-    ${({ theme }) => theme.typography.title['subhead-long1']};
+    ${({ theme }) => theme.typography.title1};
     padding: 14px 28px;
   }
 
   &.secondary {
-    background-color: ${({ theme }) => theme.palette.common.white};
-    color: ${({ theme }) => theme.palette.common.black};
+    background-color: ${({ theme }) => theme.palette.white};
+    color: ${({ theme }) => theme.palette.grey800};
 
     &:hover {
-      background-color: ${({ theme }) => theme.palette.gray['gray-2']};
+      background-color: ${({ theme }) => theme.palette.grey100};
     }
   }
 `;

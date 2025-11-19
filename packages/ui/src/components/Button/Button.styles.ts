@@ -34,30 +34,30 @@ const ButtonContainer = styled.button<ButtonProps>`
           height: 40px;
           padding: 0 16px;
           gap: 6px;
-          font-size: ${theme.typography.body.body2.fontSize};
-          line-height: ${theme.typography.body.body2.lineHeight};
-          letter-spacing: ${theme.typography.body.body2.letterSpacing};
-          font-weight: 600;
+          font-size: ${theme.typography.body3Bold.fontSize};
+          line-height: ${theme.typography.body3Bold.lineHeight};
+          letter-spacing: ${theme.typography.body3Bold.letterSpacing};
+          font-weight: ${theme.typography.body3Bold.fontWeight};
         `;
       case 'medium':
         return `
           height: 48px;
           padding: 0 20px;
           gap: 8px;
-          font-size: ${theme.typography.body.body1.fontSize};
-          line-height: ${theme.typography.body.body1.lineHeight};
-          letter-spacing: ${theme.typography.body.body1.letterSpacing};
-          font-weight: 600;
+          font-size: ${theme.typography.body2Bold.fontSize};
+          line-height: ${theme.typography.body2Bold.lineHeight};
+          letter-spacing: ${theme.typography.body2Bold.letterSpacing};
+          font-weight: ${theme.typography.body2Bold.fontWeight};
         `;
       case 'large':
         return `
           height: 56px;
           padding: 0 24px;
           gap: 10px;
-          font-size: ${theme.typography.title.subhead2.fontSize};
-          line-height: ${theme.typography.title.subhead2.lineHeight};
-          letter-spacing: ${theme.typography.title.subhead2.letterSpacing};
-          font-weight: 700;
+          font-size: ${theme.typography.title2.fontSize};
+          line-height: ${theme.typography.title2.lineHeight};
+          letter-spacing: ${theme.typography.title2.letterSpacing};
+          font-weight: ${theme.typography.title2.fontWeight};
         `;
     }
   }}
@@ -66,66 +66,66 @@ const ButtonContainer = styled.button<ButtonProps>`
     switch (variant) {
       case 'primary':
         return `
-          color: ${theme.palette.common.white};
-          background-color: ${theme.palette.main.blue[50]};
+          color: ${theme.palette.white};
+          background-color: ${theme.palette.blue500};
 
           &:hover:not(:disabled) {
-            background-color: ${theme.palette.main.blue[40]};
+            background-color: ${theme.palette.blue600};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
-            background-color: ${theme.palette.main.blue[30]};
+            background-color: ${theme.palette.blue700};
             transform: translateY(0);
           }
         `;
       case 'secondary':
         return `
-          color: ${theme.palette.main.blue[50]};
-          background-color: ${theme.palette.main.blue[99]};
+          color: ${theme.palette.blue500};
+          background-color: ${theme.palette.blue50};
 
           &:hover:not(:disabled) {
-            background-color: ${theme.palette.main.blue[95]};
+            background-color: ${theme.palette.blue100};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
-            background-color: ${theme.palette.main.blue[90]};
+            background-color: ${theme.palette.blue200};
             transform: translateY(0);
           }
         `;
       case 'outline':
         return `
-          color: ${theme.palette.main.blue[50]};
-          border: 1px solid ${theme.palette.main.blue[50]};
+          color: ${theme.palette.blue500};
+          border: 1px solid ${theme.palette.grey200};
           background-color: transparent;
 
           &:hover:not(:disabled) {
-            border: 1px solid ${theme.palette.main.blue[50]};
-            color: ${theme.palette.main.blue[50]};
-            background-color: ${theme.palette.main.blue[99]};
+            border: 1px solid ${theme.palette.blue500};
+            color: ${theme.palette.blue500};
+            background-color: ${theme.palette.blue50};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
-            border: 1px solid ${theme.palette.main.blue[40]};
-            color: ${theme.palette.main.blue[40]};
-            background-color: ${theme.palette.main.blue[95]};
+            border: 1px solid ${theme.palette.blue600};
+            color: ${theme.palette.blue600};
+            background-color: ${theme.palette.blue100};
             transform: translateY(0);
           }
         `;
       case 'danger':
         return `
-          color: ${theme.palette.common.white};
-          background-color: ${theme.palette.main.red[50]};
+          color: ${theme.palette.white};
+          background-color: ${theme.palette.red500};
 
           &:hover:not(:disabled) {
-            background-color: ${theme.palette.main.red[40]};
+            background-color: ${theme.palette.red600};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
-            background-color: ${theme.palette.main.red[30]};
+            background-color: ${theme.palette.red700};
             transform: translateY(0);
           }
         `;

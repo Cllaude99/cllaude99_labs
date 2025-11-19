@@ -9,21 +9,21 @@ const ErrorImage = styled.img`
 
 const Title = styled.h1`
   margin-top: 1.4375rem;
-  ${({ theme }) => theme.typography.title.display1};
-  color: ${({ theme }) => theme.palette.common.black};
+  ${({ theme }) => theme.typography.heading2};
+  color: ${({ theme }) => theme.palette.grey800};
   margin-bottom: 8px;
 `;
 
 const Description = styled.p`
-  ${({ theme }) => theme.typography.body.body2};
-  color: ${({ theme }) => theme.palette.gray['gray-5']};
+  ${({ theme }) => theme.typography.body3};
+  color: ${({ theme }) => theme.palette.grey600};
   white-space: pre-line;
   text-align: center;
 `;
 
 const ErrorText = styled.p`
-  ${({ theme }) => theme.typography.body.body1};
-  color: ${({ theme }) => theme.palette.gray['gray-5']};
+  ${({ theme }) => theme.typography.body4};
+  color: ${({ theme }) => theme.palette.grey600};
   margin-top: 8px;
 `;
 
