@@ -74,11 +74,11 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
             <Image
               src={src}
               alt={alt || ''}
-              width={1200}
-              height={800}
+              width={800}
+              height={533}
               className="rounded-lg my-6"
-              style={{ width: '100%', height: 'auto' }}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+              style={{ maxWidth: '600px', width: '100%', height: 'auto' }}
+              sizes="(max-width: 768px) 100vw, 600px"
               loading="lazy"
               priority={false}
             />
