@@ -1,7 +1,7 @@
 ## 목차
 
-1. [Traders](#프로젝트-1-traders)
-2. [Sketch](#프로젝트-2-sketch)
+1. [Traders](#Traders)
+2. [Sketch](#Sketch)
 
 ---
 

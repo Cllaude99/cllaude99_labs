@@ -22,8 +22,8 @@
     "@cllaude99/ui": "workspace:*",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
-    "@react-three/drei": "^9.99.0",
-    "@react-three/fiber": "^8.15.16",
+    "@react-three/drei": "^9.115.0",
+    "@react-three/fiber": "^8.17.10",
     "@tanstack/react-query": "^5.8.1",
     "@tanstack/react-query-devtools": "^5.8.1",
     "axios": "^1.7.7",
@@ -34,11 +34,12 @@
     "react-hot-toast": "2.6.0",
     "react-router-dom": "^7.6.3",
     "the-new-css-reset": "^1.11.3",
-    "three": "^0.160.0"
+    "three": "^0.160.1"
   },
   "devDependencies": {
     "@cllaude99/eslint-config": "workspace:*",
     "@cllaude99/typescript-config": "workspace:*",
+    "@emotion/babel-plugin": "^11.13.5",
     "@playwright/test": "^1.55.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^14.2.1",
@@ -49,7 +50,6 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/three": "^0.160.0",
-    "@vercel/og": "^0.6.2",
     "@vitejs/plugin-react": "^3.1.0",
     "eslint": "^8.57.0",
     "jest": "^30.1.3",
