@@ -1,19 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
-import Button from '../src/components/Button';
+import Button from '../../src/components/Button';
 
-/**
- * Button 컴포넌트는 사용자 상호작용을 위한 기본 버튼입니다.
- *
- * ## 사용 예시
- * ```tsx
- * import { Button } from '@cllaude99/ui';
- *
- * <Button variant="primary" size="medium">
- *   클릭하세요
- * </Button>
- * ```
- */
 const meta = {
   title: 'Components/Button',
   component: Button,

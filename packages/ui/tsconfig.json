@@ -1,6 +1,6 @@
 {
   "extends": "@cllaude99/typescript-config/react-library.json",
-  "include": ["src", "stories"],
+  "include": ["src", "storybook/**/*"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "outDir": "dist",
