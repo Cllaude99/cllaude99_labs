@@ -1,0 +1,278 @@
+---
+title: '클로저와 React useState 구현 원리'
+description: 'JavaScript의 클로저 개념과 이를 활용한 React useState의 내부 동작 원리를 알아봅니다.'
+date: '2025-05-05'
+published: true
+category: 'Tech'
+tags: ['JavaScript', 'Closure', 'React', 'useState']
+author: 'Cllaude99'
+---
+
+JavaScript에서 클로저는 함수형 프로그래밍의 핵심 개념 중 하나인데요,
+클로저를 이해하면 React의 useState 같은 훅이 어떻게 상태를 유지하는지, 비동기 처리에서 변수를 어떻게 기억하는지 등을 깊이 이해할 수 있습니다.
+이번글에서는 클로저와 useState에 대해서 알아보겠습니다.
+
+## 클로저란?
+
+[MDN](https://developer.mozilla.org/ko/docs/Web/JavaScript/Guide/Closures)에서는 클로저를 다음과 같이 정의합니다.
+
+> 클로저는 함수와 그 함수가 선언된 렉시컬 컨텍스트(Lexical Context)의 조합을 말합니다.
+
+이 정의를 이해하기 위해서는 먼저 렉시컬 스코프에 대해 알아야 합니다.
+
+## 렉시컬 스코프
+
+스코프는 변수에 접근할 수 있는 범위를 의미하며, JavaScript에서는 전역 스코프와 지역 스코프가 존재합니다.
+
+렉시컬 스코프는 함수를 어디에 선언했는지에 따라 상위 스코프가 결정되는 것을 말하며, 이를 정적 스코프라고도 부릅니다.
+아래의 예시를 통해 확인해보겠습니다.
+
+```javascript
+var x = 1;
+
+function foo() {
+  var x = 10;
+  bar();
+}
+
+function bar() {
+  console.log(x);
+}
+
+foo(); // 1
+bar(); // 1
+```
+
+위 예시에서 bar 함수는 전역에 선언되었기 때문에, foo 함수 내부에서 호출되더라도 전역 변수 x를 참조하게 됩니다.
+이것이 바로 렉시컬 스코프의 특징입니다.
+
+JavaScript의 모든 함수는 [[Environment]]라 불리는 숨김 프로퍼티를 가지며, 여기에 렉시컬 스코프에 대한 참조값이 저장됩니다.
+따라서 함수는 [[Environment]]를 통해 외부 함수의 변수에 접근할 수 있습니다.
+
+## 클로저의 동작 원리
+
+아래는 클로저의 동작을 보여주는 예시입니다.
+
+```javascript
+function outerFunc() {
+  var x = 10;
+
+  var innerFunc = function () {
+    console.log(x);
+  };
+
+  return innerFunc;
+}
+
+var inner = outerFunc();
+inner(); // 10
+```
+
+위 코드에서 outerFunc 함수는 내부 함수 innerFunc를 반환하고 콜스택에서 제거되어 생명 주기가 끝난 상태입니다.
+일반적으로 함수의 실행이 끝나면 내부 변수도 함께 소멸되어야 합니다.
+
+하지만 위 코드의 마지막에서 inner()를 호출하면, outerFunc 함수 안에 있는 내부 함수 innerFunc가 실행되고 변수 x의 값인 10이 출력됩니다.
+이는 innerFunc가 선언된 당시의 환경(렉시컬 스코프)을 기억하고 있기 때문입니다.
+
+이처럼 생명 주기가 끝난 외부 함수의 변수에 접근할 수 있는 함수를 클로저라고 합니다.
+
+## 클로저의 활용
+
+클로저는 다음과 같은 상황에서 유용하게 사용됩니다.
+
+- 데이터 은닉과 캡슐화
+- 상태 유지
+
+### 데이터 은닉과 캡슐화
+
+JavaScript에는 private 키워드가 없기 때문에, 변수를 외부에서 직접 접근하지 못하게 보호하려면 클로저를 활용해야 합니다.
+아래 예시는 클로저를 사용하여 외부에서 직접 변경할 수 없는 카운터를 만드는 코드입니다.
+
+```javascript
+function createCounter() {
+  let count = 0; // 외부에서 접근할 수 없는 변수
+
+  return {
+    increment() {
+      count++;
+      return count;
+    },
+    decrement() {
+      count--;
+      return count;
+    },
+  };
+}
+
+const counter = createCounter();
+console.log(counter.increment()); // 1
+console.log(counter.increment()); // 2
+console.log(counter.decrement()); // 1
+```
+
+여기서 count는 외부에서 접근할 수 없고 increment()와 decrement() 함수만이 count를 조작할 수 있습니다.
+따라서 데이터를 안전하게 보호할 수 있습니다.
+
+### 상태 유지
+
+클로저는 함수가 실행된 이후에도 외부 함수의 변수 상태를 기억합니다.
+이를 이용하면 함수 호출 간에 상태를 유지할 수 있습니다.
+
+```javascript
+function makeAdder(x) {
+  return function (y) {
+    return x + y;
+  };
+}
+
+const add5 = makeAdder(5);
+const add10 = makeAdder(10);
+
+console.log(add5(2)); // 7
+console.log(add10(2)); // 12
+```
+
+위의 makeAdder는 함수를 반환합니다.
+반환된 함수는 x 값을 기억하고 있어서, 각각 5 또는 10을 더하는 새로운 함수가 됩니다.
+클로저를 사용하여 이전의 x 상태를 기억하고 있는 것입니다.
+
+## 클로저의 주의사항 - 메모리 누수
+
+클로저를 사용할 때에는 메모리 누수를 주의해야 합니다.
+
+일반적으로 JavaScript에서는 함수 실행이 끝나면 해당 함수의 변수들이 가비지 콜렉터에 의해 자동으로 메모리에서 해제됩니다.
+하지만 클로저는 함수가 종료된 이후에도 외부 변수에 접근하고 있기 때문에, 해당 변수들이 계속 메모리에 남아 있게 됩니다.
+
+```javascript
+function outer() {
+  let largeData = new Array(1000000).fill('*'); // 큰 데이터
+
+  return function inner() {
+    console.log(largeData[0]); // 클로저로 인해 largeData가 참조됨
+  };
+}
+
+const retained = outer(); // outer는 종료됐지만 largeData는 메모리에 유지됨
+```
+
+위 코드에서 largeData는 inner 함수가 참조하고 있기 때문에, outer 함수의 실행이 끝났더라도 메모리에서 해제되지 않고 계속 유지됩니다. 이때 필요 이상으로 클로저가 많은 데이터를 참조하게 되면 메모리 낭비로 이어질 수 있으므로 주의해야 합니다.
+
+메모리 누수 문제는 필요하지 않은 참조를 끊어서 해결할 수 있습니다.
+클로저가 참조하고 있는 변수를 null로 초기화하면, 가비지 콜렉터가 이를 메모리 해제 대상으로 판단하여 해제할 수 있습니다.
+
+## React useState와 클로저
+
+useState는 React의 훅으로 상태 관리를 위해 사용됩니다.
+
+```javascript
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return <button onClick={() => setCount(count + 1)}>Count: {count}</button>;
+}
+```
+
+위 코드에서 useState는 상태인 count와 그 값을 변경할 수 있는 함수를 배열의 형태로 반환합니다.
+
+버튼을 클릭할 때마다 count 값이 계속 증가하게 되는데, 상태가 변하면 컴포넌트가 리렌더링됩니다.
+그렇다면 컴포넌트가 리렌더링될 때 왜 count의 값은 0으로 초기화되지 않고 이전 값을 기억할 수 있을까요?
+
+> 이에 대한 답은 클로저에 있습니다.
+
+useState(0)는 컴포넌트가 리렌더링될 때마다 매번 초기화될 것처럼 보이지만, 실제로는 그렇지 않습니다.
+그 이유는 useState 내부에서 외부 상태 저장소에 접근하는 클로저가 만들어지기 때문입니다.
+
+### useState의 클로저 구현 원리
+
+만약 useState가 아래와 같이 구현되었다면 어떻게 되었을까요?
+
+```javascript
+function useState(initialValue) {
+  let _val = initialValue;
+
+  function setState(newValue) {
+    _val = newValue;
+  }
+
+  return [_val, setState];
+}
+```
+
+위 구조에서는 컴포넌트가 다시 호출되면 \_val도 초기화되어 이전의 값을 기억하지 못하게 됩니다.
+
+하지만 실제 useState는 클로저를 활용하여 외부 상태 저장소에 값을 저장합니다.
+아래는 클로저의 개념을 사용하여 useState의 동작 원리를 단순화한 코드입니다.
+
+```javascript
+let stateStore = []; // 모든 상태 값들을 저장하는 전역 배열
+let cursor = 0; //  현재 useState가 몇 번째 호출되는지 추적하는 인덱스
+
+function useState(initialValue) {
+  const currentIndex = cursor;
+
+  if (stateStore[currentIndex] === undefined) {
+    stateStore[currentIndex] = initialValue;
+  }
+
+  const setState = (newValue) => {
+    stateStore[currentIndex] = newValue;
+    render(); // 임의로 만든 리렌더 함수
+  };
+
+  const state = stateStore[currentIndex];
+  cursor++;
+  return [state, setState];
+}
+
+function render() {
+  cursor = 0;
+  App();
+}
+
+function App() {
+  const [count, setCount] = useState(0);
+  console.log('count:', count);
+
+  setTimeout(() => {
+    setCount(count + 1); /
+  }, 1000);
+}
+
+App();
+```
+
+위 코드는 클로저를 통해 상태를 유지합니다.
+
+외부 상태 저장소인 stateStore 배열에 모든 상태값을 저장하며, 이 값은 컴포넌트 내부가 아닌 외부 배열에 저장됩니다.
+따라서 컴포넌트가 다시 호출되어도 상태가 사라지지 않습니다. 또 setState는 currentIndex 값을 클로저로 기억하고 있어, 어느 위치의 상태를 바꿔야 할지 정확히 알고 있습니다.
+
+즉 상태가 변경되어 리렌더링될 때 함수형 컴포넌트는 매번 다시 실행되지만, 상태가 유지되는 이유는 외부 저장소와 클로저 덕분입니다.
+
+## React Fiber와 클로저
+
+위에서 살펴본 useState의 상태 저장 구조는 React의 Fiber 아키텍처와 밀접한 관련이 있습니다.
+
+Fiber는 React 16 버전부터 도입된 아키텍처로, 각 컴포넌트의 상태와 정보를 담은 트리 구조입니다.
+
+각 함수형 컴포넌트는 렌더링 시점마다 Fiber 노드가 생성되고, 여기에 memoizedState라는 필드가 생성됩니다.
+이 필드는 useState 등의 Hook 상태 값들이 연결된 단일 연결 리스트입니다.
+
+React는 컴포넌트가 렌더링될 때 useState를 호출하면, 현재 Fiber에서 해당 위치의 Hook을 꺼내 상태를 읽고, 클로저를 통해 상태를 변경할 수 있게 합니다.
+
+이때 Fiber.memoizedState에 Hook 정보를 저장하고, setState는 클로저로 이 값을 참조하며, 이후 변경이 생기면 다시 렌더링되면서 Hook 리스트가 업데이트됩니다.
+
+## 클로저는 JavaScript만의 특징일까?
+
+> 그렇다면 클로저는 JavsScript만의 특징일까?
+
+그렇지 않습니다. 클로저는 JavaScript만의 특징이 아니라 Python, Kotlin, Swift 등 1급 함수를 지원하는 언어에서 사용할 수 있습니다.
+( 1급 함수는 함수를 변수에 할당할 수 있고, 인자로 전달하거나 반환할 수 있는 함수를 말합니다. )
+
+## 참고 자료
+
+- [MDN - 클로저](https://developer.mozilla.org/ko/docs/Web/JavaScript/Guide/Closures)
+- [모던 자바스크립트 딥다이브 - 이웅모](https://poiemaweb.com/js-closure)
+- [React Fiber 아키텍처 분석](https://d2.naver.com/helloworld/2690975)
+- [React 공식 문서](https://github.com/facebook/react/)
+- [Virtual DOM과 Internals](https://ko.legacy.reactjs.org/docs/faq-internals.html)
+- [React가 0.016초마다 하는 일 (Feat. Fiber)](https://medium.com/stayfolio-tech/react%EA%B0%80-0-016%EC%B4%88%EB%A7%88%EB%8B%A4-%ED%95%98%EB%8A%94-%EC%9D%BC-feat-fiber-1b9c3839675a)
