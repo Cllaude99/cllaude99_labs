@@ -32,7 +32,7 @@
 - **3D**: Three.js 0.160 + React Three Fiber 8.15
 - **테스팅**: Jest 30.1 + Testing Library 14.2 + Playwright 1.55
 - **포트**: 3000
-- **설명**: 개인 개발 공간은 [cllaude99_labs](www.cllaude99-labs.com)에서 확인해볼 수 있습니다.
+- **설명**: 개인 개발 공간은 [cllaude99_labs](https://www.cllaude99-labs.com/)에서 확인해볼 수 있습니다.
 
 #### 📝 devblog (개발 블로그)
 
