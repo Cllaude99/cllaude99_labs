@@ -1,7 +1,7 @@
 const PATH = {
   ROOT: '/',
-  QUIZ: '/meme/quiz',
-  MEME_DETAIL: (memeId?: string) => `/meme/${memeId ?? ':memeId'}`,
+  TRADERS: '/traders',
+  SKETCH: '/sketch',
 } as const;
 
 export { PATH };

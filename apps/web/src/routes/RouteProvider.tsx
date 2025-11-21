@@ -5,11 +5,13 @@ import {
   Outlet,
 } from 'react-router-dom';
 
-import DefaultComponent from '@/components/DefaultComponent';
 import APIErrorBoundary from '@/components/ErrorBoundary/APIErrorBoundary';
 import UnknownErrorBoundary from '@/components/ErrorBoundary/UnKnownErrorBoudary';
 import SomethingWentWrong from '@/components/ErrorPage/SomethingWentWrong';
 import { PATH } from '@/constants';
+import HomePage from '@/pages/HomePage';
+import SketchPage from '@/pages/SketchPage';
+import TradersPage from '@/pages/TradersPage';
 
 import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
@@ -38,7 +40,15 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <DefaultComponent />,
+        element: <HomePage />,
+      },
+      {
+        path: PATH.TRADERS,
+        element: <TradersPage />,
+      },
+      {
+        path: PATH.SKETCH,
+        element: <SketchPage />,
       },
       ...createAuthRouter('PRIVATE', []),
       ...createAuthRouter('PUBLIC', []),

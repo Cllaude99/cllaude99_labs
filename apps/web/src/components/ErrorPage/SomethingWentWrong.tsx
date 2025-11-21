@@ -22,8 +22,6 @@ const SomethingWentWrong = ({
   return (
     <Layout
       layoutStyle={{
-        display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
       }}
     >
