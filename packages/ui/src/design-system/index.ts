@@ -3,4 +3,4 @@ import { palette } from './palette';
 import { theme } from './theme';
 import { typography } from './typography';
 
-export { breakpoints, mq, palette, typography, theme };
+export { breakpoints, mq, palette, theme, typography };

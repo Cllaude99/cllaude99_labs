@@ -34,21 +34,21 @@ const ButtonContainer = styled.button<ButtonProps>`
           height: 40px;
           padding: 0 16px;
           gap: 6px;
-          ${theme.typography.body2Bold};
+          ${theme.typography.body2Bold.styles};
         `;
       case 'medium':
         return `
           height: 48px;
           padding: 0 20px;
           gap: 8px;
-          ${theme.typography.body2Bold};
+          ${theme.typography.body2Bold.styles};
         `;
       case 'large':
         return `
           height: 56px;
           padding: 0 24px;
           gap: 10px;
-          ${theme.typography.title2};
+          ${theme.typography.title2.styles};
         `;
     }
   }}

@@ -1,169 +1,73 @@
-export const typography = {
+import { css } from '@emotion/react';
+
+const generateTypography = (
+  size: number,
+  weight: number,
+  lineHeight: number,
+  letterSpacing: string,
+) => css`
+  font-family:
+    'Pretendard Variable',
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    Roboto,
+    'Helvetica Neue',
+    'Segoe UI',
+    'Apple SD Gothic Neo',
+    'Noto Sans KR',
+    'Malgun Gothic',
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    sans-serif;
+  font-style: normal;
+  font-display: auto;
+  font-size: ${size}px;
+  font-weight: ${weight};
+  line-height: ${lineHeight}px;
+  letter-spacing: ${letterSpacing};
+`;
+
+const typography = {
   // Display (대형 제목)
-  display1: {
-    fontSize: '48px',
-    lineHeight: '58px',
-    letterSpacing: '-0.02em',
-    fontWeight: 700,
-  },
-  display2: {
-    fontSize: '40px',
-    lineHeight: '50px',
-    letterSpacing: '-0.02em',
-    fontWeight: 700,
-  },
-  display3: {
-    fontSize: '32px',
-    lineHeight: '42px',
-    letterSpacing: '-0.02em',
-    fontWeight: 700,
-  },
+  display1: generateTypography(48, 700, 58, '-0.02em'),
+  display2: generateTypography(40, 700, 50, '-0.02em'),
+  display3: generateTypography(32, 700, 42, '-0.02em'),
 
   // Heading (제목)
-  heading1: {
-    fontSize: '28px',
-    lineHeight: '38px',
-    letterSpacing: '-0.01em',
-    fontWeight: 700,
-  },
-  heading2: {
-    fontSize: '24px',
-    lineHeight: '34px',
-    letterSpacing: '-0.01em',
-    fontWeight: 700,
-  },
-  heading3: {
-    fontSize: '22px',
-    lineHeight: '32px',
-    letterSpacing: '-0.01em',
-    fontWeight: 700,
-  },
-  heading4: {
-    fontSize: '20px',
-    lineHeight: '28px',
-    letterSpacing: '-0.01em',
-    fontWeight: 700,
-  },
+  heading1: generateTypography(28, 700, 38, '-0.01em'),
+  heading2: generateTypography(24, 700, 34, '-0.01em'),
+  heading3: generateTypography(22, 700, 32, '-0.01em'),
+  heading4: generateTypography(20, 700, 28, '-0.01em'),
 
   // Title (부제목)
-  title1: {
-    fontSize: '18px',
-    lineHeight: '26px',
-    letterSpacing: '-0.01em',
-    fontWeight: 600,
-  },
-  title2: {
-    fontSize: '16px',
-    lineHeight: '24px',
-    letterSpacing: '-0.01em',
-    fontWeight: 600,
-  },
-  title3: {
-    fontSize: '16px',
-    lineHeight: '24px',
-    letterSpacing: '-0.01em',
-    fontWeight: 500,
-  },
+  title1: generateTypography(18, 600, 26, '-0.01em'),
+  title2: generateTypography(16, 600, 24, '-0.01em'),
+  title3: generateTypography(16, 500, 24, '-0.01em'),
 
   // Body (본문)
-  body1: {
-    fontSize: '16px',
-    lineHeight: '26px',
-    letterSpacing: '-0.01em',
-    fontWeight: 400,
-  },
-  body1Bold: {
-    fontSize: '16px',
-    lineHeight: '26px',
-    letterSpacing: '-0.01em',
-    fontWeight: 600,
-  },
-  body2: {
-    fontSize: '15px',
-    lineHeight: '24px',
-    letterSpacing: '-0.01em',
-    fontWeight: 400,
-  },
-  body2Bold: {
-    fontSize: '15px',
-    lineHeight: '24px',
-    letterSpacing: '-0.01em',
-    fontWeight: 600,
-  },
-  body3: {
-    fontSize: '14px',
-    lineHeight: '22px',
-    letterSpacing: '-0.01em',
-    fontWeight: 400,
-  },
-  body3Bold: {
-    fontSize: '14px',
-    lineHeight: '22px',
-    letterSpacing: '-0.01em',
-    fontWeight: 600,
-  },
-  body4: {
-    fontSize: '13px',
-    lineHeight: '20px',
-    letterSpacing: '-0.01em',
-    fontWeight: 400,
-  },
-  body4Bold: {
-    fontSize: '13px',
-    lineHeight: '20px',
-    letterSpacing: '-0.01em',
-    fontWeight: 600,
-  },
+  body1: generateTypography(16, 400, 26, '-0.01em'),
+  body1Bold: generateTypography(16, 600, 26, '-0.01em'),
+  body2: generateTypography(15, 400, 24, '-0.01em'),
+  body2Bold: generateTypography(15, 600, 24, '-0.01em'),
+  body3: generateTypography(14, 400, 22, '-0.01em'),
+  body3Bold: generateTypography(14, 600, 22, '-0.01em'),
+  body4: generateTypography(13, 400, 20, '-0.01em'),
+  body4Bold: generateTypography(13, 600, 20, '-0.01em'),
 
   // Label (레이블)
-  label1: {
-    fontSize: '14px',
-    lineHeight: '20px',
-    letterSpacing: '-0.01em',
-    fontWeight: 500,
-  },
-  label1Bold: {
-    fontSize: '14px',
-    lineHeight: '20px',
-    letterSpacing: '-0.01em',
-    fontWeight: 600,
-  },
-  label2: {
-    fontSize: '13px',
-    lineHeight: '18px',
-    letterSpacing: '-0.01em',
-    fontWeight: 500,
-  },
-  label2Bold: {
-    fontSize: '13px',
-    lineHeight: '18px',
-    letterSpacing: '-0.01em',
-    fontWeight: 600,
-  },
-  label3: {
-    fontSize: '12px',
-    lineHeight: '16px',
-    letterSpacing: '-0.005em',
-    fontWeight: 500,
-  },
-  label3Bold: {
-    fontSize: '12px',
-    lineHeight: '16px',
-    letterSpacing: '-0.005em',
-    fontWeight: 600,
-  },
+  label1: generateTypography(14, 500, 20, '-0.01em'),
+  label1Bold: generateTypography(14, 600, 20, '-0.01em'),
+  label2: generateTypography(13, 500, 18, '-0.01em'),
+  label2Bold: generateTypography(13, 600, 18, '-0.01em'),
+  label3: generateTypography(12, 500, 16, '-0.005em'),
+  label3Bold: generateTypography(12, 600, 16, '-0.005em'),
 
   // Caption (캡션)
-  caption1: {
-    fontSize: '12px',
-    lineHeight: '18px',
-    letterSpacing: '-0.005em',
-    fontWeight: 400,
-  },
-  caption2: {
-    fontSize: '11px',
-    lineHeight: '16px',
-    letterSpacing: '0em',
-    fontWeight: 400,
-  },
+  caption1: generateTypography(12, 400, 18, '-0.005em'),
+  caption2: generateTypography(11, 400, 16, '0em'),
 } as const;
+
+export { typography };

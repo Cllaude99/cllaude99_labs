@@ -1,4 +1,4 @@
-export const palette = {
+const palette = {
   // 화이트 & 블랙
   white: '#FFFFFF',
   black: '#191F28',
@@ -100,3 +100,5 @@ export const palette = {
   purple800: '#6A1B9A',
   purple900: '#4A148C',
 } as const;
+
+export { palette };

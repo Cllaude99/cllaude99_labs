@@ -1,15 +1,18 @@
-import { breakpoints } from './breakpoints';
+import { breakpoints, mq } from './breakpoints';
 import { palette } from './palette';
 import { typography } from './typography';
 
-export const theme = {
+const theme = {
   breakpoints,
+  mq,
   palette,
   typography,
 } as const;
 
-export type ThemeType = typeof theme;
+type ThemeType = typeof theme;
 
 declare module '@emotion/react' {
   export interface Theme extends ThemeType {}
 }
+
+export { theme, type ThemeType };
