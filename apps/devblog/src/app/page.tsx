@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { getAllPosts } from '@/lib/posts';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
+import { FloatingMenu } from '@/components/FloatingMenu';
 
 export default function HomePage() {
   const posts = getAllPosts();
@@ -31,7 +32,7 @@ export default function HomePage() {
                         <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex-1 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors truncate">
                           {post.title}
                         </h2>
-                        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500 flex-shrink-0">
+                        <div className="hidden md:flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500 flex-shrink-0">
                           <time dateTime={post.date}>
                             {format(new Date(post.date), 'yyyy-MM-dd')}
                           </time>
@@ -61,6 +62,8 @@ export default function HomePage() {
           <p>© 2025 Cllaude99</p>
         </div>
       </footer>
+
+      <FloatingMenu />
     </div>
   );
 }

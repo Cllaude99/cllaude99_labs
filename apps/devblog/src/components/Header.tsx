@@ -95,12 +95,14 @@ export function Header({ showBackButton = false, posts, variant = 'default' }: H
 
               <Link
                 href="/about"
-                className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="hidden md:inline-flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 About
               </Link>
 
-              <ThemeToggle />
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         ) : (
@@ -162,12 +164,14 @@ export function Header({ showBackButton = false, posts, variant = 'default' }: H
 
               <Link
                 href="/about"
-                className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="hidden md:inline-flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 About
               </Link>
 
-              <ThemeToggle />
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         )}
