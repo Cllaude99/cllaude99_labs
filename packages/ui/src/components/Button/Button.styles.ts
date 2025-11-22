@@ -34,30 +34,21 @@ const ButtonContainer = styled.button<ButtonProps>`
           height: 40px;
           padding: 0 16px;
           gap: 6px;
-          font-size: ${theme.typography.body3Bold.fontSize};
-          line-height: ${theme.typography.body3Bold.lineHeight};
-          letter-spacing: ${theme.typography.body3Bold.letterSpacing};
-          font-weight: ${theme.typography.body3Bold.fontWeight};
+          ${theme.typography.body2Bold};
         `;
       case 'medium':
         return `
           height: 48px;
           padding: 0 20px;
           gap: 8px;
-          font-size: ${theme.typography.body2Bold.fontSize};
-          line-height: ${theme.typography.body2Bold.lineHeight};
-          letter-spacing: ${theme.typography.body2Bold.letterSpacing};
-          font-weight: ${theme.typography.body2Bold.fontWeight};
+          ${theme.typography.body2Bold};
         `;
       case 'large':
         return `
           height: 56px;
           padding: 0 24px;
           gap: 10px;
-          font-size: ${theme.typography.title2.fontSize};
-          line-height: ${theme.typography.title2.lineHeight};
-          letter-spacing: ${theme.typography.title2.letterSpacing};
-          font-weight: ${theme.typography.title2.fontWeight};
+          ${theme.typography.title2};
         `;
     }
   }}
