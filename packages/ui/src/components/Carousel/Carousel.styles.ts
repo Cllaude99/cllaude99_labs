@@ -1,5 +1,7 @@
 import styled from '@emotion/styled';
 
+const DotsContainerZIndex = 100;
+
 const Container = styled.div`
   position: relative;
   width: 100%;
@@ -68,6 +70,8 @@ const DotsContainer = styled.div`
   justify-content: center;
   gap: 12px;
   margin-top: 24px;
+  z-index: ${DotsContainerZIndex};
+  pointer-events: auto;
 `;
 
 const Dot = styled.button<{ isActive: boolean }>`
