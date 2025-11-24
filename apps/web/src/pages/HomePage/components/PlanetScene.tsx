@@ -5,6 +5,7 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Vector3 } from 'three';
 
+import CameraFloating from './CameraFloating';
 import Planet3D from './Planet3D';
 
 interface Props {
@@ -59,7 +60,7 @@ const PlanetScene = ({
         fov={CAMERA_SETTINGS.fov}
       />
 
-      {/* 궤도 제어: 줌 비활성화, 자동 회전 활성화 */}
+      {/* 궤도 제어: 줌 비활성화, 자동 회전 항상 활성화 */}
       <OrbitControls
         enableZoom={false}
         enablePan={false}
@@ -68,7 +69,14 @@ const PlanetScene = ({
         autoRotateSpeed={0.8}
         minPolarAngle={Math.PI / 4}
         maxPolarAngle={Math.PI / 2.2}
+        minDistance={30}
+        maxDistance={50}
+        enableDamping={true}
+        dampingFactor={0.05}
       />
+
+      {/* 카메라 자연스러운 움직임 */}
+      <CameraFloating />
 
       {/* 전역 주변광 */}
       <ambientLight intensity={0.4} />
