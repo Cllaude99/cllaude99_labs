@@ -155,7 +155,7 @@ const TechStackWrapper = styled.div`
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 8px;
   margin-bottom: 20px;
   padding: 4px 0;
@@ -166,7 +166,6 @@ const TechStackWrapper = styled.div`
 
   ${mq.desktop} {
     flex-wrap: wrap;
-    justify-content: center;
     overflow-x: visible;
   }
 `;

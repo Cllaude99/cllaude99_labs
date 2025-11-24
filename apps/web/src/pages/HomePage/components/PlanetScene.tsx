@@ -1,56 +1,44 @@
 /* eslint-disable react/no-unknown-property */
+import { useCallback } from 'react';
+
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+import { Vector3 } from 'three';
 
 import Planet3D from './Planet3D';
 
-interface PlanetSceneProps {
+interface Props {
   currentIndex: number;
-  totalProjects: number;
+  projectsLength: number;
   onPlanetClick: (index: number) => void;
 }
 
 const PlanetScene = ({
   currentIndex,
-  totalProjects,
+  projectsLength,
   onPlanetClick,
-}: PlanetSceneProps) => {
-  // 화면 크기에 따라 궤도 크기 동적 조정
-  const getOrbitRadius = () => {
-    if (typeof window === 'undefined') return 28;
-    const width = window.innerWidth;
-    if (width <= 375) return 12; // 매우 작은 모바일
-    if (width <= 480) return 15; // 작은 모바일
-    if (width <= 768) return 18; // 태블릿
-    if (width <= 1024) return 22; // 작은 데스크톱
-    return 28; // 큰 데스크톱
-  };
+}: Props) => {
+  const PLANET_RADIUS = 28; // 행성 배치 반지름
+  const ORBIT_RADIUS = 28; // 궤도 링 반지름
+  const CAMERA_SETTINGS = { position: [0, 8, 40], fov: 70 }; // 카메라 위치 및 시야각 설정
 
-  const getPlanetPosition = (
-    index: number,
-    total: number,
-  ): [number, number, number] => {
-    const angle = (index / total) * Math.PI * 2;
-    const radius = getOrbitRadius();
-    return [Math.sin(angle) * radius, 0, Math.cos(angle) * radius];
-  };
-
-  // 화면 크기에 따른 카메라 설정
-  const getCameraSettings = (): {
-    position: [number, number, number];
-    fov: number;
-  } => {
-    if (typeof window === 'undefined') return { position: [0, 8, 40], fov: 65 };
-    const width = window.innerWidth;
-    if (width <= 375) return { position: [0, 6, 20], fov: 75 }; // 매우 작은 모바일
-    if (width <= 480) return { position: [0, 7, 25], fov: 70 }; // 작은 모바일
-    if (width <= 768) return { position: [0, 7, 30], fov: 68 }; // 태블릿
-    if (width <= 1024) return { position: [0, 8, 35], fov: 66 }; // 작은 데스크톱
-    return { position: [0, 8, 40], fov: 70 }; // 큰 데스크톱
-  };
-
-  const cameraSettings = getCameraSettings();
-  const orbitRadius = getOrbitRadius();
+  /**
+   * 원형 궤도 상의 행성 위치 계산
+   * @param index - 행성 인덱스
+   * @param total - 전체 행성 개수
+   * @returns [x, y, z] 좌표
+   */
+  const getPlanetPosition = useCallback(
+    (index: number, total: number): [number, number, number] => {
+      const angle = (index / total) * Math.PI * 2;
+      return [
+        Math.sin(angle) * PLANET_RADIUS,
+        0,
+        Math.cos(angle) * PLANET_RADIUS,
+      ];
+    },
+    [],
+  );
 
   return (
     <Canvas
@@ -64,34 +52,50 @@ const PlanetScene = ({
         pointerEvents: 'auto',
       }}
     >
-      {/* 카메라 설정 - 반응형 시야 */}
+      {/* 기본 카메라 설정 */}
       <PerspectiveCamera
         makeDefault
-        position={cameraSettings.position}
-        fov={cameraSettings.fov}
+        position={CAMERA_SETTINGS.position as unknown as Vector3}
+        fov={CAMERA_SETTINGS.fov}
       />
+
+      {/* 궤도 제어: 줌 비활성화, 자동 회전 활성화 */}
       <OrbitControls
         enableZoom={false}
         enablePan={false}
         enableRotate={true}
         autoRotate={true}
-        autoRotateSpeed={0.4}
+        autoRotateSpeed={0.8}
         minPolarAngle={Math.PI / 4}
         maxPolarAngle={Math.PI / 2.2}
       />
 
-      {/* 조명 설정 - 입체감을 위한 다층 조명 */}
+      {/* 전역 주변광 */}
       <ambientLight intensity={0.4} />
+
+      {/* 메인 방향광 (그림자 생성) */}
       <directionalLight position={[15, 18, 12]} intensity={1.5} castShadow />
+
+      {/* 보조 방향광 (청색 계열) */}
       <directionalLight
         position={[-8, 10, -6]}
         intensity={0.6}
         color="#8ab4f8"
       />
+
+      {/* 포인트 라이트 - 왼쪽 하단 */}
       <pointLight position={[-12, -10, -8]} intensity={0.8} color="#4a90e2" />
+
+      {/* 포인트 라이트 - 오른쪽 상단 */}
       <pointLight position={[8, 8, 15]} intensity={0.6} color="#a0d0ff" />
+
+      {/* 포인트 라이트 - 중앙 하단 */}
       <pointLight position={[0, -5, 10]} intensity={0.4} color="#6a8caf" />
+
+      {/* 반구 조명 (상단: 흰색, 하단: 어두운 청색) */}
       <hemisphereLight color="#ffffff" groundColor="#0f1419" intensity={0.8} />
+
+      {/* 스포트라이트 (상단 중앙) */}
       <spotLight
         position={[0, 25, 0]}
         angle={0.8}
@@ -100,8 +104,8 @@ const PlanetScene = ({
         color="#ffffff"
       />
 
-      {/* 행성들 */}
-      {Array.from({ length: totalProjects }).map((_, index) => (
+      {/* 프로젝트 개수만큼 행성 렌더링 */}
+      {[...Array(projectsLength)].map((_, index) => (
         <group
           key={index}
           onClick={() => onPlanetClick(index)}
@@ -114,15 +118,15 @@ const PlanetScene = ({
           }}
         >
           <Planet3D
-            position={getPlanetPosition(index, totalProjects)}
+            position={getPlanetPosition(index, projectsLength)}
             isActive={index === currentIndex}
           />
         </group>
       ))}
 
-      {/* 중앙 궤도 링 - 반응형 크기 */}
+      {/* 메인 궤도 링 (토러스 형태, 청색 발광) */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[orbitRadius, 0.045, 16, 128]} />
+        <torusGeometry args={[ORBIT_RADIUS, 0.025, 16, 128]} />
         <meshStandardMaterial
           color="#4a90e2"
           transparent
@@ -131,9 +135,10 @@ const PlanetScene = ({
           emissiveIntensity={0.1}
         />
       </mesh>
-      {/* 서브 궤도 링 */}
+
+      {/* 서브 궤도 링 (토러스 형태, 흰색 투명) */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[orbitRadius, 0.03, 16, 128]} />
+        <torusGeometry args={[ORBIT_RADIUS, 0.015, 16, 128]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.06} />
       </mesh>
     </Canvas>

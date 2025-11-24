@@ -35,7 +35,7 @@ const HomePage = () => {
           <Suspense fallback={null}>
             <PlanetScene
               currentIndex={currentIndex}
-              totalProjects={PROJECTS.length}
+              projectsLength={PROJECTS.length}
               onPlanetClick={(index) => {
                 setCurrentIndex(index);
               }}
