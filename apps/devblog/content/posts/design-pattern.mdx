@@ -1,0 +1,616 @@
+---
+title: '디자인 패턴을 적용하여 변화에 유연한 모달 컴포넌트 만들기'
+description: '헤드리스 패턴과 컴파운드 패턴을 활용하여 재사용 가능하고 확장 가능한 Dialog 컴포넌트를 구현한 경험을 공유합니다'
+date: '2025-11-29'
+published: true
+category: 'Tech'
+tags: ['React', 'Design Pattern', 'Dialog', 'Headless', 'Component']
+author: 'Cllaude99'
+---
+
+프로젝트를 진행하면서 페이지에 모달을 사용해야 하는 상황이 있었습니다.
+이를 구현하기 위해 `useDialog` 훅으로 모달의 상태를 관리하고
+모달을 사용하는 컴포넌트에서는 해당 훅을 사용하여 모달 UI를 작성하였습니다.
+
+처음에는 꽤 괜찮아보였습니다.
+
+하지만 서비스를 만드는 과정에서 `모달 버튼의 위치를 변경해주세요.`, `해당 모달의 디자인은 기존 모달과는 다르게 보였으면 좋겠어요.` 등의
+요구사항이 있었고 이를 반영하는데 아래와 같은 어려움이 있었습니다.
+
+- 요구사항이 많아짐에 따라 Modal 컴포넌트 자체가 커졌고 페이지마다 Modal을 따로 복붙해서 수정하게 되는 일이 많았습니다.
+- 훅으로 관리하여 사용하고 있었던 ESC 키, 포커스 트랩, aria- 속성, 포털등에 대한 로직도 매번 적용해줘야하는 불편함이 있었습니다.
+
+이로 인해, 어떤 모달은 ESC 키와 관련된 훅이 포함되지 않아서 ESC키가 적용이 되지 않은 적도 있었고, 요구사항마다 모달 컴포넌트 자체에 props를 추가하게 되면서
+props가 많아지게 되었습니다.
+
+그래서 변화에 유연해지도록 모달을 다시 만들 수는 없을까? 에 대해 고민하였고 이 과정에서 디자인패턴을 적용하게 되었습니다.
+이번 글에서는 디자인 패턴을 적용하여 변화에 유연하도록 모달 컴포넌트를 만든 경험에 대해 적어보려고 합니다.
+
+## 디자인 패턴
+
+먼저, 문제 해결을 위해 공부한 몇 가지 디자인 패턴들에 대해 정리보겠습니다.
+
+### 컴파운드 패턴
+
+컴파운드 패턴은 여러 컴포넌트가 Context를 통해 상태를 공유하며 하나의 기능을 완성하는 패턴입니다.
+
+아래는 Tabs 컴포넌트를 컴파운드 패턴으로 구현한 예시입니다.
+
+```tsx
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  ButtonHTMLAttributes,
+} from 'react';
+
+type TabsContextValue = {
+  value: string;
+  setValue: (v: string) => void;
+};
+
+const TabsContext = createContext<TabsContextValue | null>(null);
+
+function useTabsContext() {
+  const ctx = useContext(TabsContext);
+  if (!ctx) throw new Error('Tabs.* 컴포넌트는 Tabs 안에서만 사용해야 합니다.');
+  return ctx;
+}
+
+type TabsProps = {
+  defaultValue: string;
+  children: ReactNode;
+};
+
+function TabsRoot({ defaultValue, children }: TabsProps) {
+  const [value, setValue] = useState(defaultValue);
+
+  return (
+    <TabsContext.Provider value={{ value, setValue }}>
+      <div>{children}</div>
+    </TabsContext.Provider>
+  );
+}
+
+function TabsList({ children }: { children: ReactNode }) {
+  return <div style={{ display: 'flex', gap: 8 }}>{children}</div>;
+}
+
+type TabsTriggerProps = {
+  value: string;
+} & ButtonHTMLAttributes<HTMLButtonElement>;
+
+function TabsTrigger({ value, children, ...buttonProps }: TabsTriggerProps) {
+  const { value: selected, setValue } = useTabsContext();
+  const isActive = selected === value;
+
+  return (
+    <button
+      type="button"
+      onClick={() => setValue(value)}
+      style={{
+        padding: '8px 12px',
+        borderBottom: isActive ? '2px solid black' : '2px solid transparent',
+        fontWeight: isActive ? 'bold' : 'normal',
+      }}
+      {...buttonProps}
+    >
+      {children}
+    </button>
+  );
+}
+
+type TabsPanelProps = {
+  value: string;
+  children: ReactNode;
+};
+
+function TabsPanel({ value, children }: TabsPanelProps) {
+  const { value: selected } = useTabsContext();
+  if (selected !== value) return null;
+  return <div style={{ marginTop: 16 }}>{children}</div>;
+}
+
+// static property로 묶어서 하나의 패밀리로 제공
+export const Tabs = Object.assign(TabsRoot, {
+  List: TabsList,
+  Trigger: TabsTrigger,
+  Panel: TabsPanel,
+});
+```
+
+사용할 때는 이렇게 합니다.
+
+```tsx
+function App() {
+  return (
+    <Tabs defaultValue="profile">
+      <Tabs.List>
+        <Tabs.Trigger value="profile">프로필</Tabs.Trigger>
+        <Tabs.Trigger value="settings">설정</Tabs.Trigger>
+      </Tabs.List>
+
+      <Tabs.Panel value="profile">프로필 내용</Tabs.Panel>
+      <Tabs.Panel value="settings">설정 내용</Tabs.Panel>
+    </Tabs>
+  );
+}
+```
+
+만약 컴파운드 패턴을 사용하지 않았다면 `selected`와 `setValue`를 모든 하위 컴포넌트에 Props로 전달해야 했을 것입니다.
+하지만 위와 같이 Context를 사용하여 적절히 추상화를 함으로써 하위 컴포넌트들은 서로 상태를 공유할 수 있고
+이로 인해 사용하는 쪽에서 선언적으로 코드를 작성할 수 있게 됩니다.
+
+### 합성 컴포넌트 패턴 (Composition Pattern)
+
+합성 컴포넌트 패턴은 Props로 다른 컴포넌트를 받아서 조합하는 패턴입니다.
+예시는 아래와 같습니다.
+
+```tsx
+type PageLayoutProps = {
+  header: React.ReactNode;
+  footer: React.ReactNode;
+  children: React.ReactNode;
+};
+
+export function PageLayout({ header, panel, children }: PageLayoutProps) {
+  return (
+    <div
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+    >
+      <header>{header}</header>
+      <panel>{panel}</panel>
+      <main style={{ flex: 1 }}>{children}</main>
+    </div>
+  );
+}
+
+// 사용 예시
+function App() {
+  return (
+    <PageLayout header={<Header />} panel={<Panel />}}>
+      <Dashboard />
+    </PageLayout>
+  );
+}
+```
+
+> 만약 합성 패턴을 사용하지 않았다면 어땠을까요?
+
+아마도 `PageLayout` 컴포넌트가 헤더와 푸터의 구체적인 구현을 알아야 했을 것입니다.
+하지만 합성 패턴을 사용하면 레이아웃만 책임지고, 구체적인 내용은 사용하는 쪽에서 자유롭게 구성할 수 있습니다.
+
+### 헤드리스 패턴 (Headless Pattern)
+
+헤드리스 패턴은 UI와 로직을 완전히 분리하는 패턴입니다.
+컴포넌트나 훅이 상태 관리와 비즈니스 로직만 제공하고, 실제 UI 렌더링은 사용하는 쪽에 맡깁니다.
+
+```tsx
+// 헤드리스 훅만 제공
+function useDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const open = () => setIsOpen(true);
+  const close = () => setIsOpen(false);
+  const toggle = () => setIsOpen((prev) => !prev);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        close();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
+  return { isOpen, open, close, toggle, dropdownRef };
+}
+
+// 사용하는 쪽에서 UI를 완전히 자유롭게 구성
+function DesktopDropdown() {
+  const dropdown = useDropdown();
+
+  return (
+    <div ref={dropdown.dropdownRef}>
+      <button onClick={dropdown.toggle}>메뉴</button>
+      {dropdown.isOpen && (
+        <div style={{ position: 'absolute', background: 'white' }}>
+          <div>옵션 1</div>
+          <div>옵션 2</div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+만약 헤드리스 패턴을 사용하지 않았다면 외부 클릭 감지, ESC 키 처리 같은 로직을 사용하는 컴포넌트에 중복으로 작성해야 했을 것입니다.
+하지만 헤드리스 패턴을 사용하면 로직은 한 번만 작성하고, UI는 각 환경에 맞게 자유롭게 구성할 수 있습니다.
+
+## 모달 컴포넌트를 만들 때 고려해야 할 사항
+
+모달 컴포넌트를 만들기에 앞서 아래의 요구사항을 고려해주었습니다.
+
+- **ESC 키로 닫기** - 사용자가 ESC 키를 누르면 모달이 닫혀야 합니다
+- **바깥 영역 클릭 시 닫기** - 오버레이 영역을 클릭하면 모달이 닫혀야 합니다 (선택적)
+- **포커스 트랩** - 모달이 열려있을 때 Tab 키로 포커스 이동 시 모달 내부에서만 순환되어야 합니다
+- **ARIA 속성** - `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, `aria-describedby` 등을 적절히 사용해야 합니다
+- **스크롤 락** - 모달이 열렸을 때 배경 스크롤을 방지해야 합니다
+- **포털 렌더링** - body에 포털로 렌더링하여 z-index 문제를 방지해야 합니다
+- **자동 포커스 및 복원** - 모달이 열리면 첫 번째 포커스 가능한 요소로 포커스되고, 닫히면 이전 요소로 복원되어야 합니다
+
+## 처음에 존재했던 문제
+
+처음에 만든 모달의 경우 `useDialog` 훅이 열림/닫힘 상태만 관리하고, 나머지는 모두 사용하는 쪽에서 처리하는 방식이었습니다.
+
+```tsx
+// src/components/dialog/useDialog.ts
+export function useDialog(initialOpen = false) {
+  const [open, setOpen] = useState(initialOpen);
+  const openDialog = () => setOpen(true);
+  const closeDialog = () => setOpen(false);
+  return { open, openDialog, closeDialog };
+}
+```
+
+사용하는 쪽에서는 이렇게 작성했습니다.
+
+```tsx
+// src/pages/App.tsx
+function App() {
+  const { open, openDialog, closeDialog } = useDialog();
+
+  return (
+    <>
+      <button onClick={openDialog}>열기</button>
+
+      {open && (
+        <div role="dialog" aria-modal="true">
+          <h2>제목</h2>
+          <p>내용</p>
+          <button onClick={closeDialog}>닫기</button>
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+이 방식의 경우 접근성 로직의 중복, 일관성 없는 구현등의 문제가 존재했습니다.
+
+**문제 1. 접근성 로직의 중복**
+
+ESC 키로 닫기, 포커스 트랩, 스크롤 락 같은 접근성 기능을 매번 각 페이지에서 직접 구현해야 했습니다.
+
+```tsx
+function ProfilePage() {
+  const { open, openDialog, closeDialog } = useDialog();
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // ESC 키 처리 - 모든 페이지에서 반복
+  useEffect(() => {
+    if (!open) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeDialog();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [open, closeDialog]);
+
+  // 스크롤 락 - 모든 페이지에서 반복
+  useEffect(() => {
+    if (!open) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [open]);
+
+  // 포커스 트랩 - 모든 페이지에서 반복
+  useEffect(() => {
+    // 복잡한 포커스 트랩 로직...
+  }, [open]);
+
+  return (
+    <>
+      <button onClick={openDialog}>프로필 편집</button>
+      {open && (
+        <div ref={dialogRef} role="dialog" aria-modal="true">
+          <h2>프로필 편집</h2>
+          <form>...</form>
+          <button onClick={closeDialog}>닫기</button>
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+**문제 2. 일관성 없는 구현**
+
+각 페이지마다 개발자가 직접 구현하다 보니 일부는 ESC 키를 지원하지 않고, 일부는 포커스 트랩이 없는 등 일관성이 떨어졌습니다.
+
+이런 문제들을 경험하면서 "UI는 자유롭게 구성하되, 접근성 로직은 자동으로 처리되어야 한다"는 생각을 가지게 되었고
+순수 헤드리스 패턴의 유연성을 유지하면서도, 반복되는 접근성 로직은 컴포넌트로 추상화하고자 하였습니다.
+
+## 헤드리스 + 컴파운드 패턴으로 개선
+
+헤드리스 패턴의 유연성과 컴파운드 패턴의 구조화를 조합하여 모달을 다시 만들었습니다.
+
+> 아래와 같이 설계하였습니다.
+
+- `useDialogState` 훅으로 열림/닫힘 상태 관리
+- `DialogRoot`가 Context로 상태와 접근성 로직 제공
+- `DialogContent`, `DialogTitle` 등은 최소한의 구조만 제공
+- 사용하는 쪽에서 내부 UI를 자유롭게 구성
+
+### 폴더 구조
+
+```
+src/components/dialog/
+├── useDialogState.ts        // 헤드리스 훅
+├── DialogRoot.tsx            // Context + 포털 + ESC/포커스트랩
+├── DialogContent.tsx         // 내용 컨테이너 (role, aria- 등)
+```
+
+### 1. useDialogState 훅 (헤드리스)
+
+상태 관리만 담당하는 순수 헤드리스 훅입니다.
+
+```tsx
+// src/components/dialog/useDialogState.ts
+import { useState } from 'react';
+
+export function useDialogState(initialOpen = false) {
+  const [open, setOpen] = useState(initialOpen);
+  const openDialog = () => setOpen(true);
+  const closeDialog = () => setOpen(false);
+  return { open, openDialog, closeDialog };
+}
+```
+
+### 2. DialogRoot (Context + 접근성 로직)
+
+Context Provider 역할과 접근성 로직을 담당합니다.
+여기서 ESC 키, 스크롤 락, 포커스 트랩 등을 자동으로 처리하도록 하였습니다.
+
+```tsx
+// src/components/dialog/DialogRoot.tsx
+import React, { createContext, useContext, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+
+type DialogContextValue = {
+  open: boolean;
+  close: () => void;
+  dialogRef: React.RefObject<HTMLDivElement>;
+};
+
+const DialogContext = createContext<DialogContextValue | null>(null);
+
+export function useDialogContext() {
+  const ctx = useContext(DialogContext);
+  if (!ctx) {
+    throw new Error('Dialog.* 컴포넌트는 DialogRoot 안에서만 사용해야 합니다.');
+  }
+  return ctx;
+}
+
+type DialogRootProps = {
+  open: boolean;
+  close: () => void;
+  children: React.ReactNode;
+  closeOnEsc?: boolean;
+};
+
+export function DialogRoot({
+  open,
+  close,
+  children,
+  closeOnEsc = true,
+}: DialogRootProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // ESC 키로 닫기
+  useEffect(() => {
+    if (!open || !closeOnEsc) return;
+
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [open, closeOnEsc, close]);
+
+  // 스크롤 락
+  useEffect(() => {
+    if (!open) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [open]);
+
+  // 포커스 트랩
+  useEffect(() => {
+    if (!open || !dialogRef.current) return;
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = dialogRef.current!.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[
+        focusableElements.length - 1
+      ] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    dialogRef.current.addEventListener('keydown', handleTab);
+    return () => dialogRef.current?.removeEventListener('keydown', handleTab);
+  }, [open]);
+
+  // 자동 포커스 및 복원
+  useEffect(() => {
+    if (!open || !dialogRef.current) return;
+
+    const previousActiveElement = document.activeElement as HTMLElement;
+
+    const focusableElements = dialogRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    const firstElement = focusableElements[0] as HTMLElement;
+    firstElement?.focus();
+
+    return () => {
+      previousActiveElement?.focus();
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <DialogContext.Provider value={{ open, close, dialogRef }}>
+      {children}
+    </DialogContext.Provider>,
+    document.body,
+  );
+}
+```
+
+여기서 신경 쓴 부분은 ESC 키, 스크롤 락, 포커스 트랩, 자동 포커스 복원등의 접근성 로직을 `DialogRoot`에서 자동으로 처리하여 사용하는 쪽에서 신경 쓰지 않아도 되게 만드는 것이었습니다.
+
+### 3. DialogContent (내용 컨테이너)
+
+ARIA 속성과 기본 구조만 제공하고, 내부 UI는 완전히 자유롭게 구성할 수 있도록 하였습니다.
+
+```tsx
+// src/components/dialog/DialogContent.tsx
+import React from 'react';
+import { useDialogContext } from './DialogRoot';
+import * as S from './Dialog.styles';
+
+type DialogContentProps = {
+  children: React.ReactNode;
+  ariaLabelledBy?: string;
+  ariaDescribedBy?: string;
+} & React.HTMLAttributes<HTMLDivElement>;
+
+export function DialogContent({
+  children,
+  ariaLabelledBy,
+  ariaDescribedBy,
+  ...rest
+}: DialogContentProps) {
+  const { dialogRef, close } = useDialogContext();
+
+  return (
+    <S.Overlay onClick={close}>
+      <S.Content
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        onClick={(e) => e.stopPropagation()}
+        {...rest}
+      >
+        {children}
+      </S.Content>
+    </S.Overlay>
+  );
+}
+```
+
+### 실제 사용 예시
+
+이제 각 페이지에서는 접근성 로직을 신경 쓰지 않고 UI만 구성하면 되었습니다.
+
+```tsx
+// src/pages/ProfilePage.tsx
+import {
+  useDialogState,
+  DialogRoot,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/dialog';
+
+export function ProfilePage() {
+  const dialog = useDialogState();
+
+  return (
+    <>
+      <button onClick={dialog.openDialog}>프로필 편집</button>
+
+      <DialogRoot open={dialog.open} close={dialog.closeDialog}>
+        <DialogContent
+          ariaLabelledBy="profile-title"
+          ariaDescribedBy="profile-desc"
+        >
+          {/* 여기 안의 UI는 완전 자유 */}
+          <form>
+            <input placeholder="이름" />
+            <input placeholder="이메일" />
+            <button type="submit">저장</button>
+          </form>
+
+          <button onClick={dialog.closeDialog}>닫기</button>
+        </DialogContent>
+      </DialogRoot>
+    </>
+  );
+}
+```
+
+결과적으로 이전에 비해 UI의 유연성은 유지하면서 여러 모달 컴포넌트간의 일관성을 보장할 수 있게 되었다는 장점이 생겼습니다.
+또, ESC 키, 스크롤 락, 포커스 트랩 등을 `DialogRoot`가 자동으로 처리하여 모든 모달에 동일한 로직을 하나하나 적어줬던 불편함도 해결할 수 있었습니다.
+
+## 마치며
+
+헤드리스 패턴과 컴파운드 패턴을 조합하면서 가장 중요하게 느낀 점은 "추상화 레벨의 균형"이었습니다.
+순수 헤드리스 패턴은 너무 자유로워서 중복이 많았고, 완전히 구조화된 컴포넌트는 유연성이 떨어졌습니다.
+그래서 이 두 패턴을 조합하여 "반복되는 로직은 자동화하되, UI는 자유롭게"라는 균형점을 찾을 수 있었습니다.
+이러한 생각을 기반으로 `DialogRoot`가 접근성 로직을 자동으로 처리하고, `DialogContent`는 최소한의 구조만 제공하여 사용하는 쪽에서 내부를 자유롭게 구성할 수 있게 했습니다.
+이제 디자이너의 새로운 접근사항이 생기면 `DialogRoot`만 수정하면 되고, UI 요구사항이 생기면 각 페이지에서 자유롭게 구성하면 되어 변화에 유연하게 대응할 수 있게 되었습니다.
+이러한 경험을 통해 좋은 컴포넌트는 "무엇을 추상화하고 무엇을 노출할지"를 명확히 결정하는 것이라는 생각도 가지게 되었습니다.
+
+## 참고 자료
+
+- [Headless UI](https://headlessui.com/)
+- [Radix UI - Dialog](https://www.radix-ui.com/primitives/docs/components/dialog)
+- [WAI-ARIA Authoring Practices - Dialog Modal](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)
+- [React Spectrum - useDialog](https://react-spectrum.adobe.com/react-aria/useDialog.html)
