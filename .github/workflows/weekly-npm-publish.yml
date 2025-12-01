@@ -1,0 +1,137 @@
+name: Weekly NPM Publish
+
+on:
+  schedule:
+    # 매주 월요일 KST 19:30 (UTC 10:30)
+    - cron: '30 10 * * 1'
+
+  # 수동 실행도 가능하도록
+  workflow_dispatch:
+
+jobs:
+  publish-npm:
+    name: Publish UI Package to NPM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.0'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          cd packages/ui
+
+          # 현재 버전 가져오기
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "현재 버전: $CURRENT_VERSION"
+
+          # 버전 분리 (a.b.c)
+          IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
+          A="${VERSION_PARTS[0]}"
+          B="${VERSION_PARTS[1]}"
+          C="${VERSION_PARTS[2]}"
+
+          echo "A=$A, B=$B, C=$C"
+
+          # C 증가 (0-9 범위)
+          C=$((C + 1))
+
+          # C가 10이 되면 B 증가, C는 0으로 리셋
+          if [ $C -eq 10 ]; then
+            C=0
+            B=$((B + 1))
+          fi
+
+          # B가 10이 되면 A 증가, B는 0으로 리셋
+          if [ $B -eq 10 ]; then
+            B=0
+            A=$((A + 1))
+          fi
+
+          # 새 버전 생성
+          NEW_VERSION="$A.$B.$C"
+          echo "새 버전: $NEW_VERSION"
+
+          # package.json 업데이트
+          npm version $NEW_VERSION --no-git-tag-version
+
+          # 환경변수로 내보내기
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "OLD_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build UI package
+        run: pnpm --filter @cllaude99/ui build
+
+      - name: Run tests and checks
+        run: |
+          pnpm --filter @cllaude99/ui lint
+          pnpm --filter @cllaude99/ui type-check
+
+      - name: Publish to NPM
+        run: |
+          cd packages/ui
+          npm publish --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/ui/package.json
+          git commit -m "chore(ui): bump version to ${{ steps.bump_version.outputs.NEW_VERSION }}
+
+          📦 자동 버전 업데이트 및 NPM 배포
+
+          - 이전 버전: ${{ steps.bump_version.outputs.OLD_VERSION }}
+          - 새 버전: ${{ steps.bump_version.outputs.NEW_VERSION }}
+          - 배포 시간: $(date +'%Y-%m-%d %H:%M:%S KST')
+
+          🤖 Generated with GitHub Actions"
+          git push
+
+      - name: Create Git Tag
+        run: |
+          git tag "v${{ steps.bump_version.outputs.NEW_VERSION }}"
+          git push origin "v${{ steps.bump_version.outputs.NEW_VERSION }}"
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ NPM 배포 완료!"
+          echo "📦 패키지: @cllaude99/ui"
+          echo "🔖 이전 버전: ${{ steps.bump_version.outputs.OLD_VERSION }}"
+          echo "🔖 새 버전: ${{ steps.bump_version.outputs.NEW_VERSION }}"
+          echo "📅 배포 시간: $(date +'%Y-%m-%d %H:%M:%S KST')"
+          echo "🌐 NPM: https://www.npmjs.com/package/@cllaude99/ui"
