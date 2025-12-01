@@ -64,11 +64,12 @@ jobs:
           ls -la storybook-static/
           echo "✅ Storybook build completed successfully"
 
-      - name: Setup Vercel project configuration
+      - name: Pull Vercel project settings
         run: |
-          mkdir -p .vercel
-          echo '{"projectId":"${{ secrets.VERCEL_UI_PROJECT_ID }}","orgId":"${{ secrets.VERCEL_ORG_ID }}"}' > .vercel/project.json
-          cat .vercel/project.json
+          npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_UI_PROJECT_ID }}
 
       - name: Deploy to Vercel
         run: |
