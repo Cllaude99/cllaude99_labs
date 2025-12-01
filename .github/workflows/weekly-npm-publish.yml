@@ -103,6 +103,8 @@ jobs:
           pnpm --filter @cllaude99/ui type-check
 
       - name: Publish to NPM (Trusted Publisher)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cd packages/ui
           npm publish --access=public --provenance
