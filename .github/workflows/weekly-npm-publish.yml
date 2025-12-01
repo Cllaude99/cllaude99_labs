@@ -12,6 +12,9 @@ jobs:
   publish-npm:
     name: Publish UI Package to NPM
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -99,14 +102,10 @@ jobs:
           pnpm --filter @cllaude99/ui lint
           pnpm --filter @cllaude99/ui type-check
 
-      - name: Setup NPM authentication
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-
-      - name: Publish to NPM
+      - name: Publish to NPM (Trusted Publisher)
         run: |
           cd packages/ui
-          npm publish --access=public
+          npm publish --access=public --provenance
 
       - name: Commit version bump
         run: |
