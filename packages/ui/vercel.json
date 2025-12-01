@@ -1,5 +1,7 @@
 {
+  "buildCommand": "",
   "outputDirectory": "storybook-static",
   "framework": null,
+  "installCommand": "",
   "ignoreCommand": "exit 0"
 }
