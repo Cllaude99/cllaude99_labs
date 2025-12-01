@@ -1,7 +1,6 @@
 import Button from './Button';
 import Carousel from './Carousel';
 import Cllaude99UIProvider from './Cllaude99UIProvider';
-import Dialog from './Dialog';
 import Footer from './Footer';
 import Portal from './Portal';
 import Tab from './Tab';
@@ -16,6 +15,5 @@ export {
   Footer,
   Carousel,
   Tab,
-  Dialog,
   Portal,
 };

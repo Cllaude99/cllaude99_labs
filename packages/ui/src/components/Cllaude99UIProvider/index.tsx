@@ -1,3 +1,4 @@
+import DialogProvider from '../Dialog';
 import ThemeProvider from '../ThemeProvider';
 
 interface Cllaude99UIProviderProps {
@@ -5,7 +6,11 @@ interface Cllaude99UIProviderProps {
 }
 
 const Cllaude99UIProvider = ({ children }: Cllaude99UIProviderProps) => {
-  return <ThemeProvider>{children}</ThemeProvider>;
+  return (
+    <ThemeProvider>
+      <DialogProvider>{children}</DialogProvider>
+    </ThemeProvider>
+  );
 };
 
 export default Cllaude99UIProvider;

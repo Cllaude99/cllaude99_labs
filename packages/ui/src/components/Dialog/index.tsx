@@ -1,26 +1,37 @@
+import { useState } from 'react';
+
 import DialogContent from './DialogContent';
 import DialogOverlay from './DialogOverlay';
 import DialogRoot from './DialogRoot';
-import { useDialog } from './hooks/useDialog';
+import { DialogContext } from '../../contexts';
 
-interface DialogProps {
-  trigger: ({ openDialog }: { openDialog: () => void }) => React.ReactNode;
-  content: ({ closeDialog }: { closeDialog: () => void }) => React.ReactNode;
+interface DialogProviderProps {
+  children: React.ReactNode;
 }
 
-const Dialog = ({ trigger, content }: DialogProps) => {
-  const { isOpen, openDialog, closeDialog } = useDialog();
+const DialogProvider = ({ children }: DialogProviderProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [content, setContent] = useState<React.ReactNode>(null);
+
+  const openDialog = ({ content }: { content: React.ReactNode }) => {
+    setContent(content);
+    setIsOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsOpen(false);
+    setContent(null);
+  };
 
   return (
-    <>
-      {trigger({ openDialog })}
-
+    <DialogContext.Provider value={{ openDialog, closeDialog }}>
+      {children}
       <DialogRoot isOpen={isOpen} closeDialog={closeDialog}>
         <DialogOverlay closeDialog={closeDialog} />
-        <DialogContent>{content({ closeDialog })}</DialogContent>
+        <DialogContent>{content}</DialogContent>
       </DialogRoot>
-    </>
+    </DialogContext.Provider>
   );
 };
 
-export default Dialog;
+export default DialogProvider;
