@@ -14,7 +14,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cllaude99/claude_code.git",
+    "url": "https://github.com/Cllaude99/cllaude99_labs.git",
     "directory": "packages/ui"
   },
   "main": "./src/index.ts",
