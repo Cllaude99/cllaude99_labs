@@ -1,7 +1,7 @@
 import DialogContent from './DialogContent';
 import DialogOverlay from './DialogOverlay';
 import DialogRoot from './DialogRoot';
-import { useDialogState } from './hooks/useDialogState';
+import { useDialog } from './hooks/useDialog';
 
 interface DialogProps {
   trigger: ({ openDialog }: { openDialog: () => void }) => React.ReactNode;
@@ -9,7 +9,7 @@ interface DialogProps {
 }
 
 const Dialog = ({ trigger, content }: DialogProps) => {
-  const { isOpen, openDialog, closeDialog } = useDialogState();
+  const { isOpen, openDialog, closeDialog } = useDialog();
 
   return (
     <>
