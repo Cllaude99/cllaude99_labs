@@ -99,12 +99,14 @@ jobs:
           pnpm --filter @cllaude99/ui lint
           pnpm --filter @cllaude99/ui type-check
 
+      - name: Setup NPM authentication
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
       - name: Publish to NPM
         run: |
           cd packages/ui
           npm publish --access=public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Commit version bump
         run: |
