@@ -1,0 +1,456 @@
+---
+title: 'HTML을 사용하며 궁금했던 점에 대한 정리'
+description: 'HTML과 관련하여 자주 궁금했던 질문들에 대한 답변을 정리합니다.'
+date: '2025-12-03'
+published: true
+category: 'Tech'
+tags: ['HTML', 'Web', 'Frontend']
+author: 'Cllaude99'
+---
+
+이번 글에서는 HTML을 사용하며 궁금했던 점들에 대해 정리해보겠습니다.
+
+## HTML의 약자와 그 의미는 무엇인지?
+
+HTML은 **HyperText Markup Language**의 약자입니다.
+
+여기서 **HyperText**는 하이퍼링크를 통해 다른 문서로 이동할 수 있는 텍스트를 의미하며,
+**Markup Language**는 태그를 사용하여 문서의 구조를 정의하는 언어를 의미합니다.
+
+[MDN](https://developer.mozilla.org/ko/docs/Web/HTML)에서는 HTML을 다음과 같이 정의합니다.
+
+> HTML(HyperText Markup Language)은 웹 페이지와 그 내용을 구조화하기 위해 사용하는 마크업 언어입니다.
+
+HTML은 프로그래밍 언어가 아닌 마크업 언어이기 때문에, 변수나 조건문 같은 프로그래밍 로직을 직접 작성할 수는 없습니다.
+대신 `<h1>`, `<p>`, `<div>` 같은 태그를 사용하여 문서의 구조와 의미를 정의합니다.
+
+## Doctype은 무슨 역할을 하는 건지?
+
+HTML 문서의 맨 처음에는 항상 `<!DOCTYPE html>`이라는 선언이 있는데요, 이것이 바로 Doctype 선언입니다.
+
+```html
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- 내용 -->
+  </body>
+</html>
+```
+
+Doctype은 **Document Type Declaration**의 약자로, 브라우저에게 "이 문서는 어떤 버전의 HTML로 작성되었는지"를 알려주는 역할을 합니다.
+
+### Doctype의 역할
+
+1. **브라우저 렌더링 모드 결정**: Doctype이 없거나 잘못된 경우, 브라우저는 **Quirks Mode(호환 모드)**로 렌더링하게 됩니다. 이 모드에서는 오래된 브라우저의 동작 방식을 따라 예상치 못한 레이아웃 문제가 발생할 수 있습니다.
+
+2. **표준 모드 활성화**: `<!DOCTYPE html>`을 선언하면 브라우저는 **Standards Mode(표준 모드)**로 렌더링하여 최신 웹 표준을 따르게 됩니다.
+
+HTML5에서는 간단하게 `<!DOCTYPE html>`만 작성하면 되지만, HTML4에서는 훨씬 복잡한 선언이 필요했습니다.
+
+```html
+<!-- HTML4의 Doctype (복잡함) -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<!-- HTML5의 Doctype (간단함) -->
+<!DOCTYPE html>
+```
+
+출처: [MDN - Doctype](https://developer.mozilla.org/ko/docs/Glossary/Doctype)
+
+## 여러 언어로 콘텐츠를 제공하는 방법은?
+
+웹사이트를 다국어로 제공할 때는 여러 가지 방법이 있습니다.
+
+### 1. html 태그의 lang 속성 사용
+
+가장 기본적인 방법은 `<html>` 태그에 `lang` 속성을 사용하는 것입니다.
+
+```html
+<!-- 한국어 페이지 -->
+<html lang="ko">
+  <head>
+    <title>한국어 페이지</title>
+  </head>
+  <body>
+    <h1>안녕하세요</h1>
+  </body>
+</html>
+
+<!-- 영어 페이지 -->
+<html lang="en">
+  <head>
+    <title>English Page</title>
+  </head>
+  <body>
+    <h1>Hello</h1>
+  </body>
+</html>
+```
+
+### 2. 부분적으로 다른 언어 사용
+
+한 페이지 내에서 부분적으로 다른 언어를 사용할 때는 특정 요소에 `lang` 속성을 지정할 수 있습니다.
+
+```html
+<html lang="ko">
+  <body>
+    <p>이 문단은 한국어입니다.</p>
+    <p lang="en">This paragraph is in English.</p>
+    <p lang="ja">この段落は日本語です。</p>
+  </body>
+</html>
+```
+
+### 3. HTTP 헤더 활용
+
+서버에서 HTTP 헤더의 `Content-Language`를 설정하여 언어를 명시할 수도 있습니다.
+
+```
+Content-Language: ko
+```
+
+### 4. 언어별 URL 구조
+
+실제 다국어 웹사이트에서는 언어별로 다른 URL을 제공하는 것이 일반적입니다.
+
+```
+https://example.com/ko/        (한국어)
+https://example.com/en/        (영어)
+https://example.com/ja/        (일본어)
+```
+
+또는 서브도메인을 사용할 수도 있습니다.
+
+```
+https://ko.example.com/        (한국어)
+https://en.example.com/        (영어)
+https://ja.example.com/        (일본어)
+```
+
+`lang` 속성을 올바르게 설정하면 스크린 리더가 올바른 발음으로 읽을 수 있고, 검색 엔진이 언어를 인식하여 적절한 검색 결과를 제공할 수 있습니다.
+
+출처: [MDN - lang 속성](https://developer.mozilla.org/ko/docs/Web/HTML/Global_attributes/lang)
+
+## data- 속성은 무엇에 좋은가?
+
+`data-*` 속성은 HTML 요소에 사용자 정의 데이터를 저장할 수 있게 해주는 속성입니다.
+
+### 기본 사용법
+
+```html
+<article
+  id="electric-cars"
+  data-columns="3"
+  data-index-number="12314"
+  data-parent="cars"
+>
+  ...
+</article>
+```
+
+### JavaScript에서 접근하기
+
+`data-*` 속성은 JavaScript에서 `dataset` 프로퍼티를 통해 접근할 수 있습니다.
+
+```javascript
+const article = document.querySelector('#electric-cars');
+
+// data-columns 접근
+console.log(article.dataset.columns); // "3"
+
+// data-index-number 접근 (케밥 케이스 → 카멜 케이스로 변환됨)
+console.log(article.dataset.indexNumber); // "12314"
+
+// data-parent 접근
+console.log(article.dataset.parent); // "cars"
+
+// 값 설정
+article.dataset.columns = '5';
+```
+
+### CSS에서 활용하기
+
+CSS에서도 `data-*` 속성을 활용할 수 있습니다.
+
+```css
+/* data-state 값에 따라 다른 스타일 적용 */
+button[data-state='active'] {
+  background-color: blue;
+}
+
+button[data-state='inactive'] {
+  background-color: gray;
+}
+
+/* attr() 함수로 data 속성 값을 콘텐츠로 표시 */
+.item::after {
+  content: ' (가격: ' attr(data-price) ')';
+}
+```
+
+```html
+<button data-state="active">활성 버튼</button>
+<button data-state="inactive">비활성 버튼</button>
+<div class="item" data-price="10,000원">상품명</div>
+```
+
+### data- 속성의 장점
+
+1. **의미론적 HTML 유지**: `class`나 `id`를 데이터 저장 목적으로 남용하지 않아도 됩니다.
+2. **JavaScript와의 연동**: `dataset` API로 쉽게 데이터를 읽고 쓸 수 있습니다.
+3. **CSS 스타일링**: 속성 선택자를 사용하여 상태에 따른 스타일을 적용할 수 있습니다.
+
+### 주의사항
+
+- `data-*` 속성은 HTML에 저장되므로 민감한 정보(비밀번호, API 키 등)를 저장하면 안 됩니다.
+- 대용량 데이터를 저장하는 것은 성능에 좋지 않으므로, 간단한 메타데이터 저장 용도로만 사용해야 합니다.
+
+출처: [MDN - data-\* 속성](https://developer.mozilla.org/ko/docs/Learn/HTML/Howto/Use_data_attributes)
+
+## 이미지 태그에서 srcset 속성을 사용하는 이유는?
+
+`srcset` 속성은 브라우저가 디바이스의 화면 크기나 해상도에 따라 적절한 이미지를 선택할 수 있게 해주는 속성입니다.
+
+### 기본 사용법
+
+```html
+<img
+  src="small.jpg"
+  srcset="small.jpg 500w, medium.jpg 1000w, large.jpg 1500w"
+  sizes="(max-width: 600px) 500px, (max-width: 1200px) 1000px, 1500px"
+  alt="반응형 이미지"
+/>
+```
+
+### srcset 속성의 장점
+
+1. **성능 최적화**: 모바일 기기에서는 작은 이미지를, 데스크톱에서는 큰 이미지를 제공하여 불필요한 데이터 사용을 줄일 수 있습니다.
+
+2. **고해상도 디스플레이 지원**: Retina 디스플레이 같은 고해상도 화면에서는 2배 또는 3배 해상도의 이미지를 제공할 수 있습니다.
+
+### 브라우저의 이미지 선택 과정
+
+브라우저는 다음과 같은 순서로 적절한 이미지를 선택합니다.
+
+1. **뷰포트 크기 확인**: 현재 브라우저의 뷰포트 크기를 확인합니다.
+
+2. **sizes 속성 평가**: `sizes` 속성에 정의된 미디어 쿼리를 평가하여 이미지가 차지할 너비를 결정합니다.
+
+```html
+sizes="(max-width: 600px) 500px, (max-width: 1200px) 1000px, 1500px"
+```
+
+위 예시에서
+
+- 뷰포트가 600px 이하면 → 이미지는 500px
+- 600px 초과 1200px 이하면 → 이미지는 1000px
+- 1200px 초과면 → 이미지는 1500px
+
+3. **srcset에서 적절한 이미지 선택**: 결정된 이미지 너비와 디바이스의 픽셀 밀도(DPR)를 고려하여 `srcset`에서 가장 적합한 이미지를 선택합니다.
+
+```html
+srcset="small.jpg 500w, medium.jpg 1000w, large.jpg 1500w"
+```
+
+예를 들어
+
+- 이미지 너비가 500px이고 DPR이 1이면 → small.jpg (500w) 선택
+- 이미지 너비가 500px이고 DPR이 2이면 → medium.jpg (1000w) 선택
+- 이미지 너비가 1000px이고 DPR이 1이면 → medium.jpg (1000w) 선택
+
+### 해상도 기반 srcset (x 서술자)
+
+화면 밀도에 따라 다른 이미지를 제공할 수도 있습니다.
+
+```html
+<img
+  src="image.jpg"
+  srcset="image.jpg 1x, image-2x.jpg 2x, image-3x.jpg 3x"
+  alt="고해상도 이미지"
+/>
+```
+
+- 일반 디스플레이(DPR 1)에서는 image.jpg를 로드
+- Retina 디스플레이(DPR 2)에서는 image-2x.jpg를 로드
+- 고해상도 디스플레이(DPR 3)에서는 image-3x.jpg를 로드
+
+`srcset`을 사용하면 사용자의 환경에 최적화된 이미지를 제공하여 성능과 사용자 경험을 모두 개선할 수 있습니다.
+
+출처: [MDN - srcset](https://developer.mozilla.org/ko/docs/Web/API/HTMLImageElement/srcset)
+
+## CSS link는 head에, JS script는 body 끝에 위치시키는 이유는?
+
+웹 페이지를 개발할 때 일반적으로 다음과 같은 구조를 사용합니다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- CSS는 head 안에 -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- 페이지 내용 -->
+    <h1>Hello World</h1>
+
+    <!-- JavaScript는 body 끝에 -->
+    <script src="script.js"></script>
+  </body>
+</html>
+```
+
+그렇다면 왜 이런 패턴이 권장될까요?
+
+### CSS를 head에 두는 이유
+
+**1. FOUC (Flash of Unstyled Content) 방지**
+
+CSS를 `<head>`에 두면 HTML이 파싱되는 동안 스타일 정보를 미리 로드할 수 있습니다.
+만약 CSS를 페이지 하단에 두면, 사용자가 잠깐 동안 스타일이 적용되지 않은 페이지를 보게 되는 FOUC 현상이 발생할 수 있습니다.
+
+```html
+<!-- 좋은 예: 스타일이 적용된 상태로 페이지가 렌더링됨 -->
+<head>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<!-- 나쁜 예: 스타일 없는 페이지가 잠깐 보일 수 있음 -->
+<body>
+  <h1>제목</h1>
+  <p>내용</p>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- FOUC 발생 가능 -->
+</body>
+```
+
+**2. 점진적 렌더링 (Progressive Rendering)**
+
+브라우저는 CSS를 먼저 로드하면 콘텐츠를 받는 동안 스타일을 적용하여 점진적으로 페이지를 렌더링할 수 있습니다.
+
+### JavaScript를 body 끝에 두는 이유
+
+**1. DOM 파싱 차단 방지**
+
+JavaScript는 기본적으로 HTML 파싱을 차단(blocking)합니다.
+`<head>`에 `<script>`를 두면 페이지 렌더링이 지연될 수 있습니다.
+
+```html
+<!-- 나쁜 예: 페이지 렌더링이 늦어짐 -->
+<head>
+  <script src="large-script.js"></script>
+  <!-- 이 스크립트가 다운로드되고 실행될 때까지 페이지가 멈춤 -->
+</head>
+<body>
+  <h1>제목</h1>
+  <!-- 사용자는 오랫동안 빈 화면을 보게 됨 -->
+</body>
+
+<!-- 좋은 예: 페이지가 먼저 보임 -->
+<body>
+  <h1>제목</h1>
+  <!-- 사용자는 먼저 콘텐츠를 볼 수 있음 -->
+
+  <script src="large-script.js"></script>
+  <!-- 콘텐츠를 본 후에 JavaScript가 로드됨 -->
+</body>
+```
+
+**2. DOM 요소 접근 보장**
+
+JavaScript가 `<body>` 끝에 있으면, 스크립트 실행 시점에 모든 DOM 요소가 이미 파싱되어 있으므로 안전하게 접근할 수 있습니다.
+
+```html
+<!-- 문제 발생 예 -->
+<head>
+  <script>
+    // 에러! 아직 <h1> 요소가 파싱되지 않음
+    const title = document.querySelector('h1');
+    title.textContent = '새 제목'; // Cannot read property 'textContent' of null
+  </script>
+</head>
+<body>
+  <h1>원래 제목</h1>
+</body>
+
+<!-- 올바른 예 -->
+<body>
+  <h1>원래 제목</h1>
+
+  <script>
+    // 정상 작동! <h1> 요소가 이미 파싱됨
+    const title = document.querySelector('h1');
+    title.textContent = '새 제목';
+  </script>
+</body>
+```
+
+### 예외 사항: async와 defer 속성
+
+현대적인 웹 개발에서는 `async`와 `defer` 속성을 사용하여 `<head>`에서도 효율적으로 JavaScript를 로드할 수 있습니다.
+
+**defer 속성**
+
+```html
+<head>
+  <!-- defer: HTML 파싱을 차단하지 않고, 파싱이 완료된 후 실행 -->
+  <script src="script.js" defer></script>
+</head>
+```
+
+- HTML 파싱을 차단하지 않습니다.
+- HTML 파싱이 완료된 후에 실행됩니다.
+- 여러 스크립트가 있을 때 순서를 보장합니다.
+
+**async 속성**
+
+```html
+<head>
+  <!-- async: HTML 파싱을 차단하지 않고, 다운로드 완료 즉시 실행 -->
+  <script src="analytics.js" async></script>
+</head>
+```
+
+- HTML 파싱을 차단하지 않습니다.
+- 다운로드가 완료되는 즉시 실행됩니다.
+- 실행 순서를 보장하지 않습니다.
+- 독립적인 스크립트(Google Analytics 등)에 적합합니다.
+
+### 비교 표
+
+| 위치/속성          | HTML 파싱 차단 | DOM 접근  | 실행 순서 보장 | 사용 사례                        |
+| ------------------ | -------------- | --------- | -------------- | -------------------------------- |
+| `<head>` (일반)    | ✅ 차단        | ❌ 불안정 | ✅ 순서대로    | 피해야 함                        |
+| `<body>` 끝 (일반) | ❌ 차단 안함   | ✅ 안전   | ✅ 순서대로    | 전통적인 권장 방식               |
+| `<head defer>`     | ❌ 차단 안함   | ✅ 안전   | ✅ 순서대로    | 현대적인 권장 방식               |
+| `<head async>`     | ❌ 차단 안함   | ⚠️ 불확실 | ❌ 순서 무관   | 독립적인 스크립트 (Analytics 등) |
+
+### 정리
+
+- **CSS는 `<head>`에**: 스타일이 적용된 상태로 페이지를 렌더링하기 위해
+- **JavaScript는 `</body>` 직전에**: DOM 파싱 차단을 방지하고 모든 요소에 안전하게 접근하기 위해
+- **현대적인 방법**: `defer` 속성을 사용하여 `<head>`에서도 효율적으로 JavaScript를 로드
+
+출처: [MDN - script 요소](https://developer.mozilla.org/ko/docs/Web/HTML/Element/script), [Google Developers - Render Blocking Resources](https://web.dev/render-blocking-resources/)
+
+## 마치며
+
+이번 글에서는 HTML을 사용하며 궁금했던 질문들에 대해 정리해보았습니다.
+평소에는 당연하게 사용하던 HTML의 여러 개념들을 다시 정리하면서, 각 기능들이 왜 필요한지, 어떻게 동작하는지 이해할 수 있었습니다.
+
+## 참고 자료
+
+- [MDN - HTML](https://developer.mozilla.org/ko/docs/Web/HTML)
+- [MDN - Doctype](https://developer.mozilla.org/ko/docs/Glossary/Doctype)
+- [MDN - lang 속성](https://developer.mozilla.org/ko/docs/Web/HTML/Global_attributes/lang)
+- [MDN - data-\* 속성](https://developer.mozilla.org/ko/docs/Learn/HTML/Howto/Use_data_attributes)
+- [MDN - srcset](https://developer.mozilla.org/ko/docs/Web/API/HTMLImageElement/srcset)
+- [MDN - Canvas API](https://developer.mozilla.org/ko/docs/Web/API/Canvas_API)
+- [MDN - SVG](https://developer.mozilla.org/ko/docs/Web/SVG)
+- [MDN - 빈 요소](https://developer.mozilla.org/ko/docs/Glossary/Empty_element)
+- [MDN - script 요소](https://developer.mozilla.org/ko/docs/Web/HTML/Element/script)
+- [HTML 표준 명세](https://html.spec.whatwg.org/)
+- [Google Developers - Render Blocking Resources](https://web.dev/render-blocking-resources/)
