@@ -19,7 +19,7 @@ HTML은 **HyperText Markup Language**의 약자입니다.
 
 [MDN](https://developer.mozilla.org/ko/docs/Web/HTML)에서는 HTML을 다음과 같이 정의합니다.
 
-> HTML(HyperText Markup Language)은 웹 페이지와 그 내용을 구조화하기 위해 사용하는 마크업 언어입니다.
+> HTML은 웹 페이지와 그 내용을 구조화하기 위해 사용하는 마크업 언어입니다.
 
 HTML은 프로그래밍 언어가 아닌 마크업 언어이기 때문에, 변수나 조건문 같은 프로그래밍 로직을 직접 작성할 수는 없습니다.
 대신 `<h1>`, `<p>`, `<div>` 같은 태그를 사용하여 문서의 구조와 의미를 정의합니다.
@@ -250,7 +250,7 @@ sizes="(max-width: 600px) 500px, (max-width: 1200px) 1000px, 1500px"
 - 600px 초과 1200px 이하면 → 이미지는 1000px
 - 1200px 초과면 → 이미지는 1500px
 
-3. **srcset에서 적절한 이미지 선택**: 결정된 이미지 너비와 디바이스의 픽셀 밀도(DPR)를 고려하여 `srcset`에서 가장 적합한 이미지를 선택합니다.
+3. **srcset에서 적절한 이미지 선택**: 결정된 이미지 너비와 디바이스의 픽셀 밀도를 고려하여 `srcset`에서 가장 적합한 이미지를 선택합니다.
 
 ```html
 srcset="small.jpg 500w, medium.jpg 1000w, large.jpg 1500w"
@@ -327,7 +327,7 @@ CSS를 `<head>`에 두면 HTML이 파싱되는 동안 스타일 정보를 미리
 </body>
 ```
 
-2. 점진적 렌더링 (Progressive Rendering)
+2. 점진적 렌더링
 
 브라우저는 CSS를 먼저 로드하면 콘텐츠를 받는 동안 스타일을 적용하여 점진적으로 페이지를 렌더링할 수 있습니다.
 
@@ -425,17 +425,3 @@ JavaScript가 `<body>` 끝에 있으면, 스크립트 실행 시점에 모든 DO
 
 이번 글에서는 HTML을 사용하며 궁금했던 질문들에 대해 정리해보았습니다.
 평소에는 당연하게 사용하던 HTML의 여러 개념들을 다시 정리하면서, 각 기능들이 왜 필요한지, 어떻게 동작하는지 이해할 수 있었습니다.
-
-## 참고 자료
-
-- [MDN - HTML](https://developer.mozilla.org/ko/docs/Web/HTML)
-- [MDN - Doctype](https://developer.mozilla.org/ko/docs/Glossary/Doctype)
-- [MDN - lang 속성](https://developer.mozilla.org/ko/docs/Web/HTML/Global_attributes/lang)
-- [MDN - data-\* 속성](https://developer.mozilla.org/ko/docs/Learn/HTML/Howto/Use_data_attributes)
-- [MDN - srcset](https://developer.mozilla.org/ko/docs/Web/API/HTMLImageElement/srcset)
-- [MDN - Canvas API](https://developer.mozilla.org/ko/docs/Web/API/Canvas_API)
-- [MDN - SVG](https://developer.mozilla.org/ko/docs/Web/SVG)
-- [MDN - 빈 요소](https://developer.mozilla.org/ko/docs/Glossary/Empty_element)
-- [MDN - script 요소](https://developer.mozilla.org/ko/docs/Web/HTML/Element/script)
-- [HTML 표준 명세](https://html.spec.whatwg.org/)
-- [Google Developers - Render Blocking Resources](https://web.dev/render-blocking-resources/)
