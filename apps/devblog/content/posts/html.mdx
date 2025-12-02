@@ -45,9 +45,9 @@ Doctype은 **Document Type Declaration**의 약자로, 브라우저에게 "이 �
 
 ### Doctype의 역할
 
-1. **브라우저 렌더링 모드 결정**: Doctype이 없거나 잘못된 경우, 브라우저는 **Quirks Mode(호환 모드)**로 렌더링하게 됩니다. 이 모드에서는 오래된 브라우저의 동작 방식을 따라 예상치 못한 레이아웃 문제가 발생할 수 있습니다.
+1. **브라우저 렌더링 모드 결정**: Doctype이 없거나 잘못된 경우, 브라우저는 Quirks Mode(호환 모드)로 렌더링하게 됩니다. 이 모드에서는 오래된 브라우저의 동작 방식을 따라 예상치 못한 레이아웃 문제가 발생할 수 있습니다.
 
-2. **표준 모드 활성화**: `<!DOCTYPE html>`을 선언하면 브라우저는 **Standards Mode(표준 모드)**로 렌더링하여 최신 웹 표준을 따르게 됩니다.
+2. **표준 모드 활성화**: `<!DOCTYPE html>`을 선언하면 브라우저는 Standards Mode(표준 모드)로 렌더링하여 최신 웹 표준을 따르게 됩니다.
 
 HTML5에서는 간단하게 `<!DOCTYPE html>`만 작성하면 되지만, HTML4에서는 훨씬 복잡한 선언이 필요했습니다.
 
@@ -307,7 +307,7 @@ srcset="small.jpg 500w, medium.jpg 1000w, large.jpg 1500w"
 
 ### CSS를 head에 두는 이유
 
-**1. FOUC (Flash of Unstyled Content) 방지**
+1. FOUC (Flash of Unstyled Content) 방지
 
 CSS를 `<head>`에 두면 HTML이 파싱되는 동안 스타일 정보를 미리 로드할 수 있습니다.
 만약 CSS를 페이지 하단에 두면, 사용자가 잠깐 동안 스타일이 적용되지 않은 페이지를 보게 되는 FOUC 현상이 발생할 수 있습니다.
@@ -327,7 +327,7 @@ CSS를 `<head>`에 두면 HTML이 파싱되는 동안 스타일 정보를 미리
 </body>
 ```
 
-**2. 점진적 렌더링 (Progressive Rendering)**
+2. 점진적 렌더링 (Progressive Rendering)
 
 브라우저는 CSS를 먼저 로드하면 콘텐츠를 받는 동안 스타일을 적용하여 점진적으로 페이지를 렌더링할 수 있습니다.
 
