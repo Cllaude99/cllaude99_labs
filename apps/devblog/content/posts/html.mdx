@@ -419,21 +419,6 @@ JavaScript가 `<body>` 끝에 있으면, 스크립트 실행 시점에 모든 DO
 - 실행 순서를 보장하지 않습니다.
 - 독립적인 스크립트(Google Analytics 등)에 적합합니다.
 
-### 비교 표
-
-| 위치/속성          | HTML 파싱 차단 | DOM 접근  | 실행 순서 보장 | 사용 사례                        |
-| ------------------ | -------------- | --------- | -------------- | -------------------------------- |
-| `<head>` (일반)    | ✅ 차단        | ❌ 불안정 | ✅ 순서대로    | 피해야 함                        |
-| `<body>` 끝 (일반) | ❌ 차단 안함   | ✅ 안전   | ✅ 순서대로    | 전통적인 권장 방식               |
-| `<head defer>`     | ❌ 차단 안함   | ✅ 안전   | ✅ 순서대로    | 현대적인 권장 방식               |
-| `<head async>`     | ❌ 차단 안함   | ⚠️ 불확실 | ❌ 순서 무관   | 독립적인 스크립트 (Analytics 등) |
-
-### 정리
-
-- **CSS는 `<head>`에**: 스타일이 적용된 상태로 페이지를 렌더링하기 위해
-- **JavaScript는 `</body>` 직전에**: DOM 파싱 차단을 방지하고 모든 요소에 안전하게 접근하기 위해
-- **현대적인 방법**: `defer` 속성을 사용하여 `<head>`에서도 효율적으로 JavaScript를 로드
-
 출처: [MDN - script 요소](https://developer.mozilla.org/ko/docs/Web/HTML/Element/script), [Google Developers - Render Blocking Resources](https://web.dev/render-blocking-resources/)
 
 ## 마치며
