@@ -1,8 +1,9 @@
 import { Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Carousel, Footer } from '@cllaude99/ui';
+import { Carousel } from '@cllaude99/ui';
 
+import Dock from '@/components/Dock';
 import Layout from '@/components/Layout';
 import { PROJECTS } from '@/constants';
 
@@ -70,7 +71,7 @@ const HomePage = () => {
           ))}
         </Carousel>
       </S.Content>
-      <Footer />
+      <Dock />
     </Layout>
   );
 };
