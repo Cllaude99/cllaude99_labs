@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useDialog } from '@cllaude99/ui';
 
 import * as S from './TerminalModal.styles';
-import { useTerminal } from '../hooks';
-import { DockPosition } from '../types';
+import { useTerminal } from '../../hooks';
+import { DockPosition } from '../../types';
 
 interface TerminalContentProps {
   onMinimize: () => void;

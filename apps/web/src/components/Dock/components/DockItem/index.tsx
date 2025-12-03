@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { useMotionValue } from 'motion/react';
 
 import * as S from './DockItem.styles';
-import { useMagnification } from '../hooks';
+import { useMagnification } from '../../hooks';
 
 interface DockItemProps {
   icon: React.ReactNode;

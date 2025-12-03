@@ -7,12 +7,12 @@ import { useDialog } from '@cllaude99/ui';
 
 import { PATH } from '@/constants';
 
+import DockItem from './components/DockItem';
+import ProjectsContent from './components/ProjectsModal';
+import TerminalContent from './components/TerminalModal';
 import { DOCK_ITEMS } from './constants';
 import * as S from './Dock.styles';
-import DockItem from './DockItem';
 import { useDockPosition, useMinimizedTerminal } from './hooks';
-import ProjectsContent from './ProjectsModal';
-import TerminalContent from './TerminalModal';
 
 const Dock = () => {
   const { openDialog } = useDialog();

@@ -1,7 +1,7 @@
 import { css, keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { DockPosition } from '../types';
+import { DockPosition } from '../../types';
 
 /* Dock이 하단에 있을 때: 아래 중앙으로 쏙 들어감 */
 const minimizeToBottom = keyframes`
