@@ -1,6 +1,12 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+import generateLocalStorageKey from '@/utils/generateLocalStorageKey';
 
 import { DrawingState, Shape, ThemeMode, ToolType, Viewport } from '../types';
+
+// LocalStorage 키 값
+const THEME_STORAGE_KEY = generateLocalStorageKey('sketch_theme');
 
 interface SketchState {
   // 도구 관련
@@ -73,118 +79,136 @@ const THEME_STROKE_COLORS = {
   dark: '#e5e5e5',
 } as const;
 
-export const useSketchStore = create<SketchState>((set) => ({
-  // 도구 관련
-  tool: 'hand',
-  setTool: (tool) => set({ tool }),
+export const useSketchStore = create<SketchState>()(
+  persist(
+    (set) => ({
+      // 도구 관련
+      tool: 'hand',
+      setTool: (tool) => set({ tool }),
 
-  // 도형 관련
-  shapes: [],
-  addShape: (shape) => set((state) => ({ shapes: [...state.shapes, shape] })),
-  updateShape: (id, updates) =>
-    set((state) => ({
-      shapes: state.shapes.map((shape) =>
-        shape.id === id ? { ...shape, ...updates } : shape,
-      ),
-    })),
-  deleteShape: (id) =>
-    set((state) => ({
-      shapes: state.shapes.filter((shape) => shape.id !== id),
-      selectedShapeIds: state.selectedShapeIds.filter(
-        (shapeId) => shapeId !== id,
-      ),
-    })),
-  setShapes: (shapes) => set({ shapes }),
+      // 도형 관련
+      shapes: [],
+      addShape: (shape) =>
+        set((state) => ({ shapes: [...state.shapes, shape] })),
+      updateShape: (id, updates) =>
+        set((state) => ({
+          shapes: state.shapes.map((shape) =>
+            shape.id === id ? { ...shape, ...updates } : shape,
+          ),
+        })),
+      deleteShape: (id) =>
+        set((state) => ({
+          shapes: state.shapes.filter((shape) => shape.id !== id),
+          selectedShapeIds: state.selectedShapeIds.filter(
+            (shapeId) => shapeId !== id,
+          ),
+        })),
+      setShapes: (shapes) => set({ shapes }),
 
-  // 선택된 도형
-  selectedShapeIds: [],
-  setSelectedShapeIds: (ids) => set({ selectedShapeIds: ids }),
-  clearSelection: () => set({ selectedShapeIds: [] }),
+      // 선택된 도형
+      selectedShapeIds: [],
+      setSelectedShapeIds: (ids) => set({ selectedShapeIds: ids }),
+      clearSelection: () => set({ selectedShapeIds: [] }),
 
-  // Viewport 관련
-  viewport: INITIAL_VIEWPORT,
-  setViewport: (viewport) =>
-    set((state) => ({
-      viewport: { ...state.viewport, ...viewport },
-    })),
-  zoomIn: () =>
-    set((state) => ({
-      viewport: {
-        ...state.viewport,
-        zoom: Math.min(state.viewport.zoom + ZOOM_STEP, MAX_ZOOM),
-      },
-    })),
-  zoomOut: () =>
-    set((state) => ({
-      viewport: {
-        ...state.viewport,
-        zoom: Math.max(state.viewport.zoom - ZOOM_STEP, MIN_ZOOM),
-      },
-    })),
-  resetZoom: () =>
-    set((state) => ({
-      viewport: { ...state.viewport, zoom: 1 },
-    })),
+      // Viewport 관련
+      viewport: INITIAL_VIEWPORT,
+      setViewport: (viewport) =>
+        set((state) => ({
+          viewport: { ...state.viewport, ...viewport },
+        })),
+      zoomIn: () =>
+        set((state) => ({
+          viewport: {
+            ...state.viewport,
+            zoom: Math.min(state.viewport.zoom + ZOOM_STEP, MAX_ZOOM),
+          },
+        })),
+      zoomOut: () =>
+        set((state) => ({
+          viewport: {
+            ...state.viewport,
+            zoom: Math.max(state.viewport.zoom - ZOOM_STEP, MIN_ZOOM),
+          },
+        })),
+      resetZoom: () =>
+        set((state) => ({
+          viewport: { ...state.viewport, zoom: 1 },
+        })),
 
-  // 드래그 상태
-  drawingState: INITIAL_DRAWING_STATE,
-  setDrawingState: (drawingState) =>
-    set((state) => ({
-      drawingState: { ...state.drawingState, ...drawingState },
-    })),
-  resetDrawingState: () => set({ drawingState: INITIAL_DRAWING_STATE }),
+      // 드래그 상태
+      drawingState: INITIAL_DRAWING_STATE,
+      setDrawingState: (drawingState) =>
+        set((state) => ({
+          drawingState: { ...state.drawingState, ...drawingState },
+        })),
+      resetDrawingState: () => set({ drawingState: INITIAL_DRAWING_STATE }),
 
-  // 스타일 설정
-  strokeColor: '#1e1e1e',
-  fillColor: 'transparent',
-  strokeWidth: 1.5,
-  roughness: 0.5,
-  setStrokeColor: (strokeColor) => set({ strokeColor }),
-  setFillColor: (fillColor) => set({ fillColor }),
-  setStrokeWidth: (strokeWidth) => set({ strokeWidth }),
-  setRoughness: (roughness) => set({ roughness }),
+      // 스타일 설정
+      strokeColor: '#1e1e1e',
+      fillColor: 'transparent',
+      strokeWidth: 1.5,
+      roughness: 0.5,
+      setStrokeColor: (strokeColor) => set({ strokeColor }),
+      setFillColor: (fillColor) => set({ fillColor }),
+      setStrokeWidth: (strokeWidth) => set({ strokeWidth }),
+      setRoughness: (roughness) => set({ roughness }),
 
-  // 테마
-  theme: 'light',
-  toggleTheme: () =>
-    set((state) => {
-      const newTheme = state.theme === 'light' ? 'dark' : 'light';
-      const oldStrokeColor = THEME_STROKE_COLORS[state.theme];
-      const newStrokeColor = THEME_STROKE_COLORS[newTheme];
+      // 테마
+      theme: 'light',
+      toggleTheme: () =>
+        set((state) => {
+          const newTheme = state.theme === 'light' ? 'dark' : 'light';
+          const oldStrokeColor = THEME_STROKE_COLORS[state.theme];
+          const newStrokeColor = THEME_STROKE_COLORS[newTheme];
 
-      // 기존 도형들의 stroke 색상도 변경 (기본 색상으로 그려진 도형만)
-      const updatedShapes = state.shapes.map((shape) => ({
-        ...shape,
-        stroke: shape.stroke === oldStrokeColor ? newStrokeColor : shape.stroke,
-      }));
+          // 기존 도형들의 stroke 색상도 변경 (기본 색상으로 그려진 도형만)
+          const updatedShapes = state.shapes.map((shape) => ({
+            ...shape,
+            stroke:
+              shape.stroke === oldStrokeColor ? newStrokeColor : shape.stroke,
+          }));
 
-      return {
-        theme: newTheme,
-        strokeColor: newStrokeColor,
-        shapes: updatedShapes,
-      };
+          return {
+            theme: newTheme,
+            strokeColor: newStrokeColor,
+            shapes: updatedShapes,
+          };
+        }),
+      setTheme: (theme) =>
+        set((state) => {
+          const oldStrokeColor = THEME_STROKE_COLORS[state.theme];
+          const newStrokeColor = THEME_STROKE_COLORS[theme];
+
+          const updatedShapes = state.shapes.map((shape) => ({
+            ...shape,
+            stroke:
+              shape.stroke === oldStrokeColor ? newStrokeColor : shape.stroke,
+          }));
+
+          return {
+            theme,
+            strokeColor: newStrokeColor,
+            shapes: updatedShapes,
+          };
+        }),
+
+      // Space 키 상태
+      isSpacePressed: false,
+      setIsSpacePressed: (isSpacePressed) => set({ isSpacePressed }),
     }),
-  setTheme: (theme) =>
-    set((state) => {
-      const oldStrokeColor = THEME_STROKE_COLORS[state.theme];
-      const newStrokeColor = THEME_STROKE_COLORS[theme];
-
-      const updatedShapes = state.shapes.map((shape) => ({
-        ...shape,
-        stroke: shape.stroke === oldStrokeColor ? newStrokeColor : shape.stroke,
-      }));
-
-      return {
-        theme,
-        strokeColor: newStrokeColor,
-        shapes: updatedShapes,
-      };
-    }),
-
-  // Space 키 상태
-  isSpacePressed: false,
-  setIsSpacePressed: (isSpacePressed) => set({ isSpacePressed }),
-}));
+    {
+      name: THEME_STORAGE_KEY,
+      // 테마 관련 설정만 localStorage에 저장
+      partialize: (state) => ({
+        theme: state.theme,
+        strokeColor: state.strokeColor,
+        fillColor: state.fillColor,
+        strokeWidth: state.strokeWidth,
+        roughness: state.roughness,
+      }),
+    },
+  ),
+);
 
 // ID 생성 유틸리티
 export const generateShapeId = (): string => {
