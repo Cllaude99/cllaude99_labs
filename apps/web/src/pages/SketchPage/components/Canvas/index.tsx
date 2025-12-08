@@ -680,11 +680,18 @@ const Canvas = () => {
   // 도형 더블클릭 핸들러 (텍스트 편집 모드 진입)
   const handleShapeDoubleClick = useCallback(
     (shapeId: string) => {
-      if (tool === 'select') {
-        setEditingShapeId(shapeId);
+      const shape = shapes.find((s) => s.id === shapeId);
+      if (!shape) return;
+
+      // 모든 도형은 도구와 관계없이 더블클릭 시 텍스트 편집 가능
+      setEditingShapeId(shapeId);
+
+      // 도형을 선택 상태로 만듦
+      if (!selectedShapeIds.includes(shapeId)) {
+        setSelectedShapeIds([shapeId]);
       }
     },
-    [tool],
+    [shapes, selectedShapeIds, setSelectedShapeIds],
   );
 
   // Stage 더블클릭 핸들러 (빈 공간에서 텍스트 생성)
@@ -1032,6 +1039,49 @@ const Canvas = () => {
                   stage.container().style.cursor = 'default';
                 }
               }}
+              onDblClick={(e) => {
+                e.cancelBubble = true;
+                // 선택된 도형이 하나일 때 텍스트 편집 모드로 진입
+                if (selectedShapeIds.length === 1) {
+                  handleShapeDoubleClick(selectedShapeIds[0]);
+                } else if (selectedShapeIds.length > 1) {
+                  // 여러 도형이 선택된 경우 클릭 위치의 도형 찾기
+                  const stage = e.target.getStage();
+                  if (!stage) return;
+                  const pointerPos = stage.getPointerPosition();
+                  if (!pointerPos) return;
+                  
+                  const canvasPoint = screenToCanvas(
+                    pointerPos.x,
+                    pointerPos.y,
+                    viewport,
+                    stageSize.width,
+                    stageSize.height,
+                  );
+                  
+                  // 선택된 도형 중 클릭 위치에 있는 도형 찾기 (역순으로 검색 - 위에 있는 것 우선)
+                  const clickedShape = [...shapes].reverse().find((shape) => {
+                    if (!selectedShapeIds.includes(shape.id)) return false;
+                    return (
+                      canvasPoint.x >= shape.x &&
+                      canvasPoint.x <= shape.x + shape.width &&
+                      canvasPoint.y >= shape.y &&
+                      canvasPoint.y <= shape.y + shape.height
+                    );
+                  });
+                  
+                  if (clickedShape) {
+                    handleShapeDoubleClick(clickedShape.id);
+                  }
+                }
+              }}
+              onDblTap={(e) => {
+                e.cancelBubble = true;
+                // 선택된 도형이 하나일 때 텍스트 편집 모드로 진입
+                if (selectedShapeIds.length === 1) {
+                  handleShapeDoubleClick(selectedShapeIds[0]);
+                }
+              }}
               onDragStart={() => {
                 setIsDraggingGroup(true);
               }}
@@ -1099,7 +1149,12 @@ const Canvas = () => {
           stageSize={stageSize}
           themeMode={theme}
           onSave={(text) => {
-            updateShape(editingShapeId, { text: text || undefined });
+            // 텍스트가 비어있으면 도형 삭제, 그렇지 않으면 업데이트
+            if (!text || text.trim() === '') {
+              deleteShape(editingShapeId);
+            } else {
+              updateShape(editingShapeId, { text });
+            }
             setEditingShapeId(null);
           }}
           onCancel={() => setEditingShapeId(null)}

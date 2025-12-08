@@ -440,16 +440,27 @@ const RoughShape = ({
         onDragEnd?.(e.target.x(), e.target.y());
       }}
     >
-      {/* 텍스트 전용 타입이 아닌 경우에만 Rect와 Image 렌더링 */}
+      {/* 투명한 Rect로 클릭 영역 생성 (모든 타입) */}
+      <Rect
+        width={shapeWidth}
+        height={shapeHeight}
+        fill="transparent"
+        listening={true}
+        onClick={onClick}
+        onTap={onClick}
+        onDblClick={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.();
+        }}
+        onDblTap={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.();
+        }}
+      />
+
+      {/* 텍스트 전용 타입이 아닌 경우에만 Image 렌더링 */}
       {shape.type !== 'text' && (
         <>
-          {/* 투명한 Rect로 클릭 영역 생성 */}
-          <Rect
-            width={shapeWidth}
-            height={shapeHeight}
-            fill="transparent"
-            listening={true}
-          />
           {/* rough.js로 그린 이미지 (고해상도 스케일 다운) */}
           <KonvaImage
             image={canvas}
@@ -480,7 +491,7 @@ const RoughShape = ({
                 align={shape.textAlign || 'center'}
                 verticalAlign="middle"
                 wrap="word"
-                listening={true} // text 타입은 클릭 가능해야 함
+                listening={false} // Rect가 이벤트를 처리하도록 변경
               />
             );
           }
