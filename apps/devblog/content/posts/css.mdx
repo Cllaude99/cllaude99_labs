@@ -1,0 +1,335 @@
+---
+title: 'CSS will-change 속성 알아보기'
+description: 'CSS will-change 속성의 동작 원리와 올바른 사용법을 알아봅니다.'
+date: '2025-12-08'
+published: true
+category: 'Tech'
+tags: ['CSS', 'Performance', 'Animation', 'Frontend']
+author: 'Cllaude99'
+---
+
+# CSS will-change 속성 알아보기
+
+애니메이션 성능 최적화와 관련하여 찾아보다가 `will-change`라는 CSS 속성을 알게 되었습니다.
+이 속성이 정확히 무엇이고 어떻게 동작하는지, 그리고 언제 사용해야 하는지 궁금해서 직접 알아보고 간단한 예제로 확인해봤습니다.
+
+## will-change는 무엇일까?
+
+will-change는 브라우저에게 "이 요소의 특정 속성이 곧 변경될 것"이라고 미리 알려주는 CSS 속성입니다.
+
+```css
+.element {
+  will-change: transform;
+}
+```
+
+이렇게 선언하면 브라우저가 해당 요소의 transform 속성이 변경될 것을 예상하고 미리 최적화를 준비합니다.
+그런데 왜 이런 속성이 필요한 걸까요? 브라우저는 이미 충분히 똑똑하지 않을까요?
+
+## 브라우저의 렌더링 과정
+
+이 질문에 답하기 위해서는 먼저 브라우저가 화면을 어떻게 그리는지 이해해야 합니다.
+웹 브라우저는 화면을 렌더링할 때 다음과 같은 과정을 거칩니다.
+
+1. **Layout(Reflow)**: 요소의 크기와 위치 계산
+2. **Paint**: 요소의 시각적 속성(색상, 그림자 등)을 픽셀로 그리기
+3. **Composite**: 여러 레이어를 합성하여 최종 화면 생성
+
+CSS 속성을 변경할 때마다 이 과정이 반복됩니다.
+특히 애니메이션처럼 속성이 빠르게 변경되는 경우, 매번 Layout과 Paint 단계를 거치면 성능 저하가 발생합니다.
+바로 이 문제를 해결하기 위해 will-change가 등장했습니다.
+
+## will-change는 어떻게 동작할까?
+
+will-change를 사용하면 브라우저가 미리 최적화를 준비합니다.
+구체적으로는 다음과 같은 작업이 일어납니다.
+
+먼저 브라우저는 해당 요소를 별도의 Compositor Layer로 분리합니다.
+이 레이어는 GPU에서 독립적으로 처리되는데, 마치 포토샵의 레이어처럼 각각 독립적으로 움직일 수 있습니다.
+
+동시에 레이어를 GPU 메모리에 미리 할당하여, 실제 변경이 일어날 때 빠르게 처리할 수 있도록 준비합니다.
+그 결과 특정 속성(transform, opacity 등)의 경우 Layout과 Paint 단계를 건너뛰고 Composite 단계만 실행하게 됩니다.
+
+이론적으로는 이해가 되는데, 실제로 어떤 차이가 있는지 직접 확인해보고 싶었습니다.
+
+## 간단한 예제로 확인해보기
+
+will-change의 효과를 확인하기 위해 두 개의 박스를 비교하는 예제를 만들어봤습니다.
+하나는 will-change를 적용하지 않은 박스, 다른 하나는 will-change를 적용한 박스입니다.
+
+```html
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>will-change 테스트</title>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <h1>will-change 속성 비교</h1>
+
+    <div class="container">
+      <div class="box without-will-change">
+        <h2>will-change 없음</h2>
+        <p>마우스를 올려보세요</p>
+      </div>
+
+      <div class="box with-will-change">
+        <h2>will-change 있음</h2>
+        <p>마우스를 올려보세요</p>
+      </div>
+    </div>
+  </body>
+</html>
+```
+
+두 박스는 동일한 호버 애니메이션을 가지고 있지만, 오른쪽 박스에만 will-change를 적용했습니다.
+
+```css
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  background: #f5f5f5;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 40px;
+}
+
+.container {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin-bottom: 60px;
+}
+
+.box {
+  width: 300px;
+  height: 200px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.box h2 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.box p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* will-change 없는 박스 */
+.without-will-change:hover {
+  transform: translateY(-10px) scale(1.05);
+}
+
+/* will-change 있는 박스 */
+.with-will-change {
+  will-change: transform;
+}
+
+.with-will-change:hover {
+  transform: translateY(-10px) scale(1.05);
+}
+```
+
+이 예제를 실행하고 Chrome DevTools의 Layers 패널을 열어보니 흥미로운 차이를 발견할 수 있었습니다.
+
+will-change를 적용하지 않은 왼쪽 박스는 호버하기 전에는 document layer에 포함되어 있다가, 호버 시 임시로 Compositor Layer가 생성되었습니다.
+그리고 호버가 종료되면 다시 document layer로 병합되는 과정을 거쳤습니다.
+
+반면 will-change를 적용한 오른쪽 박스는 처음부터 독립적인 Compositor Layer로 존재했습니다.
+호버 시에도 동일한 레이어를 유지하면서 GPU에서 바로 처리되어 더 부드러운 애니메이션을 보여줬습니다.
+
+## transform과 opacity는 왜 특별할까?
+
+예제를 만들면서 대부분의 will-change 사용 예시가 transform이나 opacity와 함께 사용되는 것을 보았습니다.
+왜 특정 속성들만 자주 등장하는 걸까요?
+
+알고 보니 CSS 속성들은 렌더링 파이프라인에서 필요로 하는 단계가 각각 다릅니다.
+일부 속성은 Layout과 Paint 없이 Composite 단계만으로 처리할 수 있는데, transform, opacity, filter, backdrop-filter가 바로 그런 속성들입니다.
+
+이 속성들은 요소의 위치나 크기를 변경하지 않고, 레이어 단위로 합성만 조정하면 됩니다.
+마치 투명 필름에 그려진 그림을 이동시키거나 투명도를 조절하는 것과 비슷합니다.
+
+반면 width, height, margin, padding, border 같은 속성들은 요소의 크기나 위치를 변경하므로 전체 레이아웃을 다시 계산해야 합니다.
+주변 요소들도 모두 영향을 받기 때문에 훨씬 무거운 작업이 됩니다.
+
+```css
+/* 효과적인 조합 - Composite만 필요 */
+.optimized {
+  will-change: transform, opacity;
+  transition:
+    transform 0.3s,
+    opacity 0.3s;
+}
+
+/* 비효율적인 조합 - Layout이 필요 */
+.not-optimized {
+  will-change: width, height;
+  transition:
+    width 0.3s,
+    height 0.3s;
+}
+```
+
+따라서 will-change는 transform, opacity 같은 속성과 함께 사용할 때 가장 큰 효과를 낼 수 있습니다.
+
+## will-change의 함정
+
+여기까지 보면 will-change는 정말 좋은 속성처럼 보입니다.
+그렇다면 모든 애니메이션 요소에 will-change를 적용하면 되는 걸까요?
+
+공부하면서 가장 중요하다고 느낀 점은 "무분별한 사용은 오히려 해롭다"는 것이었습니다.
+
+will-change는 각 요소마다 별도의 Compositor Layer를 생성하고 GPU 메모리를 할당합니다.
+만약 페이지에 카드가 100개 있고 모든 카드에 will-change를 적용한다면, 100개의 Compositor Layer가 생성되어 엄청난 메모리를 소비하게 됩니다.
+
+```css
+/* 이렇게 하면 안 됩니다 */
+.card {
+  will-change: transform;
+}
+```
+
+페이지에 카드가 많다면 이 코드 하나로 브라우저의 메모리가 급격히 증가합니다.
+또한 페이지 로드 시 너무 많은 레이어를 생성하면 초기 렌더링이 느려질 수 있도 있습니다.
+
+> will-change는 성능 향상을 위한 도구지만, 잘못 사용하면 오히려 성능을 저하시키는 양날의 검이었습니다.
+
+## 그렇다면 언제 사용해야 할까?
+
+이런 함정을 피하면서도 will-change의 이점을 누리려면 어떻게 해야 할까요?
+여러 자료를 찾아보며 다음과 같은 사용 패턴들을 정리했습니다.
+
+### 지속적으로 애니메이션하는 요소
+
+로딩 스피너처럼 계속 회전하는 요소는 will-change를 적용하기 좋은 대상입니다.
+어차피 계속 애니메이션하기 때문에 메모리를 할당해두는 것이 합리적입니다.
+
+```css
+.loading-spinner {
+  will-change: transform;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+```
+
+### 성능 문제가 실제로 확인된 경우
+
+막연히 "성능이 좋아질 것 같아서"가 아니라, DevTools에서 실제로 FPS가 낮게 측정되거나 Paint가 반복적으로 발생하는 것을 확인한 후에 적용하는 것이 좋습니다.
+
+### 사용자 인터랙션 직전에 동적으로 적용
+
+가장 메모리 효율적인 방법은 필요한 순간에만 will-change를 적용하고, 애니메이션이 끝나면 제거하는 것입니다.
+
+```javascript
+element.addEventListener('mouseenter', () => {
+  element.style.willChange = 'transform';
+});
+
+element.addEventListener('mouseleave', () => {
+  element.style.willChange = 'auto';
+});
+```
+
+이렇게 하면 실제로 호버되는 하나의 요소만 최적화되므로 메모리를 낭비하지 않습니다.
+
+### 소수의 핵심 요소
+
+페이지에서 정말 중요한 몇 개의 요소에만 적용합니다.
+예를 들어 메인 네비게이션이나 모달 오버레이처럼 사용자 경험에 핵심이 되는 요소들입니다.
+
+```css
+.main-navigation {
+  will-change: transform;
+}
+
+.modal-overlay {
+  will-change: opacity;
+}
+```
+
+일반적으로 페이지당 5-10개 이하의 요소에만 적용하는 것을 권장합니다.
+
+## 피해야 할 사용 패턴
+
+반대로 이런 경우에는 will-change를 사용하지 말아야 합니다.
+
+### 모든 요소에 적용
+
+```css
+* {
+  will-change: transform; /* 절대 금지 */
+}
+```
+
+이렇게 하면 페이지의 모든 요소가 Compositor Layer가 되어 브라우저가 마비될 수 있습니다.
+
+### 성능 문제가 없는 경우
+
+이미 부드러운 애니메이션이라면 will-change를 추가할 필요가 없습니다.
+"혹시 모르니까"라는 생각으로 적용하는 것은 좋지 않습니다.
+
+### 한 번만 실행되는 애니메이션
+
+```css
+.fade-in {
+  will-change: opacity; /* 불필요 */
+  animation: fadeIn 0.3s;
+}
+```
+
+페이지 로드 시 한 번만 실행되는 애니메이션에는 will-change가 필요하지 않습니다.
+오히려 초기 렌더링을 느리게 만들 수 있습니다.
+
+### 많은 수의 요소
+
+수십, 수백 개의 요소에 will-change를 적용하면 메모리 문제가 발생합니다.
+이 경우에는 앞서 설명한 동적 적용 방식을 사용해야 합니다.
+
+## 마치며
+
+will-change를 공부하며 얻은 가장 큰 교훈은 "성능 최적화는 측정에서 시작한다"는 것입니다.
+
+will-change는 브라우저에게 특정 속성이 변경될 것을 미리 알려주는 최적화 힌트입니다.
+브라우저는 이를 통해 Compositor Layer를 생성하고 GPU 메모리에 미리 할당하여, Layout과 Paint를 건너뛰고 Composite만 실행하도록 최적화합니다.
+
+이를 통해 애니메이션 성능이 향상되고 부드러운 60 FPS를 달성할 수 있습니다.
+하지만 무분별하게 사용하면 메모리 과다 사용등의 부작용이 있습니다.
+
+따라서 will-change는 소수의 핵심 요소에만 적용하고, 가능하다면 동적으로 적용하고 제거하는 방식을 사용해야 합니다.
+또, DevTools로 실제 성능 문제를 확인한 후에 적용하는 것이 좋습니다.
+
+막연히 "성능이 좋아질 것 같아서" 보다는 실제로 측정하고 필요한 부분에 대해서 사용하는 것의 필요성을 다시 한 번 느낄 수 있었습니다.
+
+## 참고 자료
+
+- [MDN - will-change](https://developer.mozilla.org/ko/docs/Web/CSS/will-change)
+- [Google Developers - Composite-only properties](https://web.dev/stick-to-compositor-only-properties-and-manage-layer-count/)
+- [CSS Triggers - What triggers Layout, Paint, Composite](https://csstriggers.com/)
