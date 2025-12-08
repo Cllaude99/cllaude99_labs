@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Layer, Rect, Stage, Transformer } from 'react-konva';
 
 import Konva from 'konva';
 
 import * as S from './Canvas.styles';
+import LineHandles from './LineHandles';
 import RoughShape from './RoughShape';
 import TextEditor from './TextEditor';
 import { FILL_COLORS } from '../../constants/colors';
@@ -33,6 +34,7 @@ const Canvas = () => {
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [editingShapeId, setEditingShapeId] = useState<string | null>(null);
+  const [isDraggingGroup, setIsDraggingGroup] = useState(false);
   const lastPointerPosition = useRef<Point | null>(null);
 
   const {
@@ -234,20 +236,66 @@ const Canvas = () => {
     pasteShapes,
   ]);
 
+  // 선택된 도형 중 선/화살표 찾기 (다중 선택 포함)
+  const selectedLinesAndArrows = shapes.filter(
+    (s) =>
+      selectedShapeIds.includes(s.id) &&
+      (s.type === 'line' || s.type === 'arrow'),
+  );
+
   // Transformer 업데이트 (선택된 도형이 변경될 때)
   useEffect(() => {
     if (!transformerRef.current) return;
 
     const selectedNodes: Konva.Group[] = [];
     selectedShapeIds.forEach((id) => {
-      const node = shapeRefs.current.get(id);
-      if (node) {
-        selectedNodes.push(node);
+      const shape = shapes.find((s) => s.id === id);
+      // 선/화살표는 LineHandles 사용하므로 Transformer에서 제외
+      if (shape && shape.type !== 'line' && shape.type !== 'arrow') {
+        const node = shapeRefs.current.get(id);
+        if (node) {
+          selectedNodes.push(node);
+        }
       }
     });
 
     transformerRef.current.nodes(selectedNodes);
     transformerRef.current.getLayer()?.batchDraw();
+  }, [selectedShapeIds, shapes]);
+
+  // Transformer의 bounding box를 계산 (선택된 도형이 있을 때만)
+  const transformerBoundingBox = useMemo(() => {
+    if (!transformerRef.current || selectedShapeIds.length === 0) return null;
+    
+    // 선/화살표가 아닌 도형만 포함
+    const nonLineShapes = shapes.filter(
+      (s) =>
+        selectedShapeIds.includes(s.id) &&
+        s.type !== 'line' &&
+        s.type !== 'arrow',
+    );
+    
+    if (nonLineShapes.length === 0) return null;
+    
+    // 모든 도형의 bounding box 계산
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    
+    nonLineShapes.forEach((shape) => {
+      minX = Math.min(minX, shape.x);
+      minY = Math.min(minY, shape.y);
+      maxX = Math.max(maxX, shape.x + shape.width);
+      maxY = Math.max(maxY, shape.y + shape.height);
+    });
+    
+    return {
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY,
+    };
   }, [selectedShapeIds, shapes]);
 
   // 휠/트랙패드 핸들러
@@ -298,8 +346,9 @@ const Canvas = () => {
         return;
       }
 
-      // select 도구에서 빈 영역 드래그 시 선택 박스 시작
+      // select 도구에서 빈 영역 클릭 시 선택 박스 준비
       if (tool === 'select' && e.target === stage) {
+        // 빈 공간 클릭: 선택 해제하고 선택 박스 준비
         clearSelection();
         const canvasPoint = screenToCanvas(
           pointerPos.x,
@@ -400,6 +449,21 @@ const Canvas = () => {
         stageSize.width,
         stageSize.height,
       );
+      
+      // 드래그 거리 계산
+      const dx = canvasPoint.x - selectionBox.startX;
+      const dy = canvasPoint.y - selectionBox.startY;
+      const dragDistance = Math.sqrt(dx * dx + dy * dy);
+      
+      // 드래그 거리가 작고 (5px 이하) 선택된 도형이 있으면 팬 모드로 전환
+      if (dragDistance < 5 && selectedShapeIds.length > 0) {
+        setIsSelecting(false);
+        setSelectionBox(null);
+        setIsPanning(true);
+        lastPointerPosition.current = pointerPos;
+        return;
+      }
+      
       setSelectionBox({
         ...selectionBox,
         endX: canvasPoint.x,
@@ -496,10 +560,34 @@ const Canvas = () => {
       const boxTop = Math.min(box.startY, box.endY);
       const boxBottom = Math.max(box.startY, box.endY);
 
-      const shapeLeft = shape.x;
-      const shapeRight = shape.x + shape.width;
-      const shapeTop = shape.y;
-      const shapeBottom = shape.y + shape.height;
+      let shapeLeft: number, shapeRight: number, shapeTop: number, shapeBottom: number;
+
+      // Line/Arrow는 points 배열로 bounding box 계산
+      if ((shape.type === 'line' || shape.type === 'arrow') && shape.points) {
+        if (shape.isCurved && shape.points.length >= 6) {
+          // 곡선인 경우: 시작점, 제어점, 끝점 모두 고려
+          const [x1, y1, cx, cy, x2, y2] = shape.points;
+          const allX = [shape.x + x1, shape.x + cx, shape.x + x2];
+          const allY = [shape.y + y1, shape.y + cy, shape.y + y2];
+          shapeLeft = Math.min(...allX);
+          shapeRight = Math.max(...allX);
+          shapeTop = Math.min(...allY);
+          shapeBottom = Math.max(...allY);
+        } else {
+          // 직선인 경우: 시작점과 끝점
+          const [x1, y1, x2, y2] = shape.points;
+          shapeLeft = Math.min(shape.x + x1, shape.x + x2);
+          shapeRight = Math.max(shape.x + x1, shape.x + x2);
+          shapeTop = Math.min(shape.y + y1, shape.y + y2);
+          shapeBottom = Math.max(shape.y + y1, shape.y + y2);
+        }
+      } else {
+        // Rectangle/Ellipse/Text는 기존 로직
+        shapeLeft = shape.x;
+        shapeRight = shape.x + shape.width;
+        shapeTop = shape.y;
+        shapeBottom = shape.y + shape.height;
+      }
 
       // 도형이 선택 영역과 겹치는지 확인
       return !(
@@ -684,6 +772,129 @@ const Canvas = () => {
     });
   }, [selectedShapeIds, shapes, updateShape]);
 
+  // LineHandles 핸들러 - 시작점 드래그
+  const handleLineStartPointDrag = useCallback(
+    (shapeId: string, newX: number, newY: number) => {
+      const shape = shapes.find((s) => s.id === shapeId);
+      if (!shape || !shape.points || shape.points.length < 4) return;
+
+      const isCurved = shape.isCurved && shape.points.length >= 6;
+
+      if (isCurved) {
+        const [, , cx, cy, x2, y2] = shape.points;
+        // 바운딩 박스 재계산
+        const minX = Math.min(newX, cx, x2);
+        const minY = Math.min(newY, cy, y2);
+        const maxX = Math.max(newX, cx, x2);
+        const maxY = Math.max(newY, cy, y2);
+
+        updateShape(shape.id, {
+          x: shape.x + minX,
+          y: shape.y + minY,
+          width: maxX - minX,
+          height: maxY - minY,
+          points: [newX - minX, newY - minY, cx - minX, cy - minY, x2 - minX, y2 - minY],
+        });
+      } else {
+        const [, , x2, y2] = shape.points;
+        // 바운딩 박스 재계산
+        const minX = Math.min(newX, x2);
+        const minY = Math.min(newY, y2);
+        const maxX = Math.max(newX, x2);
+        const maxY = Math.max(newY, y2);
+
+        updateShape(shape.id, {
+          x: shape.x + minX,
+          y: shape.y + minY,
+          width: maxX - minX,
+          height: maxY - minY,
+          points: [newX - minX, newY - minY, x2 - minX, y2 - minY],
+        });
+      }
+    },
+    [shapes, updateShape],
+  );
+
+  // LineHandles 핸들러 - 끝점 드래그
+  const handleLineEndPointDrag = useCallback(
+    (shapeId: string, newX: number, newY: number) => {
+      const shape = shapes.find((s) => s.id === shapeId);
+      if (!shape || !shape.points || shape.points.length < 4) return;
+
+      const isCurved = shape.isCurved && shape.points.length >= 6;
+
+      if (isCurved) {
+        const [x1, y1, cx, cy] = shape.points;
+        // 바운딩 박스 재계산
+        const minX = Math.min(x1, cx, newX);
+        const minY = Math.min(y1, cy, newY);
+        const maxX = Math.max(x1, cx, newX);
+        const maxY = Math.max(y1, cy, newY);
+
+        updateShape(shape.id, {
+          x: shape.x + minX,
+          y: shape.y + minY,
+          width: maxX - minX,
+          height: maxY - minY,
+          points: [x1 - minX, y1 - minY, cx - minX, cy - minY, newX - minX, newY - minY],
+        });
+      } else {
+        const [x1, y1] = shape.points;
+        // 바운딩 박스 재계산
+        const minX = Math.min(x1, newX);
+        const minY = Math.min(y1, newY);
+        const maxX = Math.max(x1, newX);
+        const maxY = Math.max(y1, newY);
+
+        updateShape(shape.id, {
+          x: shape.x + minX,
+          y: shape.y + minY,
+          width: maxX - minX,
+          height: maxY - minY,
+          points: [x1 - minX, y1 - minY, newX - minX, newY - minY],
+        });
+      }
+    },
+    [shapes, updateShape],
+  );
+
+  // LineHandles 핸들러 - 컨트롤 포인트 드래그 (곡선 생성)
+  const handleLineControlPointDrag = useCallback(
+    (shapeId: string, newX: number, newY: number) => {
+      const shape = shapes.find((s) => s.id === shapeId);
+      if (!shape || !shape.points || shape.points.length < 4) return;
+
+      let x1: number, y1: number, x2: number, y2: number;
+
+      if (shape.isCurved && shape.points.length >= 6) {
+        [x1, y1, , , x2, y2] = shape.points;
+      } else {
+        [x1, y1, x2, y2] = shape.points;
+      }
+
+      // 바운딩 박스 재계산
+      const minX = Math.min(x1, newX, x2);
+      const minY = Math.min(y1, newY, y2);
+      const maxX = Math.max(x1, newX, x2);
+      const maxY = Math.max(y1, newY, y2);
+
+      updateShape(shape.id, {
+        x: shape.x + minX,
+        y: shape.y + minY,
+        width: maxX - minX,
+        height: maxY - minY,
+        points: [x1 - minX, y1 - minY, newX - minX, newY - minY, x2 - minX, y2 - minY],
+        isCurved: true,
+      });
+    },
+    [shapes, updateShape],
+  );
+
+  // LineHandles 드래그 완료 핸들러
+  const handleLineDragEnd = useCallback(() => {
+    // 드래그 완료 시 추가 처리가 필요하면 여기에 작성
+  }, []);
+
   // 커서 스타일 결정
   const getCursorClass = (): string => {
     if (isPanning) return 'grabbing';
@@ -764,7 +975,7 @@ const Canvas = () => {
             <RoughShape shape={drawingState.currentShape} themeMode={theme} />
           )}
 
-          {/* Excalidraw 스타일 Transformer */}
+          {/* Excalidraw 스타일 Transformer (사각형, 원 등에 사용) */}
           <Transformer
             ref={transformerRef}
             rotateEnabled={true}
@@ -796,7 +1007,73 @@ const Canvas = () => {
             borderStrokeWidth={1}
             borderDash={[]}
             onTransformEnd={handleTransformEnd}
+            onDragEnd={handleTransformEnd}
           />
+
+          {/* Transformer 드래그 가능 영역 (투명 배경) */}
+          {transformerBoundingBox && (
+            <Rect
+              x={transformerBoundingBox.x}
+              y={transformerBoundingBox.y}
+              width={transformerBoundingBox.width}
+              height={transformerBoundingBox.height}
+              fill="transparent"
+              listening={true}
+              draggable={true}
+              onMouseEnter={(e) => {
+                const stage = e.target.getStage();
+                if (stage) {
+                  stage.container().style.cursor = 'move';
+                }
+              }}
+              onMouseLeave={(e) => {
+                const stage = e.target.getStage();
+                if (stage) {
+                  stage.container().style.cursor = 'default';
+                }
+              }}
+              onDragStart={() => {
+                setIsDraggingGroup(true);
+              }}
+              onDragMove={(e) => {
+                if (!isDraggingGroup) return;
+                
+                const dx = e.target.x() - transformerBoundingBox.x;
+                const dy = e.target.y() - transformerBoundingBox.y;
+                
+                // 모든 선택된 도형 이동
+                selectedShapeIds.forEach((id) => {
+                  const shape = shapes.find((s) => s.id === id);
+                  if (shape) {
+                    updateShape(id, {
+                      x: shape.x + dx,
+                      y: shape.y + dy,
+                    });
+                  }
+                });
+                
+                // Rect 위치 리셋
+                e.target.position({ x: transformerBoundingBox.x, y: transformerBoundingBox.y });
+              }}
+              onDragEnd={() => {
+                setIsDraggingGroup(false);
+              }}
+            />
+          )}
+
+          {/* 선/화살표 전용 커스텀 핸들 (다중 선택 포함) */}
+          {selectedLinesAndArrows.map((shape) => (
+            <LineHandles
+              key={shape.id}
+              shape={shape}
+              viewport={viewport}
+              themeMode={theme}
+              onStartPointDrag={(x, y) => handleLineStartPointDrag(shape.id, x, y)}
+              onEndPointDrag={(x, y) => handleLineEndPointDrag(shape.id, x, y)}
+              onControlPointDrag={(x, y) => handleLineControlPointDrag(shape.id, x, y)}
+              onDragEnd={handleLineDragEnd}
+            />
+          ))}
 
           {/* 선택 영역 박스 */}
           {selectionRect && (

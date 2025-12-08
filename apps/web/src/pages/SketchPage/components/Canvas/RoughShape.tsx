@@ -47,6 +47,9 @@ const RoughShape = ({
   // 안정적인 seed 값 (도형 ID 기반)
   const seed = useMemo(() => generateSeed(shape.id), [shape.id]);
 
+  // points 배열을 문자열로 변환하여 안정적인 비교 (배열 참조 변경으로 인한 불필요한 렌더링 방지)
+  const pointsKey = shape.points ? shape.points.join(',') : '';
+
   // rough.js로 캔버스 이미지 생성 (고해상도)
   const canvasImage = useMemo(() => {
     // 텍스트 전용 타입의 경우 rough.js 렌더링 스킵
@@ -57,7 +60,16 @@ const RoughShape = ({
       return { canvas, padding: 0, canvasWidth: 1, canvasHeight: 1 };
     }
 
-    const padding = shape.strokeWidth * 3;
+    // 곡선인 경우 더 큰 padding 사용 (제어점이 bounding box 밖에 있을 수 있음)
+    const isCurvedLine =
+      (shape.type === 'line' || shape.type === 'arrow') &&
+      shape.isCurved &&
+      shape.points &&
+      shape.points.length >= 6;
+    const padding = isCurvedLine
+      ? Math.max(shape.strokeWidth * 15, 30) // 곡선은 더 큰 padding
+      : shape.strokeWidth * 5;
+
     const drawWidth = Math.max(shape.width, 1);
     const drawHeight = Math.max(shape.height, 1);
 
@@ -108,144 +120,300 @@ const RoughShape = ({
       }
       case 'line': {
         if (shape.points && shape.points.length >= 4) {
-          const [x1, y1, x2, y2] = shape.points;
+          // 곡선인 경우 베지어 커브 렌더링
+          if (shape.isCurved && shape.points.length >= 6) {
+            const [x1, y1, cx, cy, x2, y2] = shape.points;
 
-          // 텍스트가 있거나 편집 중이면 중간에 gap 생성
-          if (shape.text || isEditing) {
-            const midX = (x1 + x2) / 2;
-            const midY = (y1 + y2) / 2;
+            // 텍스트가 있으면 곡선을 두 부분으로 나눔
+            if (shape.text || isEditing) {
+              // 베지어 곡선 분할 지점
+              const t1 = 0.35; // 첫 번째 곡선 끝 (gap 시작)
+              const t2 = 0.65; // 두 번째 곡선 시작 (gap 끝)
 
-            // 선의 방향 벡터 정규화
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            const length = Math.sqrt(dx * dx + dy * dy);
+              // De Casteljau's algorithm으로 첫 번째 세그먼트 계산 (0 ~ t1)
+              const q0x = x1 + (cx - x1) * t1;
+              const q0y = y1 + (cy - y1) * t1;
+              const q1x = cx + (x2 - cx) * t1;
+              const q1y = cy + (y2 - cy) * t1;
+              const split1X = q0x + (q1x - q0x) * t1;
+              const split1Y = q0y + (q1y - q0y) * t1;
+              const cx1 = q0x;
+              const cy1 = q0y;
 
-            // gap이 선 길이의 80%를 초과하지 않도록 제한 (고정 크기 사용)
-            const maxGapWidth = length * 0.8;
-            const gapWidth = Math.min(LINE_TEXT_GAP_WIDTH, maxGapWidth);
+              // De Casteljau's algorithm으로 두 번째 세그먼트 계산 (t2 ~ 1)
+              const r0x = x1 + (cx - x1) * t2;
+              const r0y = y1 + (cy - y1) * t2;
+              const r1x = cx + (x2 - cx) * t2;
+              const r1y = cy + (y2 - cy) * t2;
+              const split2X = r0x + (r1x - r0x) * t2;
+              const split2Y = r0y + (r1y - r0y) * t2;
+              const cx2 = r1x;
+              const cy2 = r1y;
 
-            if (length > 20) {
-              // 최소 선 길이 확인
-              const unitX = dx / length;
-              const unitY = dy / length;
-
-              // gap 시작/끝점 계산
-              const gapStartX = midX - (unitX * gapWidth) / 2;
-              const gapStartY = midY - (unitY * gapWidth) / 2;
-              const gapEndX = midX + (unitX * gapWidth) / 2;
-              const gapEndY = midY + (unitY * gapWidth) / 2;
-
-              // 첫 번째 세그먼트 (시작점 ~ gap 시작)
-              rc.line(
-                x1 + padding,
-                y1 + padding,
-                gapStartX + padding,
-                gapStartY + padding,
+              // 첫 번째 세그먼트 (시작 ~ gap 시작)
+              rc.curve(
+                [
+                  [x1 + padding, y1 + padding],
+                  [cx1 + padding, cy1 + padding],
+                  [split1X + padding, split1Y + padding],
+                ],
                 options,
               );
 
               // 두 번째 세그먼트 (gap 끝 ~ 끝점)
+              rc.curve(
+                [
+                  [split2X + padding, split2Y + padding],
+                  [cx2 + padding, cy2 + padding],
+                  [x2 + padding, y2 + padding],
+                ],
+                options,
+              );
+            } else {
+              // 텍스트 없으면 전체 곡선 그리기
+              rc.curve(
+                [
+                  [x1 + padding, y1 + padding],
+                  [cx + padding, cy + padding],
+                  [x2 + padding, y2 + padding],
+                ],
+                options,
+              );
+            }
+          } else {
+            // 직선인 경우
+            const [x1, y1, x2, y2] = shape.points;
+
+            // 텍스트가 있거나 편집 중이면 중간에 gap 생성
+            if (shape.text || isEditing) {
+              const midX = (x1 + x2) / 2;
+              const midY = (y1 + y2) / 2;
+
+              // 선의 방향 벡터 정규화
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const length = Math.sqrt(dx * dx + dy * dy);
+
+              // gap이 선 길이의 80%를 초과하지 않도록 제한 (고정 크기 사용)
+              const maxGapWidth = length * 0.8;
+              const gapWidth = Math.min(LINE_TEXT_GAP_WIDTH, maxGapWidth);
+
+              if (length > 20) {
+                // 최소 선 길이 확인
+                const unitX = dx / length;
+                const unitY = dy / length;
+
+                // gap 시작/끝점 계산
+                const gapStartX = midX - (unitX * gapWidth) / 2;
+                const gapStartY = midY - (unitY * gapWidth) / 2;
+                const gapEndX = midX + (unitX * gapWidth) / 2;
+                const gapEndY = midY + (unitY * gapWidth) / 2;
+
+                // 첫 번째 세그먼트 (시작점 ~ gap 시작)
+                rc.line(
+                  x1 + padding,
+                  y1 + padding,
+                  gapStartX + padding,
+                  gapStartY + padding,
+                  options,
+                );
+
+                // 두 번째 세그먼트 (gap 끝 ~ 끝점)
+                rc.line(
+                  gapEndX + padding,
+                  gapEndY + padding,
+                  x2 + padding,
+                  y2 + padding,
+                  options,
+                );
+              }
+            } else {
+              // 텍스트가 없으면 기존대로 한 줄
               rc.line(
-                gapEndX + padding,
-                gapEndY + padding,
+                x1 + padding,
+                y1 + padding,
                 x2 + padding,
                 y2 + padding,
                 options,
               );
             }
-          } else {
-            // 텍스트가 없으면 기존대로 한 줄
-            rc.line(
-              x1 + padding,
-              y1 + padding,
-              x2 + padding,
-              y2 + padding,
-              options,
-            );
           }
         }
         break;
       }
       case 'arrow': {
         if (shape.points && shape.points.length >= 4) {
-          const [x1, y1, x2, y2] = shape.points;
-          const drawEndX = x2 + padding;
-          const drawEndY = y2 + padding;
+          // 곡선인 경우 베지어 커브 렌더링
+          if (shape.isCurved && shape.points.length >= 6) {
+            const [x1, y1, cx, cy, x2, y2] = shape.points;
+            const drawEndX = x2 + padding;
+            const drawEndY = y2 + padding;
 
-          // 화살표 헤드 계산 (항상 그려야 함)
-          const angle = Math.atan2(y2 - y1, x2 - x1);
-          const headLength = 12;
-          const headAngle = Math.PI / 7;
+            // 텍스트가 있으면 곡선을 두 부분으로 나눔
+            if (shape.text || isEditing) {
+              // 베지어 곡선 분할 지점
+              const t1 = 0.35; // 첫 번째 곡선 끝 (gap 시작)
+              const t2 = 0.65; // 두 번째 곡선 시작 (gap 끝)
 
-          const arrowX1 = drawEndX - headLength * Math.cos(angle - headAngle);
-          const arrowY1 = drawEndY - headLength * Math.sin(angle - headAngle);
-          const arrowX2 = drawEndX - headLength * Math.cos(angle + headAngle);
-          const arrowY2 = drawEndY - headLength * Math.sin(angle + headAngle);
+              // De Casteljau's algorithm으로 첫 번째 세그먼트 계산 (0 ~ t1)
+              const q0x = x1 + (cx - x1) * t1;
+              const q0y = y1 + (cy - y1) * t1;
+              const q1x = cx + (x2 - cx) * t1;
+              const q1y = cy + (y2 - cy) * t1;
+              const split1X = q0x + (q1x - q0x) * t1;
+              const split1Y = q0y + (q1y - q0y) * t1;
+              const cx1 = q0x;
+              const cy1 = q0y;
 
-          // 텍스트가 있거나 편집 중이면 중간에 gap 생성
-          if (shape.text || isEditing) {
-            const midX = (x1 + x2) / 2;
-            const midY = (y1 + y2) / 2;
+              // De Casteljau's algorithm으로 두 번째 세그먼트 계산 (t2 ~ 1)
+              const r0x = x1 + (cx - x1) * t2;
+              const r0y = y1 + (cy - y1) * t2;
+              const r1x = cx + (x2 - cx) * t2;
+              const r1y = cy + (y2 - cy) * t2;
+              const split2X = r0x + (r1x - r0x) * t2;
+              const split2Y = r0y + (r1y - r0y) * t2;
+              const cx2 = r1x;
+              const cy2 = r1y;
 
-            // 선의 방향 벡터 정규화
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            const length = Math.sqrt(dx * dx + dy * dy);
-
-            // gap이 선 길이의 80%를 초과하지 않도록 제한 (고정 크기 사용)
-            const maxGapWidth = length * 0.8;
-            const gapWidth = Math.min(LINE_TEXT_GAP_WIDTH, maxGapWidth);
-
-            if (length > 20) {
-              // 최소 선 길이 확인
-              const unitX = dx / length;
-              const unitY = dy / length;
-
-              // gap 시작/끝점 계산
-              const gapStartX = midX - (unitX * gapWidth) / 2;
-              const gapStartY = midY - (unitY * gapWidth) / 2;
-              const gapEndX = midX + (unitX * gapWidth) / 2;
-              const gapEndY = midY + (unitY * gapWidth) / 2;
-
-              // 첫 번째 세그먼트 (시작점 ~ gap 시작)
-              rc.line(
-                x1 + padding,
-                y1 + padding,
-                gapStartX + padding,
-                gapStartY + padding,
+              // 첫 번째 세그먼트 (시작 ~ gap 시작)
+              rc.curve(
+                [
+                  [x1 + padding, y1 + padding],
+                  [cx1 + padding, cy1 + padding],
+                  [split1X + padding, split1Y + padding],
+                ],
                 options,
               );
 
               // 두 번째 세그먼트 (gap 끝 ~ 끝점)
+              rc.curve(
+                [
+                  [split2X + padding, split2Y + padding],
+                  [cx2 + padding, cy2 + padding],
+                  [x2 + padding, y2 + padding],
+                ],
+                options,
+              );
+            } else {
+              // 텍스트 없으면 전체 곡선 그리기
+              rc.curve(
+                [
+                  [x1 + padding, y1 + padding],
+                  [cx + padding, cy + padding],
+                  [x2 + padding, y2 + padding],
+                ],
+                options,
+              );
+            }
+
+            // 화살표 헤드 - 곡선의 끝점 방향 계산
+            // 제어점에서 끝점으로의 방향을 사용
+            const angle = Math.atan2(y2 - cy, x2 - cx);
+            const headLength = 12;
+            const headAngle = Math.PI / 7;
+
+            const arrowX1 = drawEndX - headLength * Math.cos(angle - headAngle);
+            const arrowY1 = drawEndY - headLength * Math.sin(angle - headAngle);
+            const arrowX2 = drawEndX - headLength * Math.cos(angle + headAngle);
+            const arrowY2 = drawEndY - headLength * Math.sin(angle + headAngle);
+
+            rc.line(drawEndX, drawEndY, arrowX1, arrowY1, options);
+            rc.line(drawEndX, drawEndY, arrowX2, arrowY2, options);
+          } else {
+            // 직선인 경우
+            const [x1, y1, x2, y2] = shape.points;
+            const drawEndX = x2 + padding;
+            const drawEndY = y2 + padding;
+
+            // 화살표 헤드 계산 (항상 그려야 함)
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const headLength = 12;
+            const headAngle = Math.PI / 7;
+
+            const arrowX1 = drawEndX - headLength * Math.cos(angle - headAngle);
+            const arrowY1 = drawEndY - headLength * Math.sin(angle - headAngle);
+            const arrowX2 = drawEndX - headLength * Math.cos(angle + headAngle);
+            const arrowY2 = drawEndY - headLength * Math.sin(angle + headAngle);
+
+            // 텍스트가 있거나 편집 중이면 중간에 gap 생성
+            if (shape.text || isEditing) {
+              const midX = (x1 + x2) / 2;
+              const midY = (y1 + y2) / 2;
+
+              // 선의 방향 벡터 정규화
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const length = Math.sqrt(dx * dx + dy * dy);
+
+              // gap이 선 길이의 80%를 초과하지 않도록 제한 (고정 크기 사용)
+              const maxGapWidth = length * 0.8;
+              const gapWidth = Math.min(LINE_TEXT_GAP_WIDTH, maxGapWidth);
+
+              if (length > 20) {
+                // 최소 선 길이 확인
+                const unitX = dx / length;
+                const unitY = dy / length;
+
+                // gap 시작/끝점 계산
+                const gapStartX = midX - (unitX * gapWidth) / 2;
+                const gapStartY = midY - (unitY * gapWidth) / 2;
+                const gapEndX = midX + (unitX * gapWidth) / 2;
+                const gapEndY = midY + (unitY * gapWidth) / 2;
+
+                // 첫 번째 세그먼트 (시작점 ~ gap 시작)
+                rc.line(
+                  x1 + padding,
+                  y1 + padding,
+                  gapStartX + padding,
+                  gapStartY + padding,
+                  options,
+                );
+
+                // 두 번째 세그먼트 (gap 끝 ~ 끝점)
+                rc.line(
+                  gapEndX + padding,
+                  gapEndY + padding,
+                  x2 + padding,
+                  y2 + padding,
+                  options,
+                );
+              }
+            } else {
+              // 텍스트가 없으면 기존대로 한 줄
               rc.line(
-                gapEndX + padding,
-                gapEndY + padding,
+                x1 + padding,
+                y1 + padding,
                 x2 + padding,
                 y2 + padding,
                 options,
               );
             }
-          } else {
-            // 텍스트가 없으면 기존대로 한 줄
-            rc.line(
-              x1 + padding,
-              y1 + padding,
-              x2 + padding,
-              y2 + padding,
-              options,
-            );
-          }
 
-          // 화살표 헤드 (항상 그림)
-          rc.line(drawEndX, drawEndY, arrowX1, arrowY1, options);
-          rc.line(drawEndX, drawEndY, arrowX2, arrowY2, options);
+            // 화살표 헤드 (항상 그림)
+            rc.line(drawEndX, drawEndY, arrowX1, arrowY1, options);
+            rc.line(drawEndX, drawEndY, arrowX2, arrowY2, options);
+          }
         }
         break;
       }
     }
 
     return { canvas, padding, canvasWidth, canvasHeight };
-  }, [shape, seed, isEditing]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    shape.type,
+    shape.width,
+    shape.height,
+    pointsKey, // points 대신 pointsKey 사용 (배열 참조 변경 최적화)
+    shape.isCurved,
+    shape.stroke,
+    shape.strokeWidth,
+    shape.fill,
+    shape.roughness,
+    shape.text,
+    isEditing,
+    seed,
+  ]);
 
   const shapeWidth = Math.max(shape.width, 10);
   const shapeHeight = Math.max(shape.height, 10);
@@ -342,36 +510,79 @@ const RoughShape = ({
             (shape.type === 'line' || shape.type === 'arrow') &&
             shape.points
           ) {
-            const [x1, y1, x2, y2] = shape.points;
+            let midX: number, midY: number;
 
-            // 선의 중앙점
-            const midX = (x1 + x2) / 2;
-            const midY = (y1 + y2) / 2;
+            // 곡선인 경우 베지어 곡선의 중간점 계산
+            if (shape.isCurved && shape.points.length >= 6) {
+              const [x1, y1, cx, cy, x2, y2] = shape.points;
+              // 베지어 곡선의 중간점 (t=0.5)
+              const t = 0.5;
+              midX = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2;
+              midY = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2;
+            } else {
+              // 직선인 경우 단순 중앙점
+              const [x1, y1, x2, y2] = shape.points;
+              midX = (x1 + x2) / 2;
+              midY = (y1 + y2) / 2;
+            }
 
-            // 텍스트 너비 (gap 너비와 동일하게)
-            const textWidth = LINE_TEXT_GAP_WIDTH;
+            // 텍스트 설정
             const fontSize = shape.fontSize || 16;
             const lineHeight = 1.2;
+            const backgroundColor =
+              themeMode === 'light' ? '#ffffff' : '#1e1e1e';
 
-            // 충분히 큰 높이를 설정하고 verticalAlign으로 중앙 정렬
-            const maxTextHeight = 500;
+            // 텍스트의 실제 크기를 측정하기 위한 임시 Text 노드 생성
+            const text = shape.text || '';
+
+            // Konva의 measureText를 사용하여 실제 텍스트 크기 계산
+            const tempText = new Konva.Text({
+              text: text,
+              fontSize: fontSize,
+              lineHeight: lineHeight,
+              fontFamily: shape.fontFamily || 'Inter, sans-serif',
+              width: LINE_TEXT_GAP_WIDTH,
+              align: 'center',
+              wrap: 'word',
+            });
+
+            const textWidth = tempText.width();
+            const textHeight = tempText.height();
+
+            // 임시 노드 제거
+            tempText.destroy();
+
+            // 최소 패딩으로 텍스트 배경 생성
+            const bgPaddingX = 4;
+            const bgPaddingY = 2;
 
             return (
-              <Text
-                x={midX - textWidth / 2}
-                y={midY - maxTextHeight / 2}
-                width={textWidth}
-                height={maxTextHeight}
-                text={shape.text}
-                fontSize={fontSize}
-                lineHeight={lineHeight}
-                fontFamily={shape.fontFamily || 'Inter, sans-serif'}
-                fill={themeMode === 'light' ? '#1e1e1e' : '#e5e5e5'}
-                align="center"
-                verticalAlign="middle"
-                wrap="word"
-                listening={false}
-              />
+              <>
+                {/* 텍스트 배경 - 선이 끊긴 부분을 덮음 */}
+                <Rect
+                  x={midX - textWidth / 2 - bgPaddingX}
+                  y={midY - textHeight / 2 - bgPaddingY}
+                  width={textWidth + bgPaddingX * 2}
+                  height={textHeight + bgPaddingY * 2}
+                  fill={backgroundColor}
+                  listening={false}
+                />
+                {/* 텍스트 */}
+                <Text
+                  x={midX - textWidth / 2}
+                  y={midY - textHeight / 2}
+                  width={textWidth}
+                  text={shape.text}
+                  fontSize={fontSize}
+                  lineHeight={lineHeight}
+                  fontFamily={shape.fontFamily || 'Inter, sans-serif'}
+                  fill={themeMode === 'light' ? '#1e1e1e' : '#e5e5e5'}
+                  align="center"
+                  verticalAlign="top"
+                  wrap="word"
+                  listening={false}
+                />
+              </>
             );
           }
 

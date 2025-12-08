@@ -28,9 +28,21 @@ const TextEditor = ({
   let centerX: number, centerY: number;
 
   if ((shape.type === 'line' || shape.type === 'arrow') && shape.points) {
-    const [x1, y1, x2, y2] = shape.points;
-    centerX = shape.x + (x1 + x2) / 2;
-    centerY = shape.y + (y1 + y2) / 2;
+    // 곡선인 경우 베지어 곡선의 중간점 계산
+    if (shape.isCurved && shape.points.length >= 6) {
+      const [x1, y1, cx, cy, x2, y2] = shape.points;
+      // 베지어 곡선의 중간점 (t=0.5)
+      const t = 0.5;
+      const midX = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2;
+      const midY = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2;
+      centerX = shape.x + midX;
+      centerY = shape.y + midY;
+    } else {
+      // 직선인 경우 단순 중앙점
+      const [x1, y1, x2, y2] = shape.points;
+      centerX = shape.x + (x1 + x2) / 2;
+      centerY = shape.y + (y1 + y2) / 2;
+    }
   } else {
     centerX = shape.x + shape.width / 2;
     centerY = shape.y + shape.height / 2;
