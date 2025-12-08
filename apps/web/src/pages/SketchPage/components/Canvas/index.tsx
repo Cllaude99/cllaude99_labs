@@ -5,6 +5,8 @@ import Konva from 'konva';
 
 import * as S from './Canvas.styles';
 import RoughShape from './RoughShape';
+import TextEditor from './TextEditor';
+import { FILL_COLORS } from '../../constants/colors';
 import { generateShapeId, useSketchStore } from '../../stores/sketchStore';
 import { Point, Shape } from '../../types';
 import {
@@ -30,6 +32,7 @@ const Canvas = () => {
   const [isPanning, setIsPanning] = useState(false);
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [editingShapeId, setEditingShapeId] = useState<string | null>(null);
   const lastPointerPosition = useRef<Point | null>(null);
 
   const {
@@ -70,9 +73,16 @@ const Canvas = () => {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  // Zustand에서 setTool과 deleteShape 가져오기
+  // Zustand에서 액션들 가져오기
   const setTool = useSketchStore((state) => state.setTool);
+  const setFillColor = useSketchStore((state) => state.setFillColor);
   const deleteShape = useSketchStore((state) => state.deleteShape);
+  const selectAllShapes = useSketchStore((state) => state.selectAllShapes);
+  const duplicateShapes = useSketchStore((state) => state.duplicateShapes);
+  const bringToFront = useSketchStore((state) => state.bringToFront);
+  const sendToBack = useSketchStore((state) => state.sendToBack);
+  const copyShapes = useSketchStore((state) => state.copyShapes);
+  const pasteShapes = useSketchStore((state) => state.pasteShapes);
 
   // 키보드 이벤트 핸들러
   useEffect(() => {
@@ -85,13 +95,88 @@ const Canvas = () => {
         return;
       }
 
+      // Mac/Windows Ctrl/Cmd 감지
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isCtrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+
       if (e.code === 'Space' && !isSpacePressed) {
         e.preventDefault();
         setIsSpacePressed(true);
       }
 
+      // Ctrl+A: 전체 선택
+      if (isCtrlOrCmd && e.code === 'KeyA') {
+        e.preventDefault(); // 브라우저 기본 전체 선택 방지
+        selectAllShapes();
+        return;
+      }
+
+      // Ctrl+C: 복사
+      if (isCtrlOrCmd && e.code === 'KeyC') {
+        e.preventDefault();
+        const ids = useSketchStore.getState().selectedShapeIds;
+        if (ids.length > 0) {
+          copyShapes(ids);
+        }
+        return;
+      }
+
+      // Ctrl+V: 붙여넣기
+      if (isCtrlOrCmd && e.code === 'KeyV') {
+        e.preventDefault();
+        pasteShapes();
+        return;
+      }
+
+      // Ctrl+D: 복제
+      if (isCtrlOrCmd && e.code === 'KeyD') {
+        e.preventDefault(); // 브라우저 북마크 추가 방지
+        const ids = useSketchStore.getState().selectedShapeIds;
+        if (ids.length > 0) {
+          duplicateShapes(ids);
+        }
+        return;
+      }
+
+      // Ctrl+]: 맨 앞으로
+      if (isCtrlOrCmd && e.key === ']') {
+        e.preventDefault();
+        const ids = useSketchStore.getState().selectedShapeIds;
+        if (ids.length > 0) {
+          bringToFront(ids);
+        }
+        return;
+      }
+
+      // Ctrl+[: 맨 뒤로
+      if (isCtrlOrCmd && e.key === '[') {
+        e.preventDefault();
+        const ids = useSketchStore.getState().selectedShapeIds;
+        if (ids.length > 0) {
+          sendToBack(ids);
+        }
+        return;
+      }
+
+      // Digit1-9: 채우기 색상 빠른 변경 (Ctrl/Cmd 없이)
+      if (e.code.startsWith('Digit') && !isCtrlOrCmd) {
+        const colorIndex = parseInt(e.code.replace('Digit', '')) - 1;
+        if (colorIndex >= 0 && colorIndex < FILL_COLORS.length) {
+          e.preventDefault();
+          const newColor = FILL_COLORS[colorIndex].value;
+          setFillColor(newColor);
+
+          // 선택된 도형이 있으면 일괄 변경
+          const ids = useSketchStore.getState().selectedShapeIds;
+          if (ids.length > 0) {
+            ids.forEach((id) => updateShape(id, { fill: newColor }));
+          }
+          return;
+        }
+      }
+
       // 도구 단축키 (Ctrl/Cmd 없이) - e.code로 물리적 키 위치 감지 (한/영 모두 지원)
-      if (!e.ctrlKey && !e.metaKey) {
+      if (!isCtrlOrCmd) {
         switch (e.code) {
           case 'KeyV': // V 또는 ㅍ
             setTool('select');
@@ -134,7 +219,20 @@ const Canvas = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isSpacePressed, setIsSpacePressed, setTool, deleteShape]);
+  }, [
+    isSpacePressed,
+    setIsSpacePressed,
+    setTool,
+    setFillColor,
+    updateShape,
+    deleteShape,
+    selectAllShapes,
+    duplicateShapes,
+    bringToFront,
+    sendToBack,
+    copyShapes,
+    pasteShapes,
+  ]);
 
   // Transformer 업데이트 (선택된 도형이 변경될 때)
   useEffect(() => {
@@ -491,6 +589,57 @@ const Canvas = () => {
     [updateShape],
   );
 
+  // 도형 더블클릭 핸들러 (텍스트 편집 모드 진입)
+  const handleShapeDoubleClick = useCallback(
+    (shapeId: string) => {
+      if (tool === 'select') {
+        setEditingShapeId(shapeId);
+      }
+    },
+    [tool],
+  );
+
+  // Stage 더블클릭 핸들러 (빈 공간에서 텍스트 생성)
+  const handleStageDoubleClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      // Stage 자체 클릭 (도형이 아닌 빈 공간)
+      if (e.target === stage) {
+        const pointerPos = stage.getPointerPosition();
+        if (!pointerPos) return;
+
+        const canvasPoint = screenToCanvas(
+          pointerPos.x,
+          pointerPos.y,
+          viewport,
+          stageSize.width,
+          stageSize.height,
+        );
+
+        // 텍스트 전용 도형 생성
+        const newShape: Shape = {
+          id: generateShapeId(),
+          type: 'text',
+          x: canvasPoint.x - 100, // width의 절반만큼 왼쪽으로 이동 (중앙 배치)
+          y: canvasPoint.y - 20, // height의 절반만큼 위로 이동 (중앙 배치)
+          width: 200,
+          height: 40,
+          fill: 'transparent',
+          stroke: 'transparent',
+          strokeWidth: 0,
+          roughness: 0,
+          text: '',
+        };
+
+        addShape(newShape);
+        setEditingShapeId(newShape.id);
+      }
+    },
+    [viewport, stageSize, addShape],
+  );
+
   // 도형 변형 완료 핸들러 (크기 조절, 회전)
   const handleTransformEnd = useCallback(() => {
     selectedShapeIds.forEach((id) => {
@@ -507,13 +656,31 @@ const Canvas = () => {
       const shape = shapes.find((s) => s.id === id);
       if (!shape) return;
 
-      updateShape(id, {
+      // 기본 업데이트 객체
+      const updates: Partial<Shape> = {
         x: node.x(),
         y: node.y(),
         width: Math.max(shape.width * scaleX, 10),
         height: Math.max(shape.height * scaleY, 10),
         rotation: node.rotation(),
-      });
+      };
+
+      // line/arrow의 경우 points도 scale에 맞게 업데이트
+      if (
+        (shape.type === 'line' || shape.type === 'arrow') &&
+        shape.points &&
+        shape.points.length >= 4
+      ) {
+        const [x1, y1, x2, y2] = shape.points;
+        updates.points = [
+          x1 * scaleX,
+          y1 * scaleY,
+          x2 * scaleX,
+          y2 * scaleY,
+        ];
+      }
+
+      updateShape(id, updates);
     });
   }, [selectedShapeIds, shapes, updateShape]);
 
@@ -568,6 +735,7 @@ const Canvas = () => {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onDblClick={handleStageDoubleClick}
       >
         {/* 도형 레이어 */}
         <Layer>
@@ -576,6 +744,8 @@ const Canvas = () => {
               key={shape.id}
               shape={shape}
               isDraggable={tool === 'select'}
+              themeMode={theme}
+              isEditing={editingShapeId === shape.id}
               shapeRef={(node) => {
                 if (node) {
                   shapeRefs.current.set(shape.id, node);
@@ -585,12 +755,13 @@ const Canvas = () => {
               }}
               onClick={() => handleShapeClick(shape.id)}
               onDragEnd={(x, y) => handleShapeDragEnd(shape.id, x, y)}
+              onDoubleClick={() => handleShapeDoubleClick(shape.id)}
             />
           ))}
 
           {/* 그리는 중인 도형 */}
           {drawingState.isDrawing && drawingState.currentShape && (
-            <RoughShape shape={drawingState.currentShape} />
+            <RoughShape shape={drawingState.currentShape} themeMode={theme} />
           )}
 
           {/* Excalidraw 스타일 Transformer */}
@@ -642,6 +813,21 @@ const Canvas = () => {
           )}
         </Layer>
       </Stage>
+
+      {/* 텍스트 편집 오버레이 */}
+      {editingShapeId && (
+        <TextEditor
+          shape={shapes.find((s) => s.id === editingShapeId)!}
+          viewport={viewport}
+          stageSize={stageSize}
+          themeMode={theme}
+          onSave={(text) => {
+            updateShape(editingShapeId, { text: text || undefined });
+            setEditingShapeId(null);
+          }}
+          onCancel={() => setEditingShapeId(null)}
+        />
+      )}
     </S.CanvasContainer>
   );
 };

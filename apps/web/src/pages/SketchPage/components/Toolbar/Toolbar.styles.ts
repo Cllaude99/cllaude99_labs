@@ -37,6 +37,7 @@ export const Divider = styled.div<ThemedProps>`
 
 interface ToolButtonProps extends ThemedProps {
   isActive?: boolean;
+  disabled?: boolean;
 }
 
 export const ToolButton = styled.button<ToolButtonProps>`
@@ -55,17 +56,24 @@ export const ToolButton = styled.button<ToolButtonProps>`
         : 'transparent'};
   color: ${({ isActive, themeMode }) =>
     isActive ? '#ffffff' : themeMode === 'light' ? '#1e1e1e' : '#e5e5e5'};
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  opacity: ${({ disabled }) => (disabled ? 0.4 : 1)};
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: ${({ isActive, themeMode }) =>
-      isActive ? '#2272EB' : themeMode === 'light' ? '#f5f5f5' : '#3a3a3a'};
-    transform: scale(1.05);
+    background-color: ${({ isActive, disabled, themeMode }) =>
+      disabled
+        ? 'transparent'
+        : isActive
+          ? '#2272EB'
+          : themeMode === 'light'
+            ? '#f5f5f5'
+            : '#3a3a3a'};
+    transform: ${({ disabled }) => (disabled ? 'none' : 'scale(1.05)')};
   }
 
   &:active {
-    transform: scale(0.98);
+    transform: ${({ disabled }) => (disabled ? 'none' : 'scale(0.98)')};
   }
 
   svg {

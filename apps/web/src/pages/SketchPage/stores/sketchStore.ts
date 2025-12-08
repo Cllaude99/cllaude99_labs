@@ -4,6 +4,10 @@ import { persist } from 'zustand/middleware';
 import generateLocalStorageKey from '@/utils/generateLocalStorageKey';
 
 import { DrawingState, Shape, ThemeMode, ToolType, Viewport } from '../types';
+import {
+  AlignmentType,
+  calculateAlignedPositions,
+} from '../utils/alignment';
 
 // LocalStorage 키 값
 const THEME_STORAGE_KEY = generateLocalStorageKey('sketch_theme');
@@ -24,6 +28,16 @@ interface SketchState {
   selectedShapeIds: string[];
   setSelectedShapeIds: (ids: string[]) => void;
   clearSelection: () => void;
+  selectAllShapes: () => void;
+  duplicateShapes: (ids: string[]) => void;
+  bringToFront: (ids: string[]) => void;
+  sendToBack: (ids: string[]) => void;
+  alignShapes: (ids: string[], alignType: AlignmentType) => void;
+
+  // 클립보드 (복사/붙여넣기)
+  clipboard: Shape[];
+  copyShapes: (ids: string[]) => void;
+  pasteShapes: () => void;
 
   // Viewport 관련
   viewport: Viewport;
@@ -109,6 +123,80 @@ export const useSketchStore = create<SketchState>()(
       selectedShapeIds: [],
       setSelectedShapeIds: (ids) => set({ selectedShapeIds: ids }),
       clearSelection: () => set({ selectedShapeIds: [] }),
+      selectAllShapes: () =>
+        set((state) => ({
+          selectedShapeIds: state.shapes.map((shape) => shape.id),
+        })),
+      duplicateShapes: (ids) =>
+        set((state) => {
+          const shapesToDuplicate = state.shapes.filter((s) =>
+            ids.includes(s.id),
+          );
+          const duplicated = shapesToDuplicate.map((shape) => ({
+            ...shape,
+            id: generateShapeId(),
+            x: shape.x + 10,
+            y: shape.y + 10,
+          }));
+
+          return {
+            shapes: [...state.shapes, ...duplicated],
+            selectedShapeIds: duplicated.map((s) => s.id),
+          };
+        }),
+      bringToFront: (ids) =>
+        set((state) => {
+          const selected = state.shapes.filter((s) => ids.includes(s.id));
+          const others = state.shapes.filter((s) => !ids.includes(s.id));
+          return { shapes: [...others, ...selected] };
+        }),
+      sendToBack: (ids) =>
+        set((state) => {
+          const selected = state.shapes.filter((s) => ids.includes(s.id));
+          const others = state.shapes.filter((s) => !ids.includes(s.id));
+          return { shapes: [...selected, ...others] };
+        }),
+      alignShapes: (ids, alignType) =>
+        set((state) => {
+          const shapesToAlign = state.shapes.filter((s) => ids.includes(s.id));
+          if (shapesToAlign.length < 2) return state;
+
+          const alignedPositions = calculateAlignedPositions(
+            shapesToAlign,
+            alignType,
+          );
+
+          const updatedShapes = state.shapes.map((shape) => {
+            const aligned = alignedPositions.find((a) => a.id === shape.id);
+            return aligned ? { ...shape, x: aligned.x, y: aligned.y } : shape;
+          });
+
+          return { shapes: updatedShapes };
+        }),
+
+      // 클립보드 (복사/붙여넣기)
+      clipboard: [],
+      copyShapes: (ids) =>
+        set((state) => {
+          const shapesToCopy = state.shapes.filter((s) => ids.includes(s.id));
+          return { clipboard: shapesToCopy };
+        }),
+      pasteShapes: () =>
+        set((state) => {
+          if (state.clipboard.length === 0) return state;
+
+          const pastedShapes = state.clipboard.map((shape) => ({
+            ...shape,
+            id: generateShapeId(),
+            x: shape.x + 20,
+            y: shape.y + 20,
+          }));
+
+          return {
+            shapes: [...state.shapes, ...pastedShapes],
+            selectedShapeIds: pastedShapes.map((s) => s.id),
+          };
+        }),
 
       // Viewport 관련
       viewport: INITIAL_VIEWPORT,

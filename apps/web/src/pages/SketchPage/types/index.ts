@@ -1,5 +1,5 @@
 // 도형 타입
-export type ShapeType = 'rectangle' | 'ellipse' | 'line' | 'arrow';
+export type ShapeType = 'rectangle' | 'ellipse' | 'line' | 'arrow' | 'text';
 
 export interface Shape {
   id: string;
@@ -14,6 +14,12 @@ export interface Shape {
   roughness: number; // rough.js 손그림 강도 (0: 깔끔, 3: 거친 손그림)
   rotation?: number;
   points?: number[]; // line, arrow용 포인트 배열
+
+  // 텍스트 관련
+  text?: string;
+  fontSize?: number; // 기본값: 16
+  fontFamily?: string; // 기본값: 'Inter, sans-serif'
+  textAlign?: 'left' | 'center' | 'right'; // 기본값: 'center'
 }
 
 // 도구 타입
