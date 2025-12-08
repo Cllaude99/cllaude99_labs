@@ -160,40 +160,6 @@ will-change를 적용하지 않은 왼쪽 박스는 호버하기 전에는 docum
 
 ![will-change 적용 시 레이어 동작](/images/tech/will-change-O-hover-ezgif.com-video-to-gif-converter.gif)
 
-### transform과 opacity는 왜 특별할까?
-
-예제를 만들면서 대부분의 will-change 사용 예시가 transform이나 opacity와 함께 사용되는 것을 보았습니다.
-왜 특정 속성들만 자주 등장하는 걸까요?
-
-알고 보니 CSS 속성들은 렌더링 파이프라인에서 필요로 하는 단계가 각각 다릅니다.
-일부 속성은 Layout과 Paint 없이 Composite 단계만으로 처리할 수 있는데, transform, opacity, filter, backdrop-filter가 바로 그런 속성들입니다.
-
-이 속성들은 요소의 위치나 크기를 변경하지 않고, 레이어 단위로 합성만 조정하면 됩니다.
-마치 투명 필름에 그려진 그림을 이동시키거나 투명도를 조절하는 것과 비슷합니다.
-
-반면 width, height, margin, padding, border 같은 속성들은 요소의 크기나 위치를 변경하므로 전체 레이아웃을 다시 계산해야 합니다.
-주변 요소들도 모두 영향을 받기 때문에 훨씬 무거운 작업이 됩니다.
-
-```css
-/* 효과적인 조합 - Composite만 필요 */
-.optimized {
-  will-change: transform, opacity;
-  transition:
-    transform 0.3s,
-    opacity 0.3s;
-}
-
-/* 비효율적인 조합 - Layout이 필요 */
-.not-optimized {
-  will-change: width, height;
-  transition:
-    width 0.3s,
-    height 0.3s;
-}
-```
-
-따라서 will-change는 transform, opacity 같은 속성과 함께 사용할 때 가장 큰 효과를 낼 수 있습니다.
-
 ### will-change의 함정
 
 여기까지 보면 will-change는 정말 좋은 속성처럼 보입니다.
