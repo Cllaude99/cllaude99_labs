@@ -35,6 +35,7 @@ const Canvas = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [editingShapeId, setEditingShapeId] = useState<string | null>(null);
   const [isDraggingGroup, setIsDraggingGroup] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
   const lastPointerPosition = useRef<Point | null>(null);
 
   const {
@@ -266,7 +267,7 @@ const Canvas = () => {
   // Transformer의 bounding box를 계산 (선택된 도형이 있을 때만)
   const transformerBoundingBox = useMemo(() => {
     if (!transformerRef.current || selectedShapeIds.length === 0) return null;
-    
+
     // 선/화살표가 아닌 도형만 포함
     const nonLineShapes = shapes.filter(
       (s) =>
@@ -274,22 +275,22 @@ const Canvas = () => {
         s.type !== 'line' &&
         s.type !== 'arrow',
     );
-    
+
     if (nonLineShapes.length === 0) return null;
-    
+
     // 모든 도형의 bounding box 계산
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    
+
     nonLineShapes.forEach((shape) => {
       minX = Math.min(minX, shape.x);
       minY = Math.min(minY, shape.y);
       maxX = Math.max(maxX, shape.x + shape.width);
       maxY = Math.max(maxY, shape.y + shape.height);
     });
-    
+
     return {
       x: minX,
       y: minY,
@@ -449,12 +450,12 @@ const Canvas = () => {
         stageSize.width,
         stageSize.height,
       );
-      
+
       // 드래그 거리 계산
       const dx = canvasPoint.x - selectionBox.startX;
       const dy = canvasPoint.y - selectionBox.startY;
       const dragDistance = Math.sqrt(dx * dx + dy * dy);
-      
+
       // 드래그 거리가 작고 (5px 이하) 선택된 도형이 있으면 팬 모드로 전환
       if (dragDistance < 5 && selectedShapeIds.length > 0) {
         setIsSelecting(false);
@@ -463,7 +464,7 @@ const Canvas = () => {
         lastPointerPosition.current = pointerPos;
         return;
       }
-      
+
       setSelectionBox({
         ...selectionBox,
         endX: canvasPoint.x,
@@ -560,7 +561,10 @@ const Canvas = () => {
       const boxTop = Math.min(box.startY, box.endY);
       const boxBottom = Math.max(box.startY, box.endY);
 
-      let shapeLeft: number, shapeRight: number, shapeTop: number, shapeBottom: number;
+      let shapeLeft: number,
+        shapeRight: number,
+        shapeTop: number,
+        shapeBottom: number;
 
       // Line/Arrow는 points 배열로 bounding box 계산
       if ((shape.type === 'line' || shape.type === 'arrow') && shape.points) {
@@ -767,12 +771,7 @@ const Canvas = () => {
         shape.points.length >= 4
       ) {
         const [x1, y1, x2, y2] = shape.points;
-        updates.points = [
-          x1 * scaleX,
-          y1 * scaleY,
-          x2 * scaleX,
-          y2 * scaleY,
-        ];
+        updates.points = [x1 * scaleX, y1 * scaleY, x2 * scaleX, y2 * scaleY];
       }
 
       updateShape(id, updates);
@@ -800,7 +799,14 @@ const Canvas = () => {
           y: shape.y + minY,
           width: maxX - minX,
           height: maxY - minY,
-          points: [newX - minX, newY - minY, cx - minX, cy - minY, x2 - minX, y2 - minY],
+          points: [
+            newX - minX,
+            newY - minY,
+            cx - minX,
+            cy - minY,
+            x2 - minX,
+            y2 - minY,
+          ],
         });
       } else {
         const [, , x2, y2] = shape.points;
@@ -843,7 +849,14 @@ const Canvas = () => {
           y: shape.y + minY,
           width: maxX - minX,
           height: maxY - minY,
-          points: [x1 - minX, y1 - minY, cx - minX, cy - minY, newX - minX, newY - minY],
+          points: [
+            x1 - minX,
+            y1 - minY,
+            cx - minX,
+            cy - minY,
+            newX - minX,
+            newY - minY,
+          ],
         });
       } else {
         const [x1, y1] = shape.points;
@@ -890,7 +903,14 @@ const Canvas = () => {
         y: shape.y + minY,
         width: maxX - minX,
         height: maxY - minY,
-        points: [x1 - minX, y1 - minY, newX - minX, newY - minY, x2 - minX, y2 - minY],
+        points: [
+          x1 - minX,
+          y1 - minY,
+          newX - minX,
+          newY - minY,
+          x2 - minX,
+          y2 - minY,
+        ],
         isCurved: true,
       });
     },
@@ -904,6 +924,7 @@ const Canvas = () => {
 
   // 커서 스타일 결정
   const getCursorClass = (): string => {
+    if (isRotating) return 'grabbing';
     if (isPanning) return 'grabbing';
     if (isSpacePressed || tool === 'hand') return 'grab';
     if (
@@ -937,6 +958,7 @@ const Canvas = () => {
     <S.CanvasContainer
       ref={containerRef}
       themeMode={theme}
+      isRotating={isRotating}
       className={getCursorClass()}
       style={{ cursor: getCursorClass() }}
     >
@@ -1085,6 +1107,7 @@ const Canvas = () => {
             rotateEnabled={true}
             rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
             rotateAnchorOffset={20}
+            rotateAnchorCursor="grab"
             enabledAnchors={[
               'top-left',
               'top-center',
@@ -1110,15 +1133,35 @@ const Canvas = () => {
             borderStroke="#5B8FF9"
             borderStrokeWidth={1}
             borderDash={[]}
-            onTransformEnd={handleTransformEnd}
+            onTransformStart={() => {
+              // 변형(회전 포함) 시작 시 grabbing 커서로 변경
+              setIsRotating(true);
+            }}
+            onTransformEnd={() => {
+              handleTransformEnd();
+              // 변형 종료 시 커서 복원
+              setIsRotating(false);
+            }}
             onDragEnd={handleTransformEnd}
-            onMouseMove={(e) => {
-              // 회전 앵커 위에서 커서 변경
+            onMouseDown={(e) => {
+              // 회전 앵커에서 마우스를 누르면 grabbing 커서로 변경
               const targetName = e.target.name() || '';
               if (targetName.includes('rotater')) {
                 const stage = e.target.getStage();
                 if (stage) {
+                  stage.container().style.cursor = 'grabbing';
+                }
+              }
+            }}
+            onMouseUp={(e) => {
+              // 마우스를 떼면 회전 앵커 위에 있으면 grab, 아니면 default
+              const targetName = e.target.name() || '';
+              const stage = e.target.getStage();
+              if (stage) {
+                if (targetName.includes('rotater')) {
                   stage.container().style.cursor = 'grab';
+                } else {
+                  stage.container().style.cursor = 'default';
                 }
               }
             }}
@@ -1137,9 +1180,13 @@ const Canvas = () => {
               shape={shape}
               viewport={viewport}
               themeMode={theme}
-              onStartPointDrag={(x, y) => handleLineStartPointDrag(shape.id, x, y)}
+              onStartPointDrag={(x, y) =>
+                handleLineStartPointDrag(shape.id, x, y)
+              }
               onEndPointDrag={(x, y) => handleLineEndPointDrag(shape.id, x, y)}
-              onControlPointDrag={(x, y) => handleLineControlPointDrag(shape.id, x, y)}
+              onControlPointDrag={(x, y) =>
+                handleLineControlPointDrag(shape.id, x, y)
+              }
               onDragEnd={handleLineDragEnd}
             />
           ))}
