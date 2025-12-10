@@ -150,35 +150,17 @@ const RoughShape = ({
               const cx2 = r1x;
               const cy2 = r1y;
 
-              // 첫 번째 세그먼트 (시작 ~ gap 시작)
-              rc.curve(
-                [
-                  [x1 + padding, y1 + padding],
-                  [cx1 + padding, cy1 + padding],
-                  [split1X + padding, split1Y + padding],
-                ],
-                options,
-              );
+              // 첫 번째 세그먼트 (시작 ~ gap 시작) - Quadratic Bezier
+              const path1 = `M ${x1 + padding} ${y1 + padding} Q ${cx1 + padding} ${cy1 + padding} ${split1X + padding} ${split1Y + padding}`;
+              rc.path(path1, options);
 
-              // 두 번째 세그먼트 (gap 끝 ~ 끝점)
-              rc.curve(
-                [
-                  [split2X + padding, split2Y + padding],
-                  [cx2 + padding, cy2 + padding],
-                  [x2 + padding, y2 + padding],
-                ],
-                options,
-              );
+              // 두 번째 세그먼트 (gap 끝 ~ 끝점) - Quadratic Bezier
+              const path2 = `M ${split2X + padding} ${split2Y + padding} Q ${cx2 + padding} ${cy2 + padding} ${x2 + padding} ${y2 + padding}`;
+              rc.path(path2, options);
             } else {
-              // 텍스트 없으면 전체 곡선 그리기
-              rc.curve(
-                [
-                  [x1 + padding, y1 + padding],
-                  [cx + padding, cy + padding],
-                  [x2 + padding, y2 + padding],
-                ],
-                options,
-              );
+              // 텍스트 없으면 전체 곡선 그리기 (Quadratic Bezier path 사용)
+              const path = `M ${x1 + padding} ${y1 + padding} Q ${cx + padding} ${cy + padding} ${x2 + padding} ${y2 + padding}`;
+              rc.path(path, options);
             }
           } else {
             // 직선인 경우
@@ -275,35 +257,17 @@ const RoughShape = ({
               const cx2 = r1x;
               const cy2 = r1y;
 
-              // 첫 번째 세그먼트 (시작 ~ gap 시작)
-              rc.curve(
-                [
-                  [x1 + padding, y1 + padding],
-                  [cx1 + padding, cy1 + padding],
-                  [split1X + padding, split1Y + padding],
-                ],
-                options,
-              );
+              // 첫 번째 세그먼트 (시작 ~ gap 시작) - Quadratic Bezier
+              const arrowPath1 = `M ${x1 + padding} ${y1 + padding} Q ${cx1 + padding} ${cy1 + padding} ${split1X + padding} ${split1Y + padding}`;
+              rc.path(arrowPath1, options);
 
-              // 두 번째 세그먼트 (gap 끝 ~ 끝점)
-              rc.curve(
-                [
-                  [split2X + padding, split2Y + padding],
-                  [cx2 + padding, cy2 + padding],
-                  [x2 + padding, y2 + padding],
-                ],
-                options,
-              );
+              // 두 번째 세그먼트 (gap 끝 ~ 끝점) - Quadratic Bezier
+              const arrowPath2 = `M ${split2X + padding} ${split2Y + padding} Q ${cx2 + padding} ${cy2 + padding} ${x2 + padding} ${y2 + padding}`;
+              rc.path(arrowPath2, options);
             } else {
-              // 텍스트 없으면 전체 곡선 그리기
-              rc.curve(
-                [
-                  [x1 + padding, y1 + padding],
-                  [cx + padding, cy + padding],
-                  [x2 + padding, y2 + padding],
-                ],
-                options,
-              );
+              // 텍스트 없으면 전체 곡선 그리기 (Quadratic Bezier path 사용)
+              const arrowPath = `M ${x1 + padding} ${y1 + padding} Q ${cx + padding} ${cy + padding} ${x2 + padding} ${y2 + padding}`;
+              rc.path(arrowPath, options);
             }
 
             // 화살표 헤드 - 곡선의 끝점 방향 계산
