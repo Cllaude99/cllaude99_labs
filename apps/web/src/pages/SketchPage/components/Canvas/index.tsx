@@ -982,42 +982,7 @@ const Canvas = () => {
             <RoughShape shape={drawingState.currentShape} themeMode={theme} />
           )}
 
-          {/* Excalidraw 스타일 Transformer (사각형, 원 등에 사용) */}
-          <Transformer
-            ref={transformerRef}
-            rotateEnabled={true}
-            rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
-            rotateAnchorOffset={20}
-            enabledAnchors={[
-              'top-left',
-              'top-center',
-              'top-right',
-              'middle-left',
-              'middle-right',
-              'bottom-left',
-              'bottom-center',
-              'bottom-right',
-            ]}
-            boundBoxFunc={(oldBox, newBox) => {
-              // 최소 크기 제한
-              if (newBox.width < 10 || newBox.height < 10) {
-                return oldBox;
-              }
-              return newBox;
-            }}
-            anchorSize={8}
-            anchorCornerRadius={2}
-            anchorStroke="#5B8FF9"
-            anchorFill="#FFFFFF"
-            anchorStrokeWidth={1}
-            borderStroke="#5B8FF9"
-            borderStrokeWidth={1}
-            borderDash={[]}
-            onTransformEnd={handleTransformEnd}
-            onDragEnd={handleTransformEnd}
-          />
-
-          {/* Transformer 드래그 가능 영역 (투명 배경) */}
+          {/* Transformer 드래그 가능 영역 (투명 배경) - Transformer보다 먼저 렌더링 */}
           {transformerBoundingBox && (
             <Rect
               x={transformerBoundingBox.x}
@@ -1050,7 +1015,7 @@ const Canvas = () => {
                   if (!stage) return;
                   const pointerPos = stage.getPointerPosition();
                   if (!pointerPos) return;
-                  
+
                   const canvasPoint = screenToCanvas(
                     pointerPos.x,
                     pointerPos.y,
@@ -1058,7 +1023,7 @@ const Canvas = () => {
                     stageSize.width,
                     stageSize.height,
                   );
-                  
+
                   // 선택된 도형 중 클릭 위치에 있는 도형 찾기 (역순으로 검색 - 위에 있는 것 우선)
                   const clickedShape = [...shapes].reverse().find((shape) => {
                     if (!selectedShapeIds.includes(shape.id)) return false;
@@ -1069,7 +1034,7 @@ const Canvas = () => {
                       canvasPoint.y <= shape.y + shape.height
                     );
                   });
-                  
+
                   if (clickedShape) {
                     handleShapeDoubleClick(clickedShape.id);
                   }
@@ -1087,10 +1052,10 @@ const Canvas = () => {
               }}
               onDragMove={(e) => {
                 if (!isDraggingGroup) return;
-                
+
                 const dx = e.target.x() - transformerBoundingBox.x;
                 const dy = e.target.y() - transformerBoundingBox.y;
-                
+
                 // 모든 선택된 도형 이동
                 selectedShapeIds.forEach((id) => {
                   const shape = shapes.find((s) => s.id === id);
@@ -1101,15 +1066,69 @@ const Canvas = () => {
                     });
                   }
                 });
-                
+
                 // Rect 위치 리셋
-                e.target.position({ x: transformerBoundingBox.x, y: transformerBoundingBox.y });
+                e.target.position({
+                  x: transformerBoundingBox.x,
+                  y: transformerBoundingBox.y,
+                });
               }}
               onDragEnd={() => {
                 setIsDraggingGroup(false);
               }}
             />
           )}
+
+          {/* Excalidraw 스타일 Transformer - 마지막에 렌더링해야 앵커가 위에 표시됨 */}
+          <Transformer
+            ref={transformerRef}
+            rotateEnabled={true}
+            rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
+            rotateAnchorOffset={20}
+            enabledAnchors={[
+              'top-left',
+              'top-center',
+              'top-right',
+              'middle-left',
+              'middle-right',
+              'bottom-left',
+              'bottom-center',
+              'bottom-right',
+            ]}
+            boundBoxFunc={(oldBox, newBox) => {
+              // 최소 크기 제한
+              if (newBox.width < 10 || newBox.height < 10) {
+                return oldBox;
+              }
+              return newBox;
+            }}
+            anchorSize={8}
+            anchorCornerRadius={2}
+            anchorStroke="#5B8FF9"
+            anchorFill="#FFFFFF"
+            anchorStrokeWidth={1}
+            borderStroke="#5B8FF9"
+            borderStrokeWidth={1}
+            borderDash={[]}
+            onTransformEnd={handleTransformEnd}
+            onDragEnd={handleTransformEnd}
+            onMouseMove={(e) => {
+              // 회전 앵커 위에서 커서 변경
+              const targetName = e.target.name() || '';
+              if (targetName.includes('rotater')) {
+                const stage = e.target.getStage();
+                if (stage) {
+                  stage.container().style.cursor = 'grab';
+                }
+              }
+            }}
+            onMouseLeave={(e) => {
+              const stage = e.target.getStage();
+              if (stage) {
+                stage.container().style.cursor = 'default';
+              }
+            }}
+          />
 
           {/* 선/화살표 전용 커스텀 핸들 (다중 선택 포함) */}
           {selectedLinesAndArrows.map((shape) => (
