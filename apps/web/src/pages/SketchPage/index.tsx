@@ -1,3 +1,5 @@
+import Dock from '@/components/Dock';
+
 import Canvas from './components/Canvas';
 import Toolbar from './components/Toolbar';
 import ZoomControls from './components/ZoomControls';
@@ -26,6 +28,8 @@ const SketchPage = () => {
         <S.Kbd themeMode={theme}>Space</S.Kbd>+ 드래그로 이동 |
         <S.Kbd themeMode={theme}>Scroll</S.Kbd>로 확대/축소
       </S.HelpText>
+
+      <Dock />
     </S.SketchContainer>
   );
 };
