@@ -923,7 +923,12 @@ const Canvas = () => {
   }, []);
 
   // 커서 스타일 결정
-  const getCursorClass = (): string => {
+  const getCursorType = useCallback(():
+    | 'default'
+    | 'grab'
+    | 'grabbing'
+    | 'crosshair'
+    | 'move' => {
     if (isRotating) return 'grabbing';
     if (isPanning) return 'grabbing';
     if (isSpacePressed || tool === 'hand') return 'grab';
@@ -936,7 +941,18 @@ const Canvas = () => {
       return 'crosshair';
     }
     return 'default';
-  };
+  }, [isRotating, isPanning, isSpacePressed, tool]);
+
+  // tool 변경 시 Stage 컨테이너 커서 업데이트
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const container = stage.container();
+    if (!container) return;
+
+    container.style.cursor = getCursorType();
+  }, [getCursorType]);
 
   // 선택 박스 계산
   const getSelectionBoxRect = () => {
@@ -959,8 +975,7 @@ const Canvas = () => {
       ref={containerRef}
       themeMode={theme}
       isRotating={isRotating}
-      className={getCursorClass()}
-      style={{ cursor: getCursorClass() }}
+      style={{ cursor: getCursorType() }}
     >
       <Stage
         ref={stageRef}
@@ -1014,16 +1029,16 @@ const Canvas = () => {
               fill="transparent"
               listening={true}
               draggable={true}
-              onMouseEnter={(e) => {
-                const stage = e.target.getStage();
+              onMouseEnter={() => {
+                const stage = stageRef.current;
                 if (stage) {
                   stage.container().style.cursor = 'move';
                 }
               }}
-              onMouseLeave={(e) => {
-                const stage = e.target.getStage();
+              onMouseLeave={() => {
+                const stage = stageRef.current;
                 if (stage) {
-                  stage.container().style.cursor = 'default';
+                  stage.container().style.cursor = '';
                 }
               }}
               onDblClick={(e) => {
@@ -1136,39 +1151,46 @@ const Canvas = () => {
             onTransformStart={() => {
               // 변형(회전 포함) 시작 시 grabbing 커서로 변경
               setIsRotating(true);
+              const stage = stageRef.current;
+              if (stage) {
+                stage.container().style.cursor = 'grabbing';
+              }
             }}
             onTransformEnd={() => {
               handleTransformEnd();
               // 변형 종료 시 커서 복원
               setIsRotating(false);
+              const stage = stageRef.current;
+              if (stage) {
+                stage.container().style.cursor = '';
+              }
             }}
             onDragEnd={handleTransformEnd}
             onMouseDown={(e) => {
-              // 회전 앵커에서 마우스를 누르면 grabbing 커서로 변경
+              // 회전 앵커에서 마우스를 누르면 grabbing 커서
               const targetName = e.target.name() || '';
               if (targetName.includes('rotater')) {
-                const stage = e.target.getStage();
-                if (stage) {
-                  stage.container().style.cursor = 'grabbing';
-                }
+                setIsRotating(true);
               }
             }}
-            onMouseUp={(e) => {
-              // 마우스를 떼면 회전 앵커 위에 있으면 grab, 아니면 default
+            onMouseUp={() => {
+              // 마우스를 떼면 회전 상태 해제
+              setIsRotating(false);
+            }}
+            onMouseEnter={(e) => {
+              // 회전 앵커에 마우스를 올리면 grab 커서
               const targetName = e.target.name() || '';
-              const stage = e.target.getStage();
-              if (stage) {
-                if (targetName.includes('rotater')) {
+              if (targetName.includes('rotater')) {
+                const stage = stageRef.current;
+                if (stage) {
                   stage.container().style.cursor = 'grab';
-                } else {
-                  stage.container().style.cursor = 'default';
                 }
               }
             }}
-            onMouseLeave={(e) => {
-              const stage = e.target.getStage();
+            onMouseLeave={() => {
+              const stage = stageRef.current;
               if (stage) {
-                stage.container().style.cursor = 'default';
+                stage.container().style.cursor = '';
               }
             }}
           />

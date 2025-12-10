@@ -4,30 +4,27 @@ import { ThemeMode } from '../../types';
 
 interface CanvasContainerProps {
   themeMode: ThemeMode;
+}
+
+interface CanvasContainerStyledProps extends CanvasContainerProps {
   isRotating?: boolean;
 }
 
-export const CanvasContainer = styled.div<CanvasContainerProps>`
+export const CanvasContainer = styled.div<CanvasContainerStyledProps>`
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
   background-color: ${({ themeMode }) =>
     themeMode === 'light' ? '#ffffff' : '#1e1e1e'};
-  cursor: ${({ isRotating, className }) =>
-    isRotating
-      ? 'grabbing'
-      : className?.includes('grabbing')
-        ? 'grabbing'
-        : className?.includes('grab')
-          ? 'grab'
-          : 'default'} !important;
 
-  /* 회전 중일 때 모든 자식 요소에도 grabbing 커서 적용 */
+  /* 회전 중일 때 grabbing 커서 강제 적용 */
   ${({ isRotating }) =>
     isRotating &&
     `
-    & * {
+    cursor: grabbing !important;
+    
+    * {
       cursor: grabbing !important;
     }
   `}
