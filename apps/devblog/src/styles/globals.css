@@ -38,10 +38,12 @@
       sans-serif;
   }
 
+  html,
   body {
     @apply bg-white text-gray-900 dark:text-gray-100;
   }
 
+  html.dark,
   body.dark {
     background-color: #171717;
   }
