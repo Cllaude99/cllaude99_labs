@@ -450,6 +450,7 @@ const RoughShape = ({
                 height={Math.abs(shape.height)}
                 text={shape.text}
                 fontSize={shape.fontSize || 16}
+                lineHeight={1.2}
                 fontFamily={shape.fontFamily || 'Inter, sans-serif'}
                 fill={themeMode === 'light' ? '#1e1e1e' : '#e5e5e5'}
                 align={shape.textAlign || 'center'}
@@ -470,6 +471,7 @@ const RoughShape = ({
                 height={Math.abs(shape.height)}
                 text={shape.text}
                 fontSize={shape.fontSize || 16}
+                lineHeight={1.2}
                 fontFamily={shape.fontFamily || 'Inter, sans-serif'}
                 fill={themeMode === 'light' ? '#1e1e1e' : '#e5e5e5'}
                 align={shape.textAlign || 'center'}
