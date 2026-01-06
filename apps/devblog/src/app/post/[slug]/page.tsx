@@ -59,8 +59,6 @@ export default async function PostPage({ params }: PostPageProps) {
                 <time dateTime={post.date}>
                   {format(new Date(post.date), 'yyyy년 MM월 dd일')}
                 </time>
-                <span>·</span>
-                <span>{post.readingTime.text}</span>
                 {post.author && (
                   <>
                     <span>·</span>

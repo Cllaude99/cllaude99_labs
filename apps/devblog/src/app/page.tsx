@@ -36,8 +36,6 @@ export default function HomePage() {
                           <time dateTime={post.date}>
                             {format(new Date(post.date), 'yyyy-MM-dd')}
                           </time>
-                          <span>·</span>
-                          <span>{post.readingTime.text}</span>
                           {post.category && (
                             <>
                               <span>·</span>
