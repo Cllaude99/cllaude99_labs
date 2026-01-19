@@ -1,0 +1,515 @@
+---
+title: 'React Error Boundary로 선언적 에러 처리하기'
+description: 'React Error Boundary를 활용한 선언적 에러 처리 방법과 react-error-boundary 라이브러리 적용기를 알아봅니다'
+date: '2025-11-19'
+published: true
+category: 'Tech'
+tags: ['React', 'Error Boundary', 'Error Handling']
+author: 'Cllaude99'
+---
+
+# React Error Boundary로 선언적 에러 처리하기
+
+프론트엔드 개발을 하다 보면 한 번쯤은 아래와 같은 에러 화면을 본 적이 있을 것이다.
+
+![에러 화면 예시](/images/tech/react-error-boundary-error.webp)
+
+개발자 입장에서 개발 과정 중, 해당 화면을 보게 되면 "에러 화면이네, 관련 파일을 찾아서 해결해야겠다"라고 생각할 것이다.
+
+> 하지만 배포된 사이트에서 일반 사용자가 이런 에러 화면을 보게 된다면 어떨까?
+
+일반 사용자가 위 에러 화면을 본다면 "이게 뭐지?" 싶을 것이다. 최악의 경우 해당 화면을 보고 사이트를 떠날 수도 있다.
+
+따라서 올바른 에러 처리는 개발자 경험(DX)뿐만 아니라 좋은 사용자 경험(UX)을 위해서도 중요하다.
+
+> 그렇다면 에러는 언제 많이 발생할까?
+
+개발 과정에서 에러가 발생하는 상황은 다양하지만, 가장 흔하게 발생하는 상황은 비동기 호출을 진행할 때이다.
+
+기존에는 비동기 호출 시 try-catch를 이용해 코드를 작성했다. 하지만 이 과정에서 다음과 같은 불편함이 있었다.
+
+- 새로운 에러가 추가될 때마다 catch문 안에 코드를 추가해야 한다. (실제로 개발 과정에서 백엔드로부터 에러 코드가 하나 추가되어 별도의 처리를 해야 했던 적이 있었다. 이때 해당 비동기 호출과 관련된 모든 파일을 하나하나 찾아가서 코드를 수정한 경험이 있다.)
+- 에러 핸들링에 대한 명확한 기준이 없다면 개발자마다 다른 에러 핸들링으로 코드의 통일성을 잃을 수 있다.
+- try-catch를 이용해 명령형으로 에러를 처리해야 하는 부분이 존재한다.
+
+특히 마지막의 try-catch를 이용한 명령형 에러 처리 방식이 "React 컴포넌트는 선언적이고 무엇을 렌더링할지 구체화한다"는 특징과 맞지 않아 큰 불편함을 느꼈다.
+
+그래서 "컴포넌트 작성 시에는 비동기 호출이 성공했을 때의 로직에만 집중하고, 에러는 분리해서 처리할 수 없을까?"에 대해 고민했고, 이 과정에서 `Error Boundary`라는 개념을 알게 되었다.
+
+## Error Boundary
+
+`Error Boundary`는 React 16 버전부터 도입된 개념이다. 이름처럼 에러를 특정 경계 안에 가두고, 기존 컴포넌트 대신 fallback UI를 보여주는 역할을 한다.
+
+> 에러를 경계 안에 가둔다는 것은 무슨 의미일까?
+
+하위 컴포넌트 트리에서 발생한 에러를 잡아서 선언적으로 처리한다는 것을 의미한다.
+
+[React 공식 문서](https://ko.legacy.reactjs.org/docs/error-boundaries.html)의 Error Boundary 코드를 통해 좀 더 살펴보자.
+
+```javascript
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    // 다음 렌더링에서 폴백 UI가 보이도록 상태를 업데이트 합니다.
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // 에러 리포팅 서비스에 에러를 기록할 수도 있습니다.
+    logErrorToMyService(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // 폴백 UI를 커스텀하여 렌더링할 수 있습니다.
+      return <h1>Something went wrong.</h1>;
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+위에서 정의된 함수의 역할을 살펴보면 다음과 같다.
+
+### static getDerivedStateFromError(error)
+
+이 함수는 하위 컴포넌트에서 발생한 에러를 감지하고, 상태 업데이트를 통해 에러 발생 여부를 컴포넌트 상태에 반영한다. 에러가 발생하면 이 메서드가 호출되어 hasError 상태를 true로 변경한다.
+
+주의할 점은 에러를 throw 받은 시점인 render 단계에서 호출되기 때문에 side effects를 발생시키면 안 된다.
+
+### componentDidCatch(error, errorInfo)
+
+이 함수는 컴포넌트에서 발생한 에러를 캐치하고 처리한다. 커밋 단계에서 호출되며, 주로 사이드 이펙트가 발생하는 작업을 처리한다.
+
+에러 발생 시 호출되며, error 매개변수로 발생한 에러 객체를, errorInfo 매개변수로 에러 정보를 전달받는다. 일반적으로 여기에서 에러를 로깅하거나 서비스에 에러 정보를 보고하는 로직을 구현한다.
+
+### React LifeCycle
+
+![React LifeCycle](/images/tech/react-error-boundary-react-cycle.webp)
+
+위의 React LifeCycle에서 확인할 수 있듯이, 호출 순서는 getDerivedStateFromError → render → componentDidCatch 순이다. ErrorBoundary는 class 컴포넌트의 생명주기 메서드를 이용해 에러를 catch하기 때문에 class 컴포넌트로만 구현할 수 있다.
+
+> ErrorBoundary가 모든 에러를 포착하는 것은 아니다!
+
+- 이벤트 핸들러
+- 비동기적 코드 (예: setTimeout 혹은 requestAnimationFrame 콜백)
+- 서버 사이드 렌더링
+- 자식에서가 아닌 에러 경계 자체에서 발생하는 에러
+
+ErrorBoundary라 하더라도 모든 에러를 포착할 수 있는 것은 아니다. 공식 문서에 따르면 ErrorBoundary는 위의 에러들을 포착할 수 없다.
+
+그 이유는 fetch, Promise.then, setTimeout 등의 비동기 작업은 브라우저의 Web API 영역에서 먼저 처리되며, 해당 작업이 완료되면 콜백 함수는 큐에 등록되고, 이후 이벤트 루프가 이를 감지해 콜스택으로 전달하여 실행하기 때문이다. 이 시점에서 에러는 React 렌더링 흐름(Fiber 트리) 밖이므로 감지할 수 없다.
+
+따라서 이러한 부분에 대해서는 try-catch를 이용해 처리하는 것이 좋다. 아래는 React 공식 문서에서 나온 예시이다.
+
+```javascript
+class MyComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick() {
+    try {
+      // 에러를 던질 수 있는 무언가를 해야합니다.
+    } catch (error) {
+      this.setState({ error });
+    }
+  }
+
+  render() {
+    if (this.state.error) {
+      return <h1>Caught an error.</h1>;
+    }
+    return <button onClick={this.handleClick}>Click Me</button>;
+  }
+}
+```
+
+### ErrorBoundary를 이용한 에러 처리
+
+위의 ErrorBoundary 코드에 추가적인 기능을 붙여 에러를 처리할 수도 있지만, 함수형 컴포넌트에서 편리하게 사용할 수 있는 [react-error-boundary](https://github.com/bvaughn/react-error-boundary) 라이브러리가 있어 이를 적용해보았다.
+
+react-error-boundary는 아래와 같이 `FallbackComponent`에 에러 발생 시 보여줄 컴포넌트를 넣으면 된다. (자세한 사용 방법은 [공식 문서](https://www.npmjs.com/package/react-error-boundary) 참고)
+
+```javascript
+export const App = () => {
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Component />
+    </ErrorBoundary>
+  );
+};
+
+export const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+  // 에러처리...
+};
+```
+
+나는 에러를 처리하는 구조를 아래와 같이 설계했다.
+
+```javascript
+<UnknownErrorBoundary>
+  <APIErrorBoundary>
+    <Suspense fallback={<GlobalLoading />}>
+      <Outlet />
+    </Suspense>
+  </APIErrorBoundary>
+</UnknownErrorBoundary>
+```
+
+먼저 APIErrorBoundary를 통해 백엔드에서 정의한 에러, 네트워크 에러, 요청 시간 초과 에러 등을 처리하도록 했다. APIErrorBoundary에서 에러가 잡히지 않을 경우에는 에러를 상위로 넘겨 UnknownErrorBoundary에서 처리할 수 있도록 설계했다.
+
+그 후, 백엔드에서 정의된 에러 코드, 네트워크 에러, 요청 시간 초과 에러에 대해 아래 `getErrorData` 함수를 통해 확인할 수 있게 했다. 백엔드에서 에러 코드가 추가되면 getErrorData.ts 파일에 에러 코드를 추가하면 된다.
+
+`getErrorData.ts`
+
+```javascript
+import { AxiosError } from 'axios';
+
+type ErrorCodeType = {
+  [key: string]: { status: string; message: string };
+};
+
+const ERROR_CODE: ErrorCodeType = {
+  // 백엔드에서 정의한 에러
+  'C-101': {
+    status: '401',
+    message: '인증에 실패하였습니다.',
+  },
+  'A-003': {
+    status: '401',
+    message: 'Refresh Token이 만료되었습니다.',
+  },
+  'A-004': {
+    status: '402',
+    message: 'Access Token을 재발급해야합니다.',
+  },
+  ...
+
+  // axios 에러
+  ERR_NETWORK: {
+    status: '네트워크 에러',
+    message:
+      '서버가 응답하지 않습니다. \n프로그램을 재시작하거나 관리자에게 연락하세요.',
+  },
+  ECONNABORTED: {
+    status: '요청 시간 초과',
+    message: '요청 시간을 초과했습니다.',
+  },
+
+  // 알 수 없는 에러
+  UNKNOWN: { status: 'ERROR', message: '알 수 없는 오류가 발생했습니다.' },
+} as const;
+
+export const getErrorData = (
+  error: AxiosError<{
+    status: number;
+    error: string;
+    code: string;
+    reason: string[];
+  }>,
+) => {
+  const serverErrorCode = error?.response?.data?.code ?? '';
+  const axiosErrorCode = error?.code ?? '';
+
+  if (serverErrorCode === 'C-202') {
+    return {
+      status: '400',
+      message:
+        error?.response?.data?.reason[0] ?? '요청 파라미터가 잘못되었습니다.',
+    };
+  } else if (serverErrorCode in ERROR_CODE) {
+    return ERROR_CODE[serverErrorCode as keyof typeof ERROR_CODE];
+  } else if (axiosErrorCode in ERROR_CODE) {
+    return ERROR_CODE[axiosErrorCode as keyof typeof ERROR_CODE];
+  } else return ERROR_CODE.UNKNOWN;
+};
+```
+
+마지막으로 getErrorData 함수에서 반환받은 에러 정보를 ErrorPage 컴포넌트에 전달하여 사용자가 어떤 에러인지 확인할 수 있게 했다.
+
+`ErrorPage.tsx`
+
+```javascript
+import Layout from '@src/components/layout/Layout';
+import Lottie from 'lottie-react';
+import Lottie404 from '@src/assets/lotties/Lottie404.json';
+import { PATH } from '@src/constants/path';
+import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import CustomToast from '@src/components/common/toast/customToast';
+import { TOAST_TYPE } from '@src/types/toastType';
+import IconGithub from '@src/assets/icons/IconGithub.png';
+
+interface IErrorPageProps {
+  status: string;
+  message: string;
+  isUnknownError: boolean;
+  onRetry: () => void;
+}
+
+const ErrorPage = ({
+  status = 'ERROR',
+  message = '알 수 없는 오류가 발생했습니다.',
+  isUnknownError = true,
+  onRetry,
+}: IErrorPageProps) => {
+  const handleHomeClick = () => {
+    onRetry();
+    if (isUnknownError) {
+      localStorage.clear();
+    }
+    window.location.href = PATH.ROOT;
+  };
+
+  useEffect(() => {
+    CustomToast({
+      type: TOAST_TYPE.ERROR,
+      status,
+      message,
+    });
+  }, []);
+
+  return (
+    <Layout>
+      <div
+        className={`flex flex-col gap-2 items-center justify-center h-[calc(100dvh-20rem)] ${
+          !isUnknownError ? 'mt-16' : 'mt-14'
+        }`}
+      >
+        <Lottie animationData={Lottie404} className="size-52 lg:size-96" />
+        <div className="grid grid-cols-2 gap-2 lg:-mt-5">
+          <button
+            onClick={handleHomeClick}
+            className="p-2 rounded-md lg:p-3 bg-blue-normal01 ring-2 ring-blue-normal01 hover:ring-blue-normal02 text-white-default hover:bg-blue-normal02 text-description lg:text-content"
+          >
+            홈으로 돌아가기
+          </button>
+          {!isUnknownError ? (
+            <button className="p-2 rounded-md lg:p-3 bg-white-default ring-2 ring-blue-normal01 text-blue-normal01 text-description lg:text-content">
+              다시 시도
+            </button>
+          ) : (
+            ...
+          )}
+          ../
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default ErrorPage;
+```
+
+이 과정에서 아래 두 가지 상황으로 분류하여 에러 동작을 고민했다.
+
+- 데이터를 받아오는 과정에서 에러가 발생한 경우
+- 사용자가 클릭과 같은 상호작용을 통해 서버와 통신하는 경우
+
+결과적으로 GET 요청을 통해 데이터를 받아와 화면에 표현하는 과정에서 에러가 발생한 경우에는 대체 UI를 표시하도록 했고, 사용자가 클릭과 같은 상호작용을 통해 서버와 통신하는 경우에는 토스트 메시지로 에러를 알리도록 했다.
+
+그 이유는 데이터를 받아오는 과정에서 에러가 발생해 데이터를 받지 못한 경우에는 빈 화면을 표시하는 것보다 사용자에게 에러가 발생했음을 알리는 것이 적절하다고 판단했기 때문이다. 반면 버튼을 눌러 서버로 요청을 보내는 과정에서 에러가 발생하는 경우에는 에러 화면보다는 토스트 메시지로 알리는 것이 적절하다고 생각했다. 예를 들어, 로그인 버튼을 눌렀을 때 에러가 발생하면 에러 페이지를 보여주는 것보다는 토스트 메시지로 알리는 것이 더 합리적이다.
+
+따라서 아래와 같이 옵션을 설정하여 queryClient를 생성하고 QueryClientProvider의 client 옵션에 전달했다. 참고로 나는 데이터 캐시와 서버 상태를 선언적으로 처리하기 위해 react-query를 사용하고 있다.
+
+```javascript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 0,
+      throwOnError: true,
+    },
+    mutations: {
+      onError: (error: any) => {
+        const errorData = getErrorData(error);
+        CustomToast({
+          type: TOAST_TYPE.ERROR,
+          status: errorData.status,
+          message: errorData.message,
+        });
+      },
+    },
+  },
+});
+```
+
+다음으로 `APIErrorBoundary.tsx`와 `APIErrorFallback.tsx` 코드를 작성했다.
+
+`APIErrorBoundary.tsx`
+
+```javascript
+import { ErrorBoundary } from 'react-error-boundary';
+import { APIErrorFallback } from './APIErrorFallback';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
+
+export const APIErrorBoundary = ({
+  children,
+}: {
+  children: React.ReactNode,
+}) => {
+  const { reset } = useQueryErrorResetBoundary();
+
+  return (
+    <ErrorBoundary FallbackComponent={APIErrorFallback} onReset={reset}>
+      {children}
+    </ErrorBoundary>
+  );
+};
+```
+
+`APIErrorFallback.tsx`
+
+```javascript
+import { FallbackProps } from 'react-error-boundary';
+import { isAxiosError } from 'axios';
+import { getErrorData } from '@src/utils/getErrorData';
+import ErrorPage from '@src/pages/error/ErrorPage';
+import { Navigate } from 'react-router-dom';
+import { PATH } from '@src/constants/path';
+
+export const APIErrorFallback = ({
+  error,
+  resetErrorBoundary,
+}: FallbackProps) => {
+  if (isAxiosError(error)) {
+    const errorData = getErrorData(error);
+
+    if (error.response?.data?.code === 'A-003') {
+      localStorage.clear();
+      window.location.href = PATH.ROOT;
+      return;
+    }
+
+    if (errorData.status === '401') {
+      return <Navigate to={PATH.SIGN_IN} replace />;
+    }
+
+    return (
+      <ErrorPage
+        status={errorData?.status}
+        message={errorData?.message}
+        isUnknownError={errorData?.status === 'ERROR'}
+        onRetry={resetErrorBoundary}
+      />
+    );
+  } else {
+    throw error;
+  }
+};
+```
+
+## 에러 발생 흐름
+
+에러가 발생하면 APIErrorBoundary의 FallbackComponent인 `APIErrorFallback`이 보이게 된다.
+
+`APIErrorFallback.tsx`에서는 getErrorData 함수를 통해 발생한 에러가 백엔드에서 정의한 에러, 네트워크 에러, 요청 시간 초과 에러 등인지 확인하고 이를 ErrorPage 컴포넌트에 전달한다.
+
+만약 발생한 에러가 위의 3가지에 해당하지 않는다면 해당 에러를 상위로 보내고, UnknownErrorBoundary에서 처리한다.
+
+최종적으로 사용자는 다음과 같은 에러 화면을 보게 된다.
+
+![에러 페이지 예시](/images/tech/react-error-boundary-404.webp)
+
+위는 비동기 요청 과정에서 에러가 발생했을 때 보이는 화면이다.
+
+### 비동기 요청에서 에러를 상위로 넘기는 방법
+
+나는 비동기 요청을 아래와 같이 구현했다.
+
+먼저 getAPIResponseData 함수를 만들었다. 이 함수는 비동기 요청을 진행하고 요청 결과를 반환한다. try-catch 구문을 사용하여 에러가 발생하면 에러를 상위로 넘기도록 했다.
+
+`getAPIResponseData.ts`
+
+```javascript
+import { instance } from '@src/apis/instance';
+import { AxiosError, AxiosRequestConfig } from 'axios';
+
+const getAPIResponseData = async <T, D = T>(option: AxiosRequestConfig<D>) => {
+  try {
+    const { data } = (await instance) < T > option;
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export default getAPIResponseData;
+```
+
+그 후 모든 비동기 요청에서 getAPIResponseData 함수를 사용하도록 했다.
+
+아래는 이메일 인증과 관련된 postConfirmEmailVerification, useConfirmEmailVerificationMutation 함수이다.
+
+`postConfirmEmailVerification.ts`
+
+```javascript
+import getAPIResponseData from '@src/utils/getAPIResponseData';
+import { API } from '@src/constants/api';
+import {
+  ISignUpConfirmEmailVerificationResponseType,
+  ISignUpConfirmEmailVerificationType,
+} from '@src/types/auth/SignUpVerificationType';
+
+export const postConfirmEmailVerification = async (
+  confirmEmailVerificationPayload: ISignUpConfirmEmailVerificationType
+) => {
+  return (
+    getAPIResponseData < ISignUpConfirmEmailVerificationResponseType,
+    ISignUpConfirmEmailVerificationType >
+      {
+        url: API.SIGN_UP_CONFIRM_EMAIL_VERIFICATION,
+        method: 'POST',
+        data: confirmEmailVerificationPayload,
+      }
+  );
+};
+```
+
+`useConfirmEmailVerificationMutation.ts`
+
+```javascript
+import { postConfirmEmailVerification } from '@src/apis/auth/postConfirmEmailVerification';
+import {
+  ISignUpConfirmEmailVerificationResponseType,
+  ISignUpConfirmEmailVerificationType,
+} from '@src/types/auth/SignUpVerificationType';
+import { useMutation, UseMutationOptions } from '@tanstack/react-query';
+
+export const useConfirmEmailVerificationMutation = (
+  options?: UseMutationOptions<
+    ISignUpConfirmEmailVerificationResponseType,
+    Error,
+    ISignUpConfirmEmailVerificationType
+  >
+) => {
+  return useMutation({
+    mutationFn: postConfirmEmailVerification,
+    ...options,
+  });
+};
+```
+
+위 코드에서 `postConfirmEmailVerification.ts`는 getAPIResponseData 함수를 사용하여 url과 method를 전달하고 요청 결과를 반환한다.
+
+`useConfirmEmailVerificationMutation.ts`에서는 앞서 선언한 postConfirmEmailVerification 함수를 mutationFn에 넣어 useMutation을 반환한다.
+
+이렇게 API 함수 호출 부분과 useMutation 함수 부분을 분리함으로써 각 파일에 하나의 책임만 부여할 수 있었고, 모든 비동기 요청을 getAPIResponseData 함수를 통해 진행하여 에러의 흐름도 파악하기 쉬워졌다.
+
+## 마치며
+
+Error Boundary를 도입하면서 기존에 try-catch로 명령형으로 처리하던 에러 핸들링을 선언적으로 처리할 수 있게 되었다. 
+또, react-error-boundary 라이브러리를 활용하면 함수형 컴포넌트에서도 편리하게 에러 경계를 설정할 수 있다는 것을 알게 되었다.
+
+## 참고 자료
+
+- [React 공식 문서 - Error Boundaries](https://ko.legacy.reactjs.org/docs/error-boundaries.html)
+- [react-error-boundary 라이브러리](https://github.com/bvaughn/react-error-boundary)
+- [TanStack Query 공식 문서](https://tanstack.com/query/latest)
