@@ -1,0 +1,200 @@
+---
+title: 'React Query를 사용한 이유'
+description: 'React Query(TanStack Query)를 도입하게 된 배경과 v4에서 v5로의 주요 변경 사항을 알아봅니다'
+date: '2025-03-27'
+published: true
+category: 'Tech'
+tags: ['React', 'React Query', 'TanStack Query']
+author: 'Cllaude99'
+---
+
+# React Query를 사용한 이유
+
+![React Query](/images/tech/react-query.webp)
+
+지금까지 프로젝트를 하면서 React Query를 통해 서버 상태를 관리해왔다. React Query를 사용한 이유는 데이터 캐시와 서버 상태를 선언적으로 사용하기 위해서였다.
+
+> 하지만 처음부터 React Query를 사용한 것은 아니다.
+
+개발 과정에서 data-fetching 작업이 있었는데, 이럴 때마다 반복되는 코드를 작성해야 했고, 이러한 불편함을 개선하기 위해 찾아보던 중 알게 되었다.
+
+기존의 data-fetching 작업은 아래와 같이 진행했다.
+
+```javascript
+import { useEffect, useState } from 'react';
+
+function App() {
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetch('/api/data');
+        if (!res.ok) throw new Error('Network response was not ok');
+        const result = await res.json();
+        setData(result);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    ...
+  )
+}
+```
+
+> 뭐가 불편하다는 거지?라고 생각하는 사람도 있을 것이다.
+
+하지만 데이터 요청이 늘어난다면 어떻게 될까? 또, 데이터 요청이 서로 연관되어 있다면 어떻게 될까? 예를 들어 A라는 데이터 요청이 B 데이터 요청의 응답에 따라 진행될 수도 있고 안 될 수도 있는 경우가 있다.
+
+데이터 요청이 늘어난다면 useState를 통해 데이터, 에러 상태, 로딩 상태를 관리하는 코드가 반복적으로 작성되어야 한다.
+
+또한 데이터 요청이 서로 연관되어 있다면 데이터 요청 간의 관계를 관리하는 코드도 추가되어야 하며, 요청이 진행되지 않는 데이터에 대한 상태 관리 코드도 추가되어야 할 수 있다.
+
+나는 이러한 불편함을 해결하기 위해 React Query를 사용하게 되었다. 이 글에서는 React Query의 자세한 사용법은 다루지 않는다. React Query가 궁금하다면 [공식 문서](https://tanstack.com/query/latest/docs/framework/react/overview)를 참고하면 좋다.
+
+## React Query란?
+
+React Query는 데이터를 신선하거나 상한 상태로 구분해 관리하는 라이브러리이다. 캐시된 데이터가 신선한 상태라면 캐시된 데이터를 사용하고, 데이터가 상했다면 서버에 다시 요청해 신선한 데이터를 가져온다. 데이터 유통기한 정도로 이해하면 된다.
+
+기본적으로 데이터를 "신선한(fresh)" 상태로 간주하는 시간인 staleTime은 0이며, 쿼리가 unmount되고 사용되지 않을 때 캐시에서 제거되기까지 유지되는 시간인 gcTime은 5분이다.
+
+따라서 거의 변하지 않는 정적 데이터의 경우에는 staleTime을 높게 설정하여 데이터를 캐시하고, 데이터가 자주 변하는 경우에는 staleTime을 낮게 설정하여 데이터를 최신으로 유지할 수 있다.
+
+---
+
+## v4에서 v5로의 주요 변경 사항
+
+이전에 사용하던 v4 버전과 현재 v5 버전에서 사용 방식에 차이점이 있어 간단하게 정리해보았다.
+
+### Hook 옵션 객체 형태로 변경
+
+**기존 사용 방식 (v4)**
+
+```javascript
+const { data } = useQuery(['queryKey'], getData);
+const mutation = useMutation(setData);
+```
+
+**변경 후 사용 방식 (v5)**
+
+```javascript
+const { data } = useQuery({ queryKey: ['queryKey'], queryFn: getData });
+const mutation = useMutation({
+  mutationKey: ['mutationKey'],
+  mutationFn: setData,
+});
+```
+
+### Suspense 트리거 옵션 변경
+
+**기존 사용 방식 (v4)**
+
+```javascript
+const { data } = useQuery(['queryKey'], getData, { suspense: true });
+
+// or
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      suspense: true,
+    },
+  },
+});
+```
+
+기존에는 queryClient에 `suspense: true` 기본 옵션을 부여하거나, useQuery 훅에 별도의 옵션을 주어 Suspense를 트리거할 수 있었다. 하지만 v5에서는 Suspense를 사용하기 위한 별도의 훅이 생겼다.
+
+**변경 후 사용 방식 (v5)**
+
+```javascript
+const { data } = useSuspenseQuery({ queryKey: ['queryKey'], queryFn: getData });
+```
+
+Suspense를 사용하려면 query 훅에 옵션을 주는 대신 `useSuspenseQuery`를 이용하면 된다.
+
+### Suspense와 함께 사용하지 못하는 enabled 옵션
+
+**기존 사용 방식 (v4)**
+
+```javascript
+const { data } = useQuery(['queryKey'], getData, {
+  suspense: true,
+  enabled: false,
+});
+```
+
+기존에는 useQuery에 suspense와 enabled 옵션을 동시에 부여해 특정 값에 의존적인 쿼리를 동기적으로 호출할 수 있었다.
+
+**변경 후 사용 방식 (v5)**
+
+```javascript
+// useQuery는 enabled 사용 가능
+const { data } = useQuery({
+  queryKey: ['queryKey'],
+  queryFn: getData,
+  enabled: false,
+});
+
+// useSuspenseQuery는 enabled 사용 불가
+const { data } = useSuspenseQuery({ queryKey: ['queryKey'], queryFn: getData });
+```
+
+useQuery에는 enabled 옵션을 사용할 수 있지만, useSuspenseQuery에는 enabled 옵션을 사용할 수 없다.
+
+### ErrorBoundary 트리거 옵션 변경
+
+**기존 사용 방식 (v4)**
+
+```javascript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      suspense: true,
+      useErrorBoundary: true,
+    },
+  },
+});
+```
+
+기존에는 suspense 옵션을 부여하거나 별도로 `useErrorBoundary` 옵션을 부여하면 ErrorBoundary로 에러가 전파되었다.
+
+**변경 후 사용 방식 (v5)**
+
+```javascript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      throwOnError: true,
+    },
+    mutations: {
+      throwOnError: true,
+    },
+  },
+});
+```
+
+v5에서는 queries와 mutations 각각에 별도로 `throwOnError` 옵션을 부여해야 에러 전파가 가능하다.
+
+## 마치며
+
+React Query를 도입하면서 반복적인 상태 관리 코드를 줄이고, 서버 상태를 선언적으로 관리할 수 있게 되었다. 특히 캐싱, 백그라운드 리페칭, 에러 핸들링 등 다양한 기능을 간편하게 사용할 수 있어 개발 생산성이 크게 향상되었다.
+
+## 참고 자료
+
+- [TanStack Query 공식 문서](https://tanstack.com/query/latest)
+- [TanStack Query v5 마이그레이션 가이드](https://tanstack.com/query/latest/docs/framework/react/guides/migrating-to-v5)
