@@ -1,0 +1,55 @@
+---
+description: 'Core code quality principles for writing maintainable code: readability, predictability, cohesion, and coupling'
+alwaysApply: true
+---
+
+# Code Quality Principles
+
+When writing or reviewing code, always apply these four core principles:
+
+## 1. Readability
+
+Write code that is easy to understand at first glance.
+
+- Name magic numbers with descriptive constants
+- Abstract complex logic into dedicated components
+- Separate code paths for different conditional rendering
+- Simplify complex ternary operators
+- Colocate simple logic to reduce eye movement
+- Name complex conditions with meaningful variables
+
+See `@code-quality/readability` for detailed patterns and examples.
+
+## 2. Predictability
+
+Ensure code behaves as expected based on its name and signature.
+
+- Standardize return types for similar functions/hooks
+- Reveal hidden logic - avoid side effects (Single Responsibility)
+- Use unique and descriptive names to avoid ambiguity
+
+See `@code-quality/predictability` for detailed patterns and examples.
+
+## 3. Cohesion
+
+Keep related code together in well-defined modules.
+
+- Consider form cohesion (field-level vs form-level)
+- Organize code by feature/domain, not just by type
+- Relate magic numbers to the logic they represent
+
+See `@code-quality/cohesion` for detailed patterns and examples.
+
+## 4. Coupling
+
+Minimize dependencies between different parts of the codebase.
+
+- Balance abstraction - avoid premature optimization
+- Scope state management into smaller, focused hooks
+- Eliminate Props Drilling with Component Composition
+
+See `@code-quality/coupling` for detailed patterns and examples.
+
+---
+
+**Note**: These principles are always applied. For specific implementation patterns, reference the individual rule files using @ mentions in your prompts.
