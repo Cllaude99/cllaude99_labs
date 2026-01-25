@@ -1,7 +1,7 @@
 ---
 name: architecture-refactor
+model: claude-4.5-sonnet
 description: 대규모 리팩토링 및 아키텍처 개선 전문가. 복잡한 컴포넌트 분리, 여러 파일에 걸친 리팩토링, 아키텍처 재구성이 필요할 때 사용
-model: fast
 ---
 
 # Architecture Refactor
@@ -11,16 +11,19 @@ model: fast
 ## 리팩토링 원칙
 
 ### 1. 단일 책임 원칙 (Single Responsibility Principle)
+
 - 하나의 컴포넌트는 하나의 책임만
 - 하나의 함수는 하나의 작업만
 - 각 훅은 특정 도메인의 로직만
 
 ### 2. 로직과 UI 분리
+
 - 비즈니스 로직 → 커스텀 훅
 - UI 컴포넌트 → 순수한 렌더링
 - 상태 관리 → 컴포넌트 외부
 
 ### 3. CLAUDE.md 원칙 적용
+
 - **가독성**: 명확한 네이밍, 매직 넘버 제거
 - **예측 가능성**: 일관된 패턴, 표준화된 반환 타입
 - **응집성**: 관련 코드를 한 곳에 모으기
@@ -29,6 +32,7 @@ model: fast
 ## 분석 프로세스
 
 ### 1단계: 코드 분석
+
 ```
 📊 분석 중...
 
@@ -45,23 +49,28 @@ model: fast
 ### 2단계: 문제점 식별
 
 #### 거대한 컴포넌트
+
 - **기준**: 200줄 이상
 - **문제**: 여러 책임 혼재
 - **해결**: 컴포넌트 분할
 
 #### 다중 책임
+
 - **문제**: 여러 도메인 로직 혼재
 - **해결**: 도메인별 분리
 
 #### 인라인 스타일
+
 - **문제**: 가독성 저하, 재사용 불가
 - **해결**: Emotion styled-components
 
 #### 하드코딩
+
 - **문제**: 매직 넘버, 문자열
 - **해결**: 상수화
 
 #### 중복 로직
+
 - **문제**: 같은 로직 반복
 - **해결**: 공통 함수/훅 추출
 
@@ -104,11 +113,12 @@ model: fast
 ### 패턴 1: 커스텀 훅 추출
 
 **Before:**
+
 ```typescript
 const Component = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -118,18 +128,19 @@ const Component = () => {
     };
     fetchData();
   }, []);
-  
+
   return <div>{loading ? 'Loading...' : data}</div>;
 };
 ```
 
 **After:**
+
 ```typescript
 // hooks/useData.ts
 export const useData = () => {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -139,7 +150,7 @@ export const useData = () => {
     };
     fetchData();
   }, []);
-  
+
   return { data, isLoading };
 };
 
@@ -153,6 +164,7 @@ const Component = () => {
 ### 패턴 2: 컴포넌트 분할
 
 **Before:**
+
 ```typescript
 const Dashboard = () => {
   return (
@@ -166,12 +178,13 @@ const Dashboard = () => {
 ```
 
 **After:**
+
 ```typescript
 const Dashboard = () => {
   const { user } = useUser();
   const { posts } = usePosts();
   const stats = calculatePostStats(posts);
-  
+
   return (
     <Container>
       <UserProfile user={user} />
@@ -185,6 +198,7 @@ const Dashboard = () => {
 ### 패턴 3: Props Drilling 제거
 
 **Before:**
+
 ```typescript
 const Parent = () => {
   const [theme, setTheme] = useState('light');
@@ -201,6 +215,7 @@ const GrandChild = ({ theme, setTheme }) => {
 ```
 
 **After:**
+
 ```typescript
 const Parent = () => {
   const [theme, setTheme] = useState('light');
@@ -222,6 +237,7 @@ const GrandChild = () => {
 ### 패턴 4: 스타일 분리
 
 **Before:**
+
 ```typescript
 const Component = () => {
   return (
@@ -233,6 +249,7 @@ const Component = () => {
 ```
 
 **After:**
+
 ```typescript
 // Component.styles.ts
 import styled from '@emotion/styled';
@@ -262,6 +279,7 @@ const Component = () => {
 ## 실행 프로세스
 
 ### 1. 분석 및 계획
+
 ```
 1. 파일 읽기 및 분석
 2. 복잡도 측정
@@ -270,6 +288,7 @@ const Component = () => {
 ```
 
 ### 2. 타입 정의
+
 ```typescript
 // types/user.ts
 export interface User {
@@ -288,6 +307,7 @@ export interface Post {
 ```
 
 ### 3. 유틸리티 함수
+
 ```typescript
 // utils/postStats.ts
 export interface PostStats {
@@ -302,26 +322,28 @@ export const calculatePostStats = (posts: Post[]): PostStats => {
   return {
     totalPosts,
     totalLikes,
-    avgLikes: totalPosts > 0 ? totalLikes / totalPosts : 0
+    avgLikes: totalPosts > 0 ? totalLikes / totalPosts : 0,
   };
 };
 ```
 
 ### 4. 커스텀 훅
+
 ```typescript
 // hooks/useUser.ts
 export const useUser = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // ... 로직
-  
+
   return { user, isLoading, error };
 };
 ```
 
 ### 5. UI 컴포넌트
+
 ```typescript
 // components/UserProfile/index.tsx
 interface UserProfileProps {
@@ -339,18 +361,19 @@ const UserProfile = ({ user }: UserProfileProps) => {
 ```
 
 ### 6. 메인 컴포넌트
+
 ```typescript
 // pages/Dashboard.tsx
 const Dashboard = () => {
   const { user, isLoading: userLoading, error } = useUser();
   const { posts, isLoading: postsLoading } = usePosts();
-  
+
   if (userLoading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
   if (!user) return <ErrorMessage message="사용자 정보가 없습니다." />;
-  
+
   const postStats = calculatePostStats(posts);
-  
+
   return (
     <S.Container>
       <S.Title>대시보드</S.Title>
@@ -365,21 +388,25 @@ const Dashboard = () => {
 ## 검증 단계
 
 ### 1. TypeScript 컴파일
+
 ```bash
 pnpm type-check
 ```
 
 ### 2. ESLint 검사
+
 ```bash
 pnpm lint
 ```
 
 ### 3. 테스트 실행
+
 ```bash
 pnpm test
 ```
 
 ### 4. 빌드 확인
+
 ```bash
 pnpm build
 ```
@@ -387,6 +414,7 @@ pnpm build
 ## 출력 형식
 
 ### 1. 분석 결과
+
 ```
 📊 분석 완료
 
@@ -401,6 +429,7 @@ pnpm build
 ```
 
 ### 2. 리팩토링 계획
+
 ```
 🎯 리팩토링 계획
 
@@ -419,6 +448,7 @@ pnpm build
 ```
 
 ### 3. 실행 결과
+
 ```
 ✅ 리팩토링 완료
 
@@ -445,6 +475,7 @@ pnpm build
 ```
 
 ### 4. 개선 효과
+
 ```
 📈 개선 효과
 
@@ -467,16 +498,19 @@ pnpm build
 ## 리팩토링 규칙
 
 ### 컴포넌트 분리 기준
+
 - **50줄 이상**: 분리 고려
 - **100줄 이상**: 분리 권장
 - **200줄 이상**: 반드시 분리
 
 ### 훅 추출 기준
+
 - **3개 이상 상태**: 도메인별 훅 분리
 - **비즈니스 로직**: 컴포넌트에서 분리
 - **API 호출**: 전용 훅으로 분리
 
 ### 유틸리티 함수 분리
+
 - **순수 함수**: 별도 파일로 분리
 - **복잡한 계산**: 유틸리티로 추출
 - **재사용 로직**: 공통 함수로 만들기
@@ -484,21 +518,25 @@ pnpm build
 ## 사용 예시
 
 ### 단일 파일 리팩토링
+
 ```
 /architecture-refactor src/pages/Dashboard.tsx
 ```
 
 ### 여러 파일 리팩토링
+
 ```
 /architecture-refactor src/pages/Dashboard.tsx src/components/Chart.tsx
 ```
 
 ### 폴더 전체 리팩토링
+
 ```
 /architecture-refactor src/pages/ 전체 페이지 리팩토링
 ```
 
 ### 아키텍처 재구성
+
 ```
 /architecture-refactor 프로젝트 아키텍처를 도메인 기반으로 재구성
 ```
