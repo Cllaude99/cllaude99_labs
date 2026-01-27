@@ -45,29 +45,41 @@
 
 ### 검토 체크리스트
 
-코드 리뷰 시 다음 항목들을 확인합니다:
+코드 리뷰 시 다음 항목들을 **반드시** 확인합니다:
 
 #### 1. Readability (가독성)
-- 명확한 네이밍
-- 매직 넘버 네이밍
-- 복잡한 조건문 분리
-- 구현 세부사항 추상화
+**참조**: `@.cursor/rules/code-quality/readability.mdc`
+
+- [ ] 매직 넘버를 설명적인 상수로 네이밍했는가?
+- [ ] 복잡한 로직을 전용 컴포넌트로 추상화했는가?
+- [ ] 조건부 렌더링을 별도 코드 경로로 분리했는가?
+- [ ] 복잡한 삼항 연산자를 단순화했는가?
+- [ ] 간단한 로직을 한 곳에 모아 눈의 이동을 줄였는가?
+- [ ] 복잡한 조건을 의미있는 변수명으로 명명했는가?
 
 #### 2. Predictability (예측가능성)
-- 일관된 패턴
-- 표준화된 반환 타입
-- 단일 책임 원칙
-- 명확한 함수 시그니처
+**참조**: `@.cursor/rules/code-quality/predictability.mdc`
+
+- [ ] 유사한 함수/훅의 반환 타입이 표준화되었는가?
+- [ ] 숨겨진 로직이 없는가? (단일 책임 원칙)
+- [ ] 고유하고 설명적인 이름을 사용하여 모호함을 피했는가?
+- [ ] 함수 시그니처만으로 동작을 예측할 수 있는가?
 
 #### 3. Cohesion (응집성)
-- 관련 코드 그룹화
-- 도메인별 구성
-- 적절한 모듈화
+**참조**: `@.cursor/rules/code-quality/cohesion.mdc`
+
+- [ ] 관련된 코드가 잘 정의된 모듈에 함께 있는가?
+- [ ] 폼 응집성을 고려했는가? (필드 레벨 vs 폼 레벨)
+- [ ] 타입별이 아닌 기능/도메인별로 코드를 구성했는가?
+- [ ] 매직 넘버가 관련 로직과 연결되어 있는가?
 
 #### 4. Coupling (결합도)
-- 의존성 최소화
-- Props Drilling 제거
-- 적절한 추상화 수준
+**참조**: `@.cursor/rules/code-quality/coupling.mdc`
+
+- [ ] 추상화와 결합도의 균형을 맞췄는가? (무리한 추상화 피하기)
+- [ ] 상태 관리를 작고 집중된 훅으로 범위화했는가?
+- [ ] Props Drilling을 컴포넌트 컴포지션으로 제거했는가?
+- [ ] 코드베이스의 다른 부분과의 의존성을 최소화했는가?
 
 ## 리뷰 결과 형식
 
@@ -141,10 +153,27 @@ Read @.cursor/rules/code-quality/coupling.mdc
 ```
 
 ### 단계 3: 분석 및 피드백
-- 4가지 원칙 기준으로 코드 분석
-- 문제점을 우선순위별로 분류
-- 구체적인 개선 방안 제시
-- Before/After 코드 예시 제공
+
+**중요**: 각 문제점에 대해 다음을 **반드시** 포함해야 합니다:
+
+1. **문제 식별**
+   - 위반된 원칙 명시 (Readability/Predictability/Cohesion/Coupling)
+   - 정확한 위치 (파일명, 함수명, 라인 번호)
+   - 해당 Rules 파일 참조 링크
+
+2. **문제 설명**
+   - 왜 문제인지 명확하게 설명
+   - 실제 Rules 내용 인용
+
+3. **해결 방안**
+   - Before/After 코드 예시 **필수**
+   - 구체적인 수정 방법
+   - 대안이 있다면 함께 제시
+
+4. **우선순위 분류**
+   - 🔴 Critical: 버그, 보안 문제, 명백한 규칙 위반
+   - 🟡 Suggestion: 코드 품질 개선, 유지보수성
+   - 🟢 Nice to have: 선택적 개선사항
 
 ### 단계 4: 리팩토링 제안
 - **간단한 수정**: 즉시 수정 코드 제공
@@ -190,26 +219,102 @@ Read @.cursor/rules/code-quality/coupling.mdc
 ## 📊 코드 리뷰 결과: UserProfile
 
 ### ✅ 잘된 점
-- 명확한 컴포넌트 네이밍
-- Props 타입이 잘 정의됨
+- 명확한 컴포넌트 네이밍 (Readability ✓)
+- Props 타입이 잘 정의됨 (Predictability ✓)
+- 도메인별로 폴더 구조가 잘 구성됨 (Cohesion ✓)
 
 ### 🔴 Critical (반드시 수정)
-1. **Props Drilling 발견** (Coupling 위반)
-   - 위치: UserProfile → UserCard → UserAvatar
-   - 문제: 3단계 Props 전달
-   - 참조: @.cursor/rules/code-quality/coupling.mdc
-   - 해결: 컴포지션 패턴 적용
+
+#### 1. Props Drilling 발견 (Coupling 위반)
+**위치**: `UserProfile` → `UserCard` → `UserAvatar` (3단계 전달)
+**참조**: `@.cursor/rules/code-quality/coupling.mdc` - "Eliminate Props Drilling with Component Composition"
+
+**문제**:
+```tsx
+// ❌ 현재: Props Drilling
+<UserProfile userId={userId}>
+  <UserCard userId={userId}>  // 불필요한 전달
+    <UserAvatar userId={userId} />  // 실제 사용
+  </UserCard>
+</UserProfile>
+```
+
+**해결**:
+```tsx
+// ✅ 개선: 컴포지션 패턴
+<UserProfile userId={userId}>
+  <UserCard>
+    <UserAvatar />  // userId는 UserProfile에서 Context로 제공
+  </UserCard>
+</UserProfile>
+
+// UserProfile.tsx
+const UserContext = createContext<{ userId: string }>();
+
+export function UserProfile({ userId, children }) {
+  return (
+    <UserContext.Provider value={{ userId }}>
+      {children}
+    </UserContext.Provider>
+  );
+}
+
+// UserAvatar.tsx
+function UserAvatar() {
+  const { userId } = useContext(UserContext);
+  // ...
+}
+```
 
 ### 🟡 Suggestion (개선 권장)
-1. **복잡한 조건문** (Readability 위반)
-   - 위치: handleSubmit 함수
-   - 문제: 중첩된 삼항 연산자
-   - 참조: @.cursor/rules/code-quality/readability.mdc
-   - 해결: 조건을 명명된 변수로 분리
+
+#### 1. 복잡한 조건문 (Readability 위반)
+**위치**: `handleSubmit` 함수 (line 45-47)
+**참조**: `@.cursor/rules/code-quality/readability.mdc` - "Simplify complex ternary operators"
+
+**문제**:
+```tsx
+// ❌ 현재: 중첩된 삼항 연산자
+const status = isActive 
+  ? isVerified 
+    ? 'ACTIVE_VERIFIED' 
+    : 'ACTIVE_UNVERIFIED'
+  : 'INACTIVE';
+```
+
+**해결**:
+```tsx
+// ✅ 개선: 명확한 조건문
+const status = (() => {
+  if (isActive && isVerified) return 'ACTIVE_VERIFIED';
+  if (isActive) return 'ACTIVE_UNVERIFIED';
+  return 'INACTIVE';
+})();
+```
+
+### 🟢 Nice to have (선택적)
+
+#### 1. 타입 개선
+**위치**: `fetchUser` 함수 반환 타입
+**참조**: `@.cursor/rules/code-quality/predictability.mdc` - "Standardize return types"
+
+**제안**:
+```tsx
+// 현재: any
+async function fetchUser(): Promise<any>
+
+// 개선: 명확한 타입
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+async function fetchUser(): Promise<User>
+```
 
 ## 🔧 다음 단계
-- 간단한 수정: `/refactor src/components/UserProfile/index.tsx`
-- 대규모 리팩토링: "UserProfile을 규칙에 맞게 리팩토링해줘"
+- 간단한 수정 (Critical 1개, Suggestion 1개): `/refactor src/components/UserProfile/index.tsx`
+- 대규모 리팩토링 (Props Drilling 제거): "UserProfile을 규칙에 맞게 리팩토링해줘"
 ```
 
 ### 예시 2: 여러 파일 동시 리뷰
