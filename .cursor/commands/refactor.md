@@ -1,32 +1,90 @@
 # Smart Refactoring Command
 
-시니어 프론트엔드 개발자 수준의 리팩토링을 수행하는 명령어입니다. CLAUDE.md의 원칙과 현대적 개발 패턴을 반영하여 코드를 체계적으로 개선합니다.
+시니어 프론트엔드 개발자 수준의 리팩토링을 수행하는 명령어입니다. `@.cursor/rules/code-quality` 원칙을 기반으로 코드를 체계적으로 개선합니다.
 
 ## 사용법
-```
+```bash
+# 특정 파일 리팩토링
 /refactor <파일경로1> [파일경로2] [파일경로3]
-/refactor src/components/LoginForm.tsx
+
+# 현재 수정한 모든 파일 자동 리팩토링 (git status 기준)
+/refactor
+
+# 여러 파일 동시 리팩토링
 /refactor src/components/UserProfile.tsx src/hooks/useUser.ts
-/refactor src/pages/Dashboard.tsx src/components/Chart.tsx src/utils/api.ts
 ```
 
-## 리팩토링 원칙
+## 동작 과정
 
-### 1. 단일 책임 원칙 (Single Responsibility Principle)
-- **컴포넌트 분리**: 하나의 컴포넌트는 하나의 책임만 가져야 함
+### 파일 경로 지정 시
+1. 지정된 파일 읽기
+2. Rules 기준으로 리팩토링
+
+### `/refactor` 단독 실행 시 (파일 경로 없음)
+1. **Git 변경사항 확인**: `git status` 실행하여 수정된 파일 목록 확인
+2. **대상 파일 선택**:
+   - Modified 파일 (수정됨)
+   - Added 파일 (새로 추가됨)
+   - Staged 파일 (스테이징됨)
+3. **모든 변경 파일 리팩토링**: 각 파일을 순차적으로 개선
+4. **Rules 적용**: `@.cursor/rules/code-quality` 원칙 기반
+5. **우선순위 처리**: Critical → Suggestion → Nice to have 순서
+
+## 리팩토링 기준
+
+**중요**: 이 명령어는 다음 Rules를 기준으로 리팩토링합니다:
+
+- `@.cursor/rules/code-quality-principles` - 4가지 핵심 원칙
+- `@.cursor/rules/code-quality/readability` - 가독성 패턴
+- `@.cursor/rules/code-quality/predictability` - 예측가능성 패턴
+- `@.cursor/rules/code-quality/cohesion` - 응집성 패턴
+- `@.cursor/rules/code-quality/coupling` - 결합도 패턴
+
+### 1. Readability (가독성)
+**참조**: `@.cursor/rules/code-quality/readability`
+
+- 매직 넘버를 설명적인 상수로 네이밍
+- 복잡한 로직을 전용 컴포넌트로 추상화
+- 조건부 렌더링을 별도 코드 경로로 분리
+- 복잡한 삼항 연산자 단순화
+- 간단한 로직을 한 곳에 모아 눈의 이동 줄이기
+- 복잡한 조건을 의미있는 변수명으로 명명
+
+### 2. Predictability (예측가능성)
+**참조**: `@.cursor/rules/code-quality/predictability`
+
+- 유사한 함수/훅의 반환 타입 표준화
+- 숨겨진 로직 제거 (단일 책임 원칙)
+- 고유하고 설명적인 이름 사용
+- 함수 시그니처만으로 동작 예측 가능하게
+
+### 3. Cohesion (응집성)
+**참조**: `@.cursor/rules/code-quality/cohesion`
+
+- 관련 코드를 잘 정의된 모듈에 함께 배치
+- 폼 응집성 고려 (필드 레벨 vs 폼 레벨)
+- 타입별이 아닌 기능/도메인별로 코드 구성
+- 매직 넘버를 관련 로직과 연결
+
+### 4. Coupling (결합도)
+**참조**: `@.cursor/rules/code-quality/coupling`
+
+- 추상화와 결합도의 균형 (무리한 추상화 피하기)
+- 상태 관리를 작고 집중된 훅으로 범위화
+- Props Drilling을 컴포넌트 컴포지션으로 제거
+- 코드베이스 다른 부분과의 의존성 최소화
+
+### 5. 추가 원칙
+
+#### 단일 책임 원칙 (Single Responsibility)
+- **컴포넌트 분리**: 하나의 컴포넌트는 하나의 책임만
 - **함수 분리**: 하나의 함수는 하나의 작업만 수행
 - **훅 분리**: 각 훅은 특정 도메인의 로직만 담당
 
-### 2. 로직과 UI 분리
+#### 로직과 UI 분리
 - **비즈니스 로직**: 커스텀 훅으로 추출
 - **UI 컴포넌트**: 순수한 렌더링 로직만 포함
 - **상태 관리**: 컴포넌트 외부로 분리
-
-### 3. CLAUDE.md 원칙 적용
-- **가독성**: 명확한 네이밍, 매직 넘버 제거
-- **예측 가능성**: 일관된 패턴, 표준화된 반환 타입
-- **응집성**: 관련 코드를 한 곳에 모으기
-- **결합도**: 컴포넌트 간 의존성 최소화
 
 ## 리팩토링 패턴
 
@@ -368,15 +426,52 @@ export default UserDashboard;
 - **타입 정의**: 인터페이스 및 타입 분리
 - **스타일 분리**: Emotion 스타일 컴포넌트 생성
 
-### 3. CLAUDE.md 원칙 적용
+### 3. 코드 품질 원칙 적용
 - **Import 순서**: 자동 정렬 및 그룹핑
 - **네이밍 컨벤션**: 일관된 명명 규칙 적용
 - **파일 구조**: 프로젝트 패턴에 맞는 구조 생성
 - **타입 안전성**: TypeScript 타입 강화
+- **Rules 준수**: `@.cursor/rules/code-quality` 원칙 적용
 
-## 리팩토링 프로세스
+## 실행 단계
 
-### 1. 분석 단계
+### 단계 1: 대상 파일 확인
+
+#### 파일 경로 지정 시
+```bash
+# 지정된 파일 읽기
+Read <파일경로>
+```
+
+#### `/refactor` 단독 실행 시
+```bash
+# 1. Git 상태 확인
+git status
+
+# 2. 변경된 파일 목록 추출
+# - Modified (수정됨)
+# - Added (새로 추가됨)
+# - Staged (스테이징됨)
+
+# 3. 각 파일 읽기
+Read <변경된파일1>
+Read <변경된파일2>
+Read <변경된파일3>
+```
+
+### 단계 2: Rules 참조
+```bash
+# 핵심 원칙 확인
+Read @.cursor/rules/code-quality-principles
+
+# 필요시 상세 규칙 참조
+Read @.cursor/rules/code-quality/readability
+Read @.cursor/rules/code-quality/predictability
+Read @.cursor/rules/code-quality/cohesion
+Read @.cursor/rules/code-quality/coupling
+```
+
+### 단계 3: 코드 분석
 ```
 🔍 코드 분석 중...
 
@@ -396,7 +491,7 @@ export default UserDashboard;
 └── 스타일 파일 생성
 ```
 
-### 2. 실행 단계
+### 단계 4: 리팩토링 실행
 ```
 🚀 리팩토링 실행 중...
 
@@ -417,7 +512,7 @@ export default UserDashboard;
 └── src/utils/postStats.ts
 ```
 
-### 3. 검증 단계
+### 단계 5: 검증
 ```
 🧪 검증 중...
 
@@ -452,8 +547,87 @@ export default UserDashboard;
 - **복잡한 계산**: 유틸리티로 추출
 - **재사용 로직**: 공통 함수로 만들기
 
+## 예시
+
+### 예시 1: 단일 파일 리팩토링
+```bash
+/refactor src/components/LoginForm.tsx
+```
+
+**동작:**
+1. LoginForm.tsx 파일 읽기
+2. Rules 기준 분석
+3. 문제점 식별 및 리팩토링
+4. 개선된 코드 제공
+
+---
+
+### 예시 2: 여러 파일 동시 리팩토링
+```bash
+/refactor src/components/UserProfile.tsx src/hooks/useUser.ts
+```
+
+**동작:**
+1. 관련 파일들 함께 읽기
+2. 의존성 파악
+3. 순서대로 리팩토링
+4. 일관성 유지
+
+---
+
+### 예시 3: 현재 수정한 모든 파일 리팩토링
+```bash
+/refactor
+```
+
+**동작:**
+1. `git status` 실행
+2. Modified/Added/Staged 파일 자동 감지
+3. 각 파일 순차적으로 리팩토링
+4. 통합 결과 제공
+
+**출력 예시:**
+```markdown
+## 🔧 리팩토링 결과 (3개 파일)
+
+### 파일 1: src/components/LoginForm.tsx
+✅ 개선사항:
+- 매직 넘버 3개 상수화
+- Props Drilling 제거 (Context 사용)
+- 인라인 스타일 → Emotion 분리
+
+### 파일 2: src/hooks/useLogin.ts
+✅ 개선사항:
+- 반환 타입 표준화
+- 에러 처리 개선
+
+### 파일 3: src/utils/validation.ts
+✅ 개선사항:
+- 복잡한 조건문 단순화
+
+## 📊 전체 요약
+- 총 파일: 3개
+- 개선사항: 7개
+- Rules 준수: ✅
+```
+
+---
+
+## 연계 명령어
+
+| 상황 | 명령어 | 설명 |
+|------|--------|------|
+| 리팩토링 전 분석 | `/review <파일>` | 문제점 사전 파악 |
+| 리팩토링 실행 | `/refactor <파일>` | 코드 개선 |
+| 리팩토링 후 검증 | `/review <파일>` | 개선 확인 |
+| 테스트 생성 | `/test <파일>` | 리팩토링 후 테스트 |
+| 커밋 | `/commit` | 변경사항 커밋 |
+
+---
+
 ## 주의사항
 
+- **Rules 기준**: 항상 `@.cursor/rules/code-quality` 원칙을 기준으로 리팩토링
 - **기능 동작 보장**: 리팩토링 후에도 동일한 동작
 - **타입 안전성 유지**: TypeScript 컴파일 오류 없음
 - **테스트 통과**: 기존 테스트 모두 통과
