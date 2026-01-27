@@ -251,6 +251,31 @@ apps/web/src/test/
 - 긴 컴포넌트 → 단일 책임 컴포넌트로 분할
 - Props 전달 → 컴포지션 패턴 적용
 
+#### /review
+
+코드 리뷰 자동화
+
+```bash
+/review <파일경로>
+/review src/components/UserProfile.tsx
+/review  # git status 기준 모든 변경 파일 리뷰
+```
+
+**주요 기능:**
+
+- CLAUDE.md의 코드 작성 가이드라인 기준 분석
+- 4가지 핵심 원칙 (가독성, 예측가능성, 응집성, 결합도) 검토
+- 우선순위별 피드백 (Critical → Suggestion → Nice to have)
+- Before/After 코드 예시 제공
+- `/refactor` 명령어 연계
+
+**리뷰 체크리스트:**
+
+- 가독성: 매직 넘버, 복잡한 조건문, 네이밍
+- 예측가능성: 반환 타입, 단일 책임, 함수 시그니처
+- 응집성: 관련 코드 배치, 도메인별 구성
+- 결합도: Props Drilling, 상태 관리 범위
+
 ### 커맨드 파일 구조
 
 ```
@@ -259,7 +284,8 @@ apps/web/src/test/
 │   ├── commit.md       # 커밋 자동화
 │   ├── pr.md           # PR 생성
 │   ├── test.md         # 테스트 코드 생성
-│   └── refactor.md     # 리팩토링 자동화
+│   ├── refactor.md     # 리팩토링 자동화
+│   └── review.md       # 코드 리뷰 자동화
 └── settings.json       # Hooks 및 Claude Code 설정
 ```
 
@@ -299,19 +325,23 @@ apps/web/src/test/
 # 1. 기능 개발 후 테스트 작성
 /test src/components/NewFeature.tsx
 
-# 2. 코드 리팩토링 (필요시)
+# 2. 코드 리뷰 (품질 검토)
+/review src/components/NewFeature.tsx
+
+# 3. 코드 리팩토링 (필요시)
 /refactor src/components/NewFeature.tsx
 
-# 3. 변경사항 커밋
+# 4. 변경사항 커밋
 /commit
 
-# 4. PR 생성
+# 5. PR 생성
 /pr
 ```
 
 ### 베스트 프랙티스
 
 - **테스트 우선**: 새 기능 개발 후 즉시 `/test` 커맨드로 테스트 코드 생성
+- **코드 리뷰**: `/review` 커맨드로 코드 품질 분석 및 피드백 확인
 - **점진적 리팩토링**: `/refactor` 커맨드로 코드 품질 지속적 개선
 - **일관된 커밋**: `/commit` 커맨드로 Conventional Commit 형식 유지
 - **체계적 PR**: `/pr` 커맨드로 리뷰어가 이해하기 쉬운 PR 작성
@@ -505,6 +535,54 @@ const status = (() => {
   if (BCondition) return 'B';
   return 'NONE';
 })();
+```
+
+#### 눈 움직임 감소 (간단한 로직 콜로케이션)
+
+간단한 로직은 인라인으로 배치하여 컨텍스트 전환을 줄입니다.
+
+```tsx
+// 패턴 A: 인라인 switch
+function Page() {
+  const user = useUser();
+
+  switch (user.role) {
+    case 'admin':
+      return (
+        <div>
+          <Button disabled={false}>Invite</Button>
+          <Button disabled={false}>View</Button>
+        </div>
+      );
+    case 'viewer':
+      return (
+        <div>
+          <Button disabled={true}>Invite</Button>
+          <Button disabled={false}>View</Button>
+        </div>
+      );
+    default:
+      return null;
+  }
+}
+
+// 패턴 B: 콜로케이션된 정책 객체
+function Page() {
+  const user = useUser();
+  const policy = {
+    admin: { canInvite: true, canView: true },
+    viewer: { canInvite: false, canView: true },
+  }[user.role];
+
+  if (!policy) return null;
+
+  return (
+    <div>
+      <Button disabled={!policy.canInvite}>Invite</Button>
+      <Button disabled={!policy.canView}>View</Button>
+    </div>
+  );
+}
 ```
 
 ### 2. 예측 가능성 (Predictability)
