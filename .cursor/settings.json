@@ -3,6 +3,40 @@
     "language": "ko",
     "instruction": "커밋 메시지를 한국어로 작성해주세요. Conventional Commits 형식을 따르되, 설명은 한국어로 작성합니다."
   },
+  "mcpServers": {
+    "Talk_to_Figma_MCP": {
+      "command": "bunx",
+      "args": ["cursor-talk-to-figma-mcp@latest"]
+    },
+    "Playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "Context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {}
+    },
+    "vercel": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.vercel.com"]
+    },
+    "Supabase": {
+      "url": "https://mcp.supabase.com/mcp",
+      "headers": {}
+    },
+    "web-search": {
+      "command": "npx",
+      "args": ["-y", "@zhafron/mcp-web-search"]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."
+      ]
+    }
+  },
   "hooks": {
     "PostToolUse": [
       {
