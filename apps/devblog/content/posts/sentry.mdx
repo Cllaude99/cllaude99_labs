@@ -1,0 +1,230 @@
+---
+title: 'Sentry로 프로덕션 에러 모니터링하기'
+description: '사용자 환경에서 발생하는 에러를 실시간으로 추적하고 디버깅하기 위해 Sentry를 도입한 경험을 공유합니다'
+date: '2025-08-18'
+published: true
+category: 'Tech'
+tags: ['Sentry', 'Error Monitoring', 'React', 'Debugging']
+author: 'Cllaude99'
+---
+
+# Sentry로 프로덕션 에러 모니터링하기
+
+프론트엔드 개발을 하다 보면 개발 환경에서는 잡히지 않던 에러가 프로덕션에서 발생하는 경우가 있다.
+문제는 이런 에러를 사용자가 직접 알려주기 전까지는 알 수 없다는 점이다.
+
+> "화면이 하얘졌어요", "버튼이 안 눌려요"
+
+이런 피드백을 받으면 대체 어디서, 왜, 어떤 상황에서 문제가 발생했는지 파악하기가 어렵다.
+
+이번 글에서는 이런 문제를 해결하기 위해 Sentry를 도입한 경험을 공유하려고 한다.
+
+## 프로덕션 에러 추적의 어려움
+
+[Syncspot](https://syncspot.kr/)이라는 약속 장소와 시간을 정하는 서비스를 운영하면서 몇 가지 문제를 겪었다.
+
+### 맥락 없는 에러 리포트
+
+사용자로부터 "화면이 안 나와요"라는 피드백을 받았을 때, 어떤 페이지에서 어떤 동작을 했는지 알 수 없었다.
+브라우저 개발자 도구를 열어달라고 할 수도 없고, 재현 방법을 물어봐도 명확한 답을 얻기 어려웠다.
+
+### 에러 발생 여부 파악 불가
+
+프로덕션에서 에러가 발생해도 사용자가 직접 알려주지 않으면 알 방법이 없었다.
+조용히 이탈하는 사용자들이 에러 때문인지, 단순히 서비스에 관심이 없어서인지 구분할 수 없었다.
+
+## Sentry를 선택한 이유
+
+처음에는 콘솔 로깅을 강화하는 방안을 고려했지만, 당연하게도 프로덕션 환경에서는 사용자의 콘솔을 볼 수 없다.
+또, 직접 에러 로깅 시스템을 구축하는 것도 생각해봤지만, 개발 리소스와 유지보수 부담이 컸다.
+
+결과적으로는 여러 에러 모니터링 도구를 비교하다가 Sentry를 선택했다.
+
+그 이유는 React와의 통합이 자연스럽다고 판단했기 때문이다.
+ErrorBoundary 컴포넌트를 제공해서 React의 에러 처리 패턴과 잘 맞았고,
+에러 발생 시 브라우저, OS, 사용자 세션 정보 등 다양한 컨텍스트를 자동으로 수집해준다는 점과
+세션 리플레이 기능으로 에러 발생 직전 사용자의 행동을 영상처럼 확인할 수 있다는 점이 매력적이었다.
+
+또, 무료 플랜으로도 소규모 프로젝트에서는 충분히 사용할 수 있다는 점도 좋았다.
+
+## 구현하기
+
+### 초기 설정
+
+가장 먼저 고려한 것은 개발 환경과 프로덕션 환경의 분리였다.
+나는 개발 중에는 Sentry가 활성화되지 않도록 하고, 프로덕션에서만 동작하도록 구성했다.
+
+```typescript
+// sentry.ts
+import * as Sentry from '@sentry/react';
+
+export const initSentry = () => {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    enabled: import.meta.env.PROD,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+    ],
+    tracesSampleRate: 0.5,
+    tracePropagationTargets: [/^\//],
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+    environment: import.meta.env.MODE,
+  });
+};
+```
+
+각 설정의 의미를 살펴보면 다음과 같다.
+
+`tracesSampleRate`는 성능 모니터링 샘플링 비율이다. 0.5로 설정하면 전체 트랜잭션의 50%만 추적한다.
+트래픽이 많은 서비스에서는 비용과 성능을 고려해 적절히 조절해야 한다.
+
+`replaysSessionSampleRate`는 일반 세션의 리플레이 캡처 비율이다. 모든 세션을 캡처하면 데이터가 너무 많아지므로 10%만 캡처하도록 했다.
+
+`replaysOnErrorSampleRate`는 에러가 발생한 세션의 리플레이 캡처 비율이다. 에러 발생 시에는 디버깅을 위해 100% 캡처하도록 설정했다.
+
+이 초기화 코드는 애플리케이션 시작점인 `main.tsx`에서 호출한다.
+
+### Error Boundary 연동
+
+React의 렌더링 과정에서 발생하는 에러를 캡처하기 위해 Sentry의 ErrorBoundary를 사용했다.
+
+```tsx
+// SentryErrorBoundary.tsx
+import * as Sentry from '@sentry/react';
+import { PropsWithChildren } from 'react';
+import UnknownErrorFallback from './UnknownErrorFallback';
+
+export const SentryErrorBoundary = ({ children }: PropsWithChildren) => {
+  return (
+    <Sentry.ErrorBoundary fallback={() => <UnknownErrorFallback />}>
+      {children}
+    </Sentry.ErrorBoundary>
+  );
+};
+```
+
+ErrorBoundary를 앱의 최상위에 배치하면 렌더링 중 발생하는 에러가 자동으로 Sentry에 보고된다.
+동시에 사용자에게는 흰 화면 대신 안내 메시지와 홈으로 돌아갈 수 있는 UI를 제공할 수 있다.
+
+### React Router 통합
+
+사용자의 페이지 이동 경로를 추적하기 위해 React Router와 Sentry를 통합했다.
+
+```typescript
+import * as Sentry from '@sentry/react';
+import { createBrowserRouter } from 'react-router-dom';
+
+export const sentryCreateBrowserRouter = (
+  routes: Parameters<typeof createBrowserRouter>[0],
+  opts?: Parameters<typeof createBrowserRouter>[1],
+) => {
+  return Sentry.wrapCreateBrowserRouterV6(createBrowserRouter)(routes, opts);
+};
+```
+
+이렇게 하면 에러가 어떤 라우트에서 발생했는지 Sentry 대시보드에서 확인할 수 있다.
+
+### API 에러 캡처
+
+백엔드 API 통신 과정에서 발생하는 에러를 추적하기 위한 유틸리티를 구현했다.
+
+```typescript
+export const captureApiError = (
+  endpoint: string,
+  error: ApiErrorResponse | AxiosError,
+) => {
+  const context: Record<string, unknown> = {
+    endpoint,
+  };
+
+  if (error instanceof AxiosError) {
+    context.status = error.response?.status || 'unknown';
+    context.statusText = error.response?.statusText || 'unknown';
+    context.response = error.response?.data || {};
+  }
+
+  Sentry.withScope((scope) => {
+    scope.setLevel('error');
+    scope.setFingerprint([`api-error-${endpoint}`]);
+    scope.setContext('API Error', context);
+    Sentry.captureException(error);
+  });
+};
+```
+
+`setFingerprint`를 사용해 같은 엔드포인트에서 발생한 에러를 그룹화했다.
+이렇게 하면 Sentry 대시보드에서 동일한 API 에러를 하나로 묶어서 볼 수 있다.
+
+React Query의 onError 콜백에 이 유틸리티를 연결하면 mutation 에러를 자동으로 캡처할 수 있다.
+
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    mutations: {
+      onError: (error: unknown) => {
+        if (isAxiosError(error)) {
+          captureApiError(error.config?.url || 'unknown', error);
+        }
+      },
+    },
+  },
+});
+```
+
+### 사용자 컨텍스트 설정
+
+에러가 발생했을 때 어떤 사용자에게 발생했는지 추적하면 특정 사용자 그룹에서만 발생하는 문제를 파악할 수 있다.
+
+```typescript
+export const setSentryUser = (user: SentryUserInfo | null) => {
+  if (user) {
+    Sentry.setUser({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    });
+  } else {
+    Sentry.setUser(null);
+  }
+};
+```
+
+로그인 후에 사용자 정보를 설정하고, 로그아웃 시에는 null로 초기화한다.
+
+## 도입 후 변화
+
+### 에러 발생 즉시 인지
+
+Sentry 도입 전에는 사용자가 알려주기 전까지 에러 발생 여부를 알 수 없었다.
+도입 후에는 에러가 발생하면 Slack 알림이 오도록 설정해서 실시간으로 인지할 수 있게 되었다.
+
+### 스택트레이스로 원인 파악
+
+에러가 발생하면 스택트레이스와 함께 브라우저, OS, 디바이스 정보가 자동으로 수집된다.
+"어떤 파일의 몇 번째 줄에서 에러가 발생했는지" 바로 확인할 수 있어서 디버깅 시간이 줄었다.
+
+### 브레드크럼으로 사용자 행동 추적
+
+Sentry는 에러 발생 직전까지의 사용자 행동을 브레드크럼으로 기록한다.
+어떤 페이지를 거쳐왔는지, 어떤 버튼을 클릭했는지, 어떤 API를 호출했는지 시간순으로 확인할 수 있다.
+덕분에 "어떤 상황에서 에러가 발생했는지" 맥락을 파악하기 쉬워졌다.
+
+### 에러 그룹화로 우선순위 파악
+
+같은 에러가 여러 번 발생하면 Sentry가 자동으로 그룹화해준다.
+발생 빈도와 영향받은 사용자 수를 기준으로 어떤 에러를 먼저 수정해야 할지 판단할 수 있게 되었다.
+
+## 앞으로 개선할 점
+
+현재는 모든 에러를 Sentry로 보내도록 설정해뒀다.
+그러다 보니 중요한 에러와 사소한 에러가 섞여서 알림 피로도가 생기는 문제가 있다.
+
+앞으로는 `beforeSend` 옵션을 활용해서 특정 에러는 필터링하거나, 에러 레벨에 따라 알림 설정을 다르게 하는 방향으로 개선할 계획이다.
+
+## 참고 자료
+
+- [Sentry 공식 문서](https://docs.sentry.io/)
+- [Sentry React SDK 가이드](https://docs.sentry.io/platforms/javascript/guides/react/)
+- [Sentry Session Replay](https://docs.sentry.io/product/session-replay/)
