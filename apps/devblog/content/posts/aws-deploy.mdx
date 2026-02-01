@@ -200,7 +200,7 @@ Route53을 검색하면 아래와 같이 나올텐데, 아래의 Route53 대시�
 
 ![인증서 유형 선택](https://velog.velcdn.com/images/cllaude/post/415523cf-94b2-44bd-8ee9-509b4e21836b/image.png)
 
-다음을 클릭했다면 아래의 화면이 나올텐데 여기서 도메인 이름에 구입한 도메인 이름을 넣어줍니다. 해당 부분에 **syncspot.kr**를 입력해주었으며 추가로 `이 인증서에 다른 이름 추가` 버튼을 클릭하여 **www.syncspot.kr**도 넣어주었습니다.
+다음을 클릭했다면 아래의 화면이 나올텐데 여기서 도메인 이름에 구입한 도메인 이름을 넣어줍니다. 해당 부분에 **syncspot.kr**를 입력해주었으며 추가로 `이 인증서에 다른 이름 추가` 버튼을 클릭하여 www.syncspot.kr도 넣어주었습니다.
 
 ![도메인 이름 입력](https://velog.velcdn.com/images/cllaude/post/538d86f6-cdd2-4bea-98b4-b602756a7e54/image.png)
 
@@ -410,11 +410,11 @@ CI 단계에서는 ubuntu-latest 환경에서 Node.js 20.10.0과 Yarn 4.5.1을 �
 
 CD 단계에서는 CI 성공 후 실행되며, main 브랜치에 푸시되거나 main을 대상으로 PR이 생성될 때만 동작합니다. 이 단계는 CI와 동일하게 환경 설정 및 빌드 과정을 거친 후, jakejarvis/s3-sync-action을 사용해 빌드된 정적 파일을 AWS S3 버킷에 동기화하고, --delete 옵션을 통해 불필요한 파일을 제거하도록 하였습니다. 이를 통해 자동으로 프로젝트가 빌드되고 배포되며, S3를 통해 정적 웹사이트가 업데이트되는 자동화된 CI/CD 환경을 구축하였습니다.
 
-> `AWS_S3_BUCKET` : S3 버킷 이름
-> `AWS_ACCESS_KEY_ID`: IAM 계정 생성시 얻은 액세스 키
-> `AWS_SECRET_ACCESS_KEY`: IAM 계정 생성시 얻은 비밀키
-> `AWS_REGION`: 리전에 해당 (us-east-1)
-> `SOURCE_DIR`: 빌드된 파일이 저장되는 폴더 (vite를 사용하고 있기 때문에 dist가 됩니다)
+- `AWS_S3_BUCKET` : S3 버킷 이름
+- `AWS_ACCESS_KEY_ID`: IAM 계정 생성시 얻은 액세스 키
+- `AWS_SECRET_ACCESS_KEY`: IAM 계정 생성시 얻은 비밀키
+- `AWS_REGION`: 리전에 해당 (us-east-1)
+- `SOURCE_DIR`: 빌드된 파일이 저장되는 폴더 (vite를 사용하고 있기 때문에 dist가 됩니다)
 
 ## 마무리
 
