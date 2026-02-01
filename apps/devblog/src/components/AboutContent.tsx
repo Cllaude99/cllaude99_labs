@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { SiGithub, SiLinkedin } from 'react-icons/si';
 import { HiMail } from 'react-icons/hi';
-import { FiCopy, FiCheck } from 'react-icons/fi';
+import { FiCopy, FiCheck, FiGlobe } from 'react-icons/fi';
 
 export function AboutContent() {
   const [isCopied, setIsCopied] = useState(false);
@@ -85,31 +85,53 @@ export function AboutContent() {
         </h2>
         <div className="flex items-center gap-4">
           <a
+            href="https://www.cllaude99-labs.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative group text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            aria-label="Personal Website"
+          >
+            <FiGlobe className="w-6 h-6" />
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              개인 개발공간
+            </span>
+          </a>
+
+          <a
             href="https://github.com/Cllaude99"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            className="relative group text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             aria-label="GitHub"
           >
             <SiGithub className="w-6 h-6" />
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              GitHub
+            </span>
           </a>
 
           <a
             href="https://www.linkedin.com/in/%ED%83%9C%EC%9C%A4-%EA%B9%80-a94635301/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            className="relative group text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             aria-label="LinkedIn"
           >
             <SiLinkedin className="w-6 h-6" />
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              LinkedIn
+            </span>
           </a>
 
           <a
             href="mailto:cllaude1025@gmail.com"
-            className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            className="relative group text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             aria-label="Email"
           >
             <HiMail className="w-6 h-6" />
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              이메일
+            </span>
           </a>
         </div>
       </section>
