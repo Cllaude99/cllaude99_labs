@@ -1,5 +1,5 @@
-import '../styles/index.css';
 import 'the-new-css-reset/css/reset.css';
+import '../styles/index.css';
 
 import type { Decorator, Preview } from '@storybook/react';
 import React from 'react';
