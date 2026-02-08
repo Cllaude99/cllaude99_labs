@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 
-import type { InputStatus } from '../InputProvider';
+import type { InputStatus } from '../types';
 
 export interface InputDescriptionStyleProps {
   status: InputStatus;

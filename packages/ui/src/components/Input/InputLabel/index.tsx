@@ -1,7 +1,7 @@
 import { LabelHTMLAttributes } from 'react';
 
 import { useInputContext } from '../InputProvider';
-import type { InputSize } from '../InputProvider';
+import type { InputSize } from '../types';
 import * as S from './InputLabel.styles';
 
 export interface InputLabelProps extends LabelHTMLAttributes<HTMLLabelElement> {

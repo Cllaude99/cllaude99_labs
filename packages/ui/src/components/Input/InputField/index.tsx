@@ -1,7 +1,13 @@
-import { InputHTMLAttributes, forwardRef, useRef, useState, useId } from 'react';
+import {
+  InputHTMLAttributes,
+  forwardRef,
+  useRef,
+  useState,
+  useId,
+} from 'react';
 
 import { useInputContext } from '../InputProvider';
-import type { InputSize, InputStatus } from '../InputProvider';
+import type { InputSize, InputStatus } from '../types';
 import * as S from './InputField.styles';
 
 export interface InputFieldProps
@@ -16,6 +22,8 @@ export interface InputFieldProps
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
   (
     {
+      type,
+      id: idProp,
       size: sizeProp,
       status: statusProp,
       disabled: disabledProp,
@@ -23,8 +31,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
       startIcon,
       endIcon,
       endButton,
-      id: idProp,
-      type,
       onChange,
       ...rest
     },

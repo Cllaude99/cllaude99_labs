@@ -1,7 +1,7 @@
 import { HTMLAttributes } from 'react';
 
 import { InputProvider } from '../InputProvider';
-import type { InputSize } from '../InputProvider';
+import type { InputSize } from '../types';
 import * as S from './InputGroup.styles';
 
 export interface InputGroupProps extends HTMLAttributes<HTMLDivElement> {

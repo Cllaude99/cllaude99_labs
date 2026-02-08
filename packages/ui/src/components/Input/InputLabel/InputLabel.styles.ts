@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 
-import type { InputSize } from '../InputProvider';
+import type { InputSize } from '../types';
 
 export interface InputLabelStyleProps {
   inputSize: InputSize;

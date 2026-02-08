@@ -1,6 +1,6 @@
 import { HTMLAttributes } from 'react';
 
-import type { InputStatus } from '../InputProvider';
+import type { InputStatus } from '../types';
 import * as S from './InputDescription.styles';
 
 export interface InputDescriptionProps

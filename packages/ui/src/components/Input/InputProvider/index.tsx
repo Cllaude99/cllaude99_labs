@@ -1,7 +1,6 @@
 import { createContext, useContext } from 'react';
 
-type InputSize = 'small' | 'medium' | 'large';
-type InputStatus = 'default' | 'error' | 'success';
+import type { InputSize } from '../types';
 
 interface InputContextProps {
   size: InputSize;
@@ -19,8 +18,9 @@ interface InputProviderProps {
 }
 
 const InputProvider = ({ children, value }: InputProviderProps) => {
-  return <InputContext.Provider value={value}>{children}</InputContext.Provider>;
+  return (
+    <InputContext.Provider value={value}>{children}</InputContext.Provider>
+  );
 };
 
 export { InputProvider, useInputContext };
-export type { InputSize, InputStatus, InputContextProps };

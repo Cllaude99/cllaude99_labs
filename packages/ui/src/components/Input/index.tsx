@@ -4,9 +4,9 @@ import InputDescription from './InputDescription';
 import InputField from './InputField';
 import InputGroup from './InputGroup';
 import InputLabel from './InputLabel';
-import type { InputSize, InputStatus } from './InputProvider';
+import type { InputSize, InputStatus } from './types';
 
-interface InputProps
+export interface InputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   description?: string;
@@ -73,4 +73,3 @@ Input.Description = InputDescription;
 Input.Group = InputGroup;
 
 export default Input;
-export { InputField, InputLabel, InputDescription, InputGroup };
