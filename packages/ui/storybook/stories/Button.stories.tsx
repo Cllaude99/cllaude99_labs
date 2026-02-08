@@ -12,10 +12,10 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['primary', 'secondary', 'outline', 'danger'],
+      options: ['primary', 'secondary', 'outline', 'ghost', 'danger'],
       description: '버튼의 스타일 변형',
       table: {
-        type: { summary: 'primary | secondary | outline | danger' },
+        type: { summary: 'primary | secondary | outline | ghost | danger' },
         defaultValue: { summary: 'primary' },
       },
     },
@@ -80,6 +80,17 @@ export const Outline: Story = {
     variant: 'outline',
     size: 'medium',
     children: 'Outline Button',
+  },
+};
+
+/**
+ * Ghost 버튼은 최소한의 시각적 강조가 필요한 액션에 사용됩니다.
+ */
+export const Ghost: Story = {
+  args: {
+    variant: 'ghost',
+    size: 'medium',
+    children: 'Ghost Button',
   },
 };
 
@@ -214,6 +225,9 @@ export const AllVariants = {
         </Button>
         <Button variant="outline" size="medium">
           Outline
+        </Button>
+        <Button variant="ghost" size="medium">
+          Ghost
         </Button>
         <Button variant="danger" size="medium">
           Danger
