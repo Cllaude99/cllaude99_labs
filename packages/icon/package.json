@@ -1,8 +1,10 @@
 {
   "name": "@cllaude99/icon",
   "version": "0.0.0",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "sideEffects": false,
+  "exports": {
+    "./*": "./src/components/*.tsx"
+  },
   "license": "MIT",
   "scripts": {
     "lint": "eslint \"**/*.ts*\"",
