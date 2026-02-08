@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type ButtonSize = 'small' | 'medium' | 'large';
 
 export interface ButtonProps {
@@ -103,6 +103,19 @@ const ButtonContainer = styled.button<ButtonProps>`
             color: ${theme.palette.blue600};
             background-color: ${theme.palette.blue100};
             transform: translateY(0);
+          }
+        `;
+      case 'ghost':
+        return `
+          color: ${theme.palette.blue500};
+          background-color: transparent;
+
+          &:hover:not(:disabled) {
+            background-color: ${theme.palette.blue50};
+          }
+
+          &:active:not(:disabled) {
+            background-color: ${theme.palette.blue100};
           }
         `;
       case 'danger':
