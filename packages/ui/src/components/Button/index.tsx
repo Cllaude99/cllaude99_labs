@@ -1,11 +1,20 @@
 import { ButtonHTMLAttributes } from 'react';
 
-import { ButtonProps } from './Button.styles';
 import * as S from './Button.styles';
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & ButtonProps;
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: S.ButtonVariant;
+  size?: S.ButtonSize;
+  icon?: React.ReactNode;
+}
 
-const Button = ({ children, variant, size, icon, ...rest }: Props) => {
+const Button = ({
+  children,
+  variant = 'primary',
+  size = 'medium',
+  icon,
+  ...rest
+}: ButtonProps) => {
   const hasChildren = !!children;
 
   return (

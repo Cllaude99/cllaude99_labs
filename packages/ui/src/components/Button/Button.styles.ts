@@ -1,16 +1,16 @@
 import styled from '@emotion/styled';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-type ButtonSize = 'small' | 'medium' | 'large';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+export type ButtonSize = 'small' | 'medium' | 'large';
 
-export interface ButtonProps {
-  variant: ButtonVariant;
-  size: ButtonSize;
+export interface ButtonStyleProps {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   disabled?: boolean;
   icon?: React.ReactNode;
 }
 
-const ButtonContainer = styled.button<ButtonProps>`
+const ButtonContainer = styled.button<ButtonStyleProps>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -27,7 +27,7 @@ const ButtonContainer = styled.button<ButtonProps>`
     opacity: 0.5;
   }
 
-  ${({ size, theme }) => {
+  ${({ size = 'medium', theme }) => {
     switch (size) {
       case 'small':
         return `
@@ -53,7 +53,7 @@ const ButtonContainer = styled.button<ButtonProps>`
     }
   }}
 
-  ${({ variant, theme }) => {
+  ${({ variant = 'primary', theme }) => {
     switch (variant) {
       case 'primary':
         return `
@@ -137,24 +137,13 @@ const ButtonContainer = styled.button<ButtonProps>`
   }}
 `;
 
-const Icon = styled.div<Pick<ButtonProps, 'size'> & { hasChildren: boolean }>`
+const Icon = styled.div<Pick<ButtonStyleProps, 'size'> & { hasChildren: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
   height: 20px;
-
-  ${({ size, hasChildren }) => {
-    if (!hasChildren) return null;
-
-    switch (size) {
-      case 'small':
-        return `
-          margin-right: 6px;
-        `;
-      default:
-        return `
-          margin-right: 8px;
-        `;
-    }
-  }}
+  flex-shrink: 0;
 `;
 
 export { ButtonContainer, Icon };
