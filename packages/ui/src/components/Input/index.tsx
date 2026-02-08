@@ -1,4 +1,4 @@
-import { InputHTMLAttributes } from 'react';
+import { InputHTMLAttributes, useId } from 'react';
 
 import InputDescription from './InputDescription';
 import InputField from './InputField';
@@ -29,26 +29,33 @@ function Input({
   startIcon,
   endIcon,
   endButton,
+  id: idProp,
   ...rest
 }: InputProps) {
+  const autoId = useId();
+  const inputId = idProp ?? autoId;
+  const descriptionId = description ? `${inputId}-description` : undefined;
+
   return (
     <InputGroup size={size}>
       {label && (
-        <InputLabel required={required} disabled={disabled}>
+        <InputLabel htmlFor={inputId} required={required} disabled={disabled}>
           {label}
         </InputLabel>
       )}
       <InputField
+        id={inputId}
         status={status}
         disabled={disabled}
         readOnly={readOnly}
         startIcon={startIcon}
         endIcon={endIcon}
         endButton={endButton}
+        aria-describedby={descriptionId}
         {...rest}
       />
       {description && (
-        <InputDescription status={status} disabled={disabled}>
+        <InputDescription id={descriptionId} status={status} disabled={disabled}>
           {description}
         </InputDescription>
       )}

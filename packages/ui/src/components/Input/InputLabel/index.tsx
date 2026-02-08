@@ -15,13 +15,12 @@ const InputLabel = ({
   size: sizeProp,
   required = false,
   disabled = false,
-  htmlFor: htmlForProp,
+  htmlFor,
   ...rest
 }: InputLabelProps) => {
   const context = useInputContext();
 
   const inputSize = context?.size ?? sizeProp ?? 'medium';
-  const htmlFor = context?.inputId ?? htmlForProp;
 
   return (
     <S.Label

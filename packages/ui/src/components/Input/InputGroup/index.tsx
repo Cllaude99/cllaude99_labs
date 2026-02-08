@@ -1,4 +1,4 @@
-import { HTMLAttributes, useId } from 'react';
+import { HTMLAttributes } from 'react';
 
 import { InputProvider } from '../InputProvider';
 import type { InputSize } from '../InputProvider';
@@ -9,10 +9,8 @@ export interface InputGroupProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const InputGroup = ({ children, size = 'medium', ...rest }: InputGroupProps) => {
-  const inputId = useId();
-
   return (
-    <InputProvider value={{ inputId, size }}>
+    <InputProvider value={{ size }}>
       <S.Group role="group" {...rest}>
         {children}
       </S.Group>

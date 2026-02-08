@@ -4,7 +4,6 @@ type InputSize = 'small' | 'medium' | 'large';
 type InputStatus = 'default' | 'error' | 'success';
 
 interface InputContextProps {
-  inputId: string;
   size: InputSize;
 }
 

@@ -1,6 +1,5 @@
 import { HTMLAttributes } from 'react';
 
-import { useInputContext } from '../InputProvider';
 import type { InputStatus } from '../InputProvider';
 import * as S from './InputDescription.styles';
 
@@ -14,16 +13,12 @@ const InputDescription = ({
   children,
   status = 'default',
   disabled = false,
-  id: idProp,
+  id,
   ...rest
 }: InputDescriptionProps) => {
-  const context = useInputContext();
-
-  const descriptionId = context ? `${context.inputId}-description` : idProp;
-
   return (
     <S.Description
-      id={descriptionId}
+      id={id}
       status={status}
       disabled={disabled}
       role={status === 'error' ? 'alert' : undefined}
