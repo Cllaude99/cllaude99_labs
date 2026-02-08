@@ -20,12 +20,8 @@
   "sideEffects": false,
   "exports": {
     "./*": "./src/components/*/index.tsx",
-    "./breakpoints": "./src/design-system/breakpoints.ts",
-    "./palette": "./src/design-system/palette.ts",
-    "./typography": "./src/design-system/typography.ts",
-    "./theme": "./src/design-system/theme.ts",
-    "./useDialog": "./src/hooks/useDialog.ts",
-    "./package.json": "./package.json"
+    "./design-system/*": "./src/design-system/*.ts",
+    "./hooks/*": "./src/hooks/*.ts"
   },
   "files": [
     "src",

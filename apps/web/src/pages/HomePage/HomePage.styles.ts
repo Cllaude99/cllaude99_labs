@@ -1,9 +1,9 @@
 import styled from '@emotion/styled';
 import { motion } from 'motion/react';
 
-import { mq } from '@cllaude99/ui/breakpoints';
-import { palette } from '@cllaude99/ui/palette';
-import { typography } from '@cllaude99/ui/typography';
+import { mq } from '@cllaude99/ui/design-system/breakpoints';
+import { palette } from '@cllaude99/ui/design-system/palette';
+import { typography } from '@cllaude99/ui/design-system/typography';
 
 const PlanetSystemZIndex = 1;
 const ProjectInfoZIndex = 10;

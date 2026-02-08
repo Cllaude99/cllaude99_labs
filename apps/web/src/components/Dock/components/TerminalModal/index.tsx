@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import useDialog from '@cllaude99/ui/useDialog';
+import useDialog from '@cllaude99/ui/hooks/useDialog';
 
 import * as S from './TerminalModal.styles';
 import { useTerminal } from '../../hooks';

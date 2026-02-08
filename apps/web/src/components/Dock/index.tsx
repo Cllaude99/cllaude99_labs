@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Terminal } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
-import useDialog from '@cllaude99/ui/useDialog';
+import useDialog from '@cllaude99/ui/hooks/useDialog';
 
 import { PATH } from '@/constants';
 
