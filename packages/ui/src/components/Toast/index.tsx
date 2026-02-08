@@ -1,6 +1,6 @@
 import { Toaster, ToastPosition } from 'react-hot-toast';
 
-import { palette } from '../../design-system';
+import { palette } from '../../design-system/palette';
 
 const Toast = () => {
   const TOAST_DURATION = 2000;

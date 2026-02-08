@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { motion } from 'motion/react';
 
-import { mq } from '@cllaude99/ui';
+import { mq } from '@cllaude99/ui/breakpoints';
 
 import { DockPosition } from './types';
 

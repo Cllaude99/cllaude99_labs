@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 
 import { ThemeProvider as BaseThemeProvider } from '@emotion/react';
 
-import { theme } from '../../design-system';
+import { theme } from '../../design-system/theme';
 
 interface ThemeProviderProps {
   children: ReactNode;

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 
-import { useDialog } from '@cllaude99/ui';
+import useDialog from '@cllaude99/ui/useDialog';
 
 import { PROJECTS } from '@/constants';
 

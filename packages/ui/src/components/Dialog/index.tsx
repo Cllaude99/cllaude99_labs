@@ -3,7 +3,7 @@ import { useState } from 'react';
 import DialogContent from './DialogContent';
 import DialogOverlay from './DialogOverlay';
 import DialogRoot from './DialogRoot';
-import { DialogContext } from '../../contexts';
+import DialogContext from '../../contexts/DialogContext';
 
 interface DialogProviderProps {
   children: React.ReactNode;

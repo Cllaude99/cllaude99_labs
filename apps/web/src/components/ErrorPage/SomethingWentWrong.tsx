@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-import { Button } from '@cllaude99/ui';
+import Button from '@cllaude99/ui/Button';
 
 import Layout from '@/components/Layout';
 

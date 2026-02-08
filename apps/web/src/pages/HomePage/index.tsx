@@ -1,7 +1,7 @@
 import { Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Carousel } from '@cllaude99/ui';
+import Carousel from '@cllaude99/ui/Carousel';
 
 import Dock from '@/components/Dock';
 import Layout from '@/components/Layout';
