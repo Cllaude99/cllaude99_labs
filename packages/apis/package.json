@@ -1,8 +1,13 @@
 {
   "name": "@cllaude99/apis",
   "version": "0.0.0",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "sideEffects": false,
+  "exports": {
+    "./components/*": "./src/components/*.tsx",
+    "./queries/*": "./src/queries/queryFn/*.ts",
+    "./mutations/*": "./src/mutations/*.ts",
+    "./utils/*": "./src/utils/*.ts"
+  },
   "license": "MIT",
   "scripts": {
     "lint": "eslint \"**/*.ts*\"",

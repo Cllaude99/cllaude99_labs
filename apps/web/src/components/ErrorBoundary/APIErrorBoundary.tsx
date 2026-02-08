@@ -3,7 +3,7 @@ import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
-import { getAPIErrorInfo } from '@cllaude99/apis';
+import { getAPIErrorInfo } from '@cllaude99/apis/utils/getAPIErrorInfo';
 
 import SomethingWentWrong from '@/components/ErrorPage/SomethingWentWrong';
 

@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
-import { getAPIErrorInfo } from '../utils';
+import { getAPIErrorInfo } from '../utils/getAPIErrorInfo';
 
 const queryClient = new QueryClient({
   defaultOptions: {
