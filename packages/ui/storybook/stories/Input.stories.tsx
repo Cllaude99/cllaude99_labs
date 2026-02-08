@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 
 import Button from '../../src/components/Button';
 import Input from '../../src/components/Input';
-import InputField from '../../src/components/Input/InputField';
 
 const SearchIcon = () => (
   <svg
@@ -51,7 +50,7 @@ const EyeIcon = () => (
 
 const meta = {
   title: 'Components/Input',
-  component: InputField,
+  component: Input,
   parameters: {
     layout: 'centered',
   },
@@ -96,7 +95,7 @@ const meta = {
       description: '플레이스홀더 텍스트',
     },
   },
-} satisfies Meta<typeof InputField>;
+} satisfies Meta<typeof Input>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
