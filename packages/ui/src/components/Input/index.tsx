@@ -18,7 +18,7 @@ interface InputProps
   endButton?: React.ReactNode;
 }
 
-function Input({
+const Input = ({
   label,
   description,
   size = 'medium',
@@ -31,7 +31,7 @@ function Input({
   endButton,
   id: idProp,
   ...rest
-}: InputProps) {
+}: InputProps) => {
   const autoId = useId();
   const inputId = idProp ?? autoId;
   const descriptionId = description ? `${inputId}-description` : undefined;
@@ -55,13 +55,17 @@ function Input({
         {...rest}
       />
       {description && (
-        <InputDescription id={descriptionId} status={status} disabled={disabled}>
+        <InputDescription
+          id={descriptionId}
+          status={status}
+          disabled={disabled}
+        >
           {description}
         </InputDescription>
       )}
     </InputGroup>
   );
-}
+};
 
 Input.Field = InputField;
 Input.Label = InputLabel;
