@@ -10,10 +10,10 @@ export interface InputDescriptionProps
 }
 
 const InputDescription = ({
-  children,
-  status = 'default',
-  disabled = false,
   id,
+  status = 'default',
+  disabled,
+  children,
   ...rest
 }: InputDescriptionProps) => {
   return (
