@@ -8,6 +8,7 @@ import type { InputSize, InputStatus } from './types';
 
 export interface InputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+  type?: React.HTMLInputTypeAttribute;
   label?: string;
   description?: string;
   size?: InputSize;
@@ -19,6 +20,8 @@ export interface InputProps
 }
 
 const Input = ({
+  id: idProp,
+  type,
   label,
   description,
   size = 'medium',
@@ -29,7 +32,6 @@ const Input = ({
   startIcon,
   endIcon,
   endButton,
-  id: idProp,
   ...rest
 }: InputProps) => {
   const autoId = useId();
@@ -45,6 +47,7 @@ const Input = ({
       )}
       <InputField
         id={inputId}
+        type={type}
         status={status}
         disabled={disabled}
         readOnly={readOnly}
