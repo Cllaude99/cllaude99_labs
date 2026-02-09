@@ -11,11 +11,11 @@ export interface InputLabelProps extends LabelHTMLAttributes<HTMLLabelElement> {
 }
 
 const InputLabel = ({
-  children,
-  size: sizeProp,
-  required = false,
-  disabled = false,
   htmlFor,
+  size: sizeProp,
+  required,
+  disabled,
+  children,
   ...rest
 }: InputLabelProps) => {
   const context = useInputContext();
@@ -24,9 +24,9 @@ const InputLabel = ({
 
   return (
     <S.Label
+      htmlFor={htmlFor}
       inputSize={inputSize}
       disabled={disabled}
-      htmlFor={htmlFor}
       {...rest}
     >
       {children}
