@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, useId } from 'react';
+import { InputHTMLAttributes, forwardRef, useId } from 'react';
 
 import InputDescription from './InputDescription';
 import InputField from './InputField';
@@ -19,60 +19,70 @@ export interface InputProps
   endButton?: React.ReactNode;
 }
 
-const Input = ({
-  id: idProp,
-  type,
-  label,
-  description,
-  size = 'medium',
-  status = 'default',
-  required,
-  disabled,
-  readOnly,
-  startIcon,
-  endIcon,
-  endButton,
-  ...rest
-}: InputProps) => {
-  const autoId = useId();
-  const inputId = idProp ?? autoId;
-  const descriptionId = description ? `${inputId}-description` : undefined;
+const InputBase = forwardRef<HTMLInputElement, InputProps>(
+  (
+    {
+      id: idProp,
+      type,
+      label,
+      description,
+      size = 'medium',
+      status = 'default',
+      required,
+      disabled,
+      readOnly,
+      startIcon,
+      endIcon,
+      endButton,
+      ...rest
+    },
+    ref,
+  ) => {
+    const autoId = useId();
+    const inputId = idProp ?? autoId;
+    const descriptionId = description ? `${inputId}-description` : undefined;
 
-  return (
-    <InputGroup size={size}>
-      {label && (
-        <InputLabel htmlFor={inputId} required={required} disabled={disabled}>
-          {label}
-        </InputLabel>
-      )}
-      <InputField
-        id={inputId}
-        type={type}
-        status={status}
-        disabled={disabled}
-        readOnly={readOnly}
-        startIcon={startIcon}
-        endIcon={endIcon}
-        endButton={endButton}
-        aria-describedby={descriptionId}
-        {...rest}
-      />
-      {description && (
-        <InputDescription
-          id={descriptionId}
+    return (
+      <InputGroup size={size}>
+        {label && (
+          <InputLabel htmlFor={inputId} required={required} disabled={disabled}>
+            {label}
+          </InputLabel>
+        )}
+        <InputField
+          ref={ref}
+          id={inputId}
+          type={type}
           status={status}
           disabled={disabled}
-        >
-          {description}
-        </InputDescription>
-      )}
-    </InputGroup>
-  );
-};
+          readOnly={readOnly}
+          startIcon={startIcon}
+          endIcon={endIcon}
+          endButton={endButton}
+          aria-describedby={descriptionId}
+          {...rest}
+        />
+        {description && (
+          <InputDescription
+            id={descriptionId}
+            status={status}
+            disabled={disabled}
+          >
+            {description}
+          </InputDescription>
+        )}
+      </InputGroup>
+    );
+  },
+);
 
-Input.Field = InputField;
-Input.Label = InputLabel;
-Input.Description = InputDescription;
-Input.Group = InputGroup;
+InputBase.displayName = 'Input';
+
+const Input = Object.assign(InputBase, {
+  Field: InputField,
+  Label: InputLabel,
+  Description: InputDescription,
+  Group: InputGroup,
+});
 
 export default Input;
