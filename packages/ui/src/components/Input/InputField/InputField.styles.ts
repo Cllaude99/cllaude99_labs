@@ -7,40 +7,43 @@ export interface InputFieldStyleProps {
   status: InputStatus;
   disabled?: boolean;
   readOnly?: boolean;
+  isFileInput?: boolean;
+  isDragging?: boolean;
 }
 
 const Wrapper = styled.div<InputFieldStyleProps>`
   display: flex;
-  align-items: stretch;
+  align-items: ${({ isFileInput }) => (isFileInput ? 'center' : 'stretch')};
   border-radius: 8px;
   border: 1px solid;
   transition: all 0.2s ease-in-out;
-  cursor: text;
+  cursor: ${({ isFileInput }) => (isFileInput ? 'pointer' : 'text')};
+  ${({ isFileInput }) => isFileInput && 'gap: 8px;'}
 
-  ${({ inputSize, theme }) => {
+  ${({ inputSize, isFileInput, theme }) => {
     switch (inputSize) {
       case 'small':
         return `
           min-height: 36px;
-          padding-left: 12px;
+          ${isFileInput ? 'padding: 0 12px;' : 'padding-left: 12px;'}
           ${theme.typography.body3.styles};
         `;
       case 'medium':
         return `
           min-height: 44px;
-          padding-left: 14px;
+          ${isFileInput ? 'padding: 0 14px;' : 'padding-left: 14px;'}
           ${theme.typography.body2.styles};
         `;
       case 'large':
         return `
           min-height: 52px;
-          padding-left: 16px;
+          ${isFileInput ? 'padding: 0 16px;' : 'padding-left: 16px;'}
           ${theme.typography.body1.styles};
         `;
     }
   }}
 
-  ${({ status, disabled, readOnly, theme }) => {
+  ${({ status, disabled, readOnly, isFileInput, isDragging, theme }) => {
     if (disabled) {
       return `
         border-color: ${theme.palette.grey200};
@@ -50,7 +53,15 @@ const Wrapper = styled.div<InputFieldStyleProps>`
       `;
     }
 
-    if (readOnly) {
+    if (isFileInput && isDragging) {
+      return `
+        border-color: ${theme.palette.blue500};
+        background-color: ${theme.palette.blue100};
+        border-style: solid;
+      `;
+    }
+
+    if (!isFileInput && readOnly) {
       return `
         border-color: ${theme.palette.grey200};
         background-color: ${theme.palette.grey50};
@@ -60,44 +71,74 @@ const Wrapper = styled.div<InputFieldStyleProps>`
 
     switch (status) {
       case 'error':
-        return `
-          border-color: ${theme.palette.red500};
-          background-color: ${theme.palette.white};
-
-          &:focus-within {
+        return isFileInput
+          ? `
             border-color: ${theme.palette.red500};
-            box-shadow: 0 0 0 3px ${theme.palette.red50};
-          }
-        `;
+            background-color: ${theme.palette.white};
+
+            &:hover {
+              border-color: ${theme.palette.red600};
+            }
+          `
+          : `
+            border-color: ${theme.palette.red500};
+            background-color: ${theme.palette.white};
+
+            &:focus-within {
+              border-color: ${theme.palette.red500};
+              box-shadow: 0 0 0 3px ${theme.palette.red50};
+            }
+          `;
       case 'success':
-        return `
-          border-color: ${theme.palette.green500};
-          background-color: ${theme.palette.white};
-
-          &:focus-within {
+        return isFileInput
+          ? `
             border-color: ${theme.palette.green500};
-            box-shadow: 0 0 0 3px ${theme.palette.green50};
-          }
-        `;
+            background-color: ${theme.palette.white};
+
+            &:hover {
+              border-color: ${theme.palette.green600};
+            }
+          `
+          : `
+            border-color: ${theme.palette.green500};
+            background-color: ${theme.palette.white};
+
+            &:focus-within {
+              border-color: ${theme.palette.green500};
+              box-shadow: 0 0 0 3px ${theme.palette.green50};
+            }
+          `;
       default:
-        return `
-          border-color: ${theme.palette.grey200};
-          background-color: ${theme.palette.white};
+        return isFileInput
+          ? `
+            border-color: ${theme.palette.grey200};
+            background-color: ${theme.palette.white};
 
-          &:hover {
-            border-color: ${theme.palette.grey300};
-          }
+            &:hover {
+              border-color: ${theme.palette.blue500};
+              background-color: ${theme.palette.blue50};
+            }
+          `
+          : `
+            border-color: ${theme.palette.grey200};
+            background-color: ${theme.palette.white};
 
-          &:focus-within {
-            border-color: ${theme.palette.blue500};
-            box-shadow: 0 0 0 3px ${theme.palette.blue50};
-          }
-        `;
+            &:hover {
+              border-color: ${theme.palette.grey300};
+            }
+
+            &:focus-within {
+              border-color: ${theme.palette.blue500};
+              box-shadow: 0 0 0 3px ${theme.palette.blue50};
+            }
+          `;
     }
   }}
 `;
 
-const NativeInput = styled.input<{ disabled?: boolean }>`
+const NativeInput = styled.input<{ disabled?: boolean; isFileInput?: boolean }>`
+  ${({ isFileInput }) => isFileInput && 'display: none;'}
+
   flex: 1;
   border: none;
   background: transparent;
@@ -146,97 +187,6 @@ const ButtonSlot = styled.div`
       transform: none !important;
     }
   }
-`;
-
-interface FileInputWrapperProps extends InputFieldStyleProps {
-  isDragging?: boolean;
-}
-
-const FileInputWrapper = styled.div<FileInputWrapperProps>`
-  display: flex;
-  align-items: center;
-  border-radius: 8px;
-  border: 1px solid;
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-  gap: 8px;
-
-  ${({ inputSize, theme }) => {
-    switch (inputSize) {
-      case 'small':
-        return `
-          min-height: 36px;
-          padding: 0 12px;
-          ${theme.typography.body3.styles};
-        `;
-      case 'medium':
-        return `
-          min-height: 44px;
-          padding: 0 14px;
-          ${theme.typography.body2.styles};
-        `;
-      case 'large':
-        return `
-          min-height: 52px;
-          padding: 0 16px;
-          ${theme.typography.body1.styles};
-        `;
-    }
-  }}
-
-  ${({ status, disabled, isDragging, theme }) => {
-    if (disabled) {
-      return `
-        border-color: ${theme.palette.grey200};
-        background-color: ${theme.palette.grey50};
-        cursor: not-allowed;
-        color: ${theme.palette.grey400};
-      `;
-    }
-
-    if (isDragging) {
-      return `
-        border-color: ${theme.palette.blue500};
-        background-color: ${theme.palette.blue100};
-        border-style: solid;
-      `;
-    }
-
-    switch (status) {
-      case 'error':
-        return `
-          border-color: ${theme.palette.red500};
-          background-color: ${theme.palette.white};
-
-          &:hover {
-            border-color: ${theme.palette.red600};
-          }
-        `;
-      case 'success':
-        return `
-          border-color: ${theme.palette.green500};
-          background-color: ${theme.palette.white};
-
-          &:hover {
-            border-color: ${theme.palette.green600};
-          }
-        `;
-      default:
-        return `
-          border-color: ${theme.palette.grey200};
-          background-color: ${theme.palette.white};
-
-          &:hover {
-            border-color: ${theme.palette.blue500};
-            background-color: ${theme.palette.blue50};
-          }
-        `;
-    }
-  }}
-`;
-
-const HiddenFileInput = styled.input`
-  display: none;
 `;
 
 const FileInputContent = styled.div`
@@ -288,8 +238,6 @@ export {
   NativeInput,
   IconSlot,
   ButtonSlot,
-  FileInputWrapper,
-  HiddenFileInput,
   FileInputContent,
   FileInputButton,
   FileInputText,
