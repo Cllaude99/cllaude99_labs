@@ -42,8 +42,10 @@
 
 | 소스 | 용도 |
 |------|------|
-| KRX (한국거래소) 공개 API | 종목 마스터 정보, 일별 시세 |
-| FinanceDataReader (Python) | 2010-2024년 일별 OHLCV 데이터 수집 |
+| Yahoo Finance API | 2010-2024년 일별 OHLCV 데이터 수집 (티커 형식: `005930.KS`) |
+| Edge Function (`seed-stock-data`) | Yahoo Finance API fetch → DB 적재 자동화 |
+
+> **참고**: Python/FinanceDataReader 없이 Supabase Edge Function에서 직접 Yahoo Finance API를 호출하여 데이터를 수집합니다. 외부 의존성 없이 Supabase 생태계 안에서 완결됩니다.
 
 ### DevOps
 
@@ -729,7 +731,73 @@ Content-Type: application/json
 
 ---
 
-### 3.4 주식 데이터
+### 3.4 데이터 시딩 (관리용)
+
+#### `POST /seed-stock-data` - 주식 데이터 수집 및 적재
+
+Yahoo Finance API에서 10개 종목의 2010-2024년 일별 OHLCV 데이터를 수집하여 DB에 적재합니다. 초기 1회 실행용 관리 API입니다.
+
+**Request**
+
+```typescript
+// Headers
+Authorization: Bearer <access_token>  // 관리자 권한 필요
+Content-Type: application/json
+
+// Body
+{
+  tickers: Array<{
+    ticker: string;               // Yahoo Finance 티커 (예: '005930.KS')
+    alias_code: string;           // 'A' ~ 'J'
+    real_name: string;            // '삼성전자'
+    category: string;             // 'IT'
+  }>;
+  start_date: string;             // '2010-01-01'
+  end_date: string;               // '2024-12-31'
+}
+```
+
+**Response (200 OK)**
+
+```typescript
+{
+  result: {
+    total_stocks: number;         // 적재 완료 종목 수
+    total_rows: number;           // 적재된 총 데이터 행 수
+    stocks: Array<{
+      ticker: string;
+      alias_code: string;
+      rows_inserted: number;      // 해당 종목 적재 행 수
+      date_range: {
+        first: string;            // 최초 거래일
+        last: string;             // 마지막 거래일
+      };
+    }>;
+  };
+}
+```
+
+**처리 로직**
+
+1. `tickers` 배열을 순회하며 `stocks` 테이블에 종목 마스터 INSERT
+2. 각 종목에 대해 Yahoo Finance API 호출 (`https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?period1={start}&period2={end}&interval=1d`)
+3. 응답에서 OHLCV 데이터 파싱 → `stock_daily_prices` 테이블에 배치 INSERT
+4. 적재 완료 후 데이터 건수 검증 (거래일 수 확인)
+
+**에러 응답**
+
+| 상태 코드 | 설명 |
+|-----------|------|
+| 401 | 인증 실패 |
+| 403 | 관리자 권한 없음 |
+| 409 | 이미 데이터가 적재되어 있음 |
+| 502 | Yahoo Finance API 호출 실패 |
+
+> **참고**: 이 Edge Function은 `verify_jwt: true`로 배포하되, 함수 내부에서 관리자 권한을 추가 검증합니다. 데이터 적재 후에는 비활성화하거나 삭제해도 무방합니다.
+
+---
+
+### 3.5 주식 데이터
 
 #### `GET /stock-prices?session_id={session_id}&year={year}` - 연도별 주가 조회
 
@@ -846,7 +914,7 @@ year: number;                   // 블러 이벤트 연도 (2012, 2014, 2016, 20
 
 ---
 
-### 3.5 실시간 스트리밍 제어
+### 3.6 실시간 스트리밍 제어
 
 #### `POST /stock-stream-start` - 주가 스트리밍 시작
 
@@ -945,7 +1013,7 @@ Content-Type: application/json
 
 ---
 
-### 3.6 퀴즈 / 힌트
+### 3.7 퀴즈 / 힌트
 
 #### `GET /quiz-list?year={year}` - 연도별 퀴즈 목록 조회
 
@@ -1098,7 +1166,7 @@ session_id: string;
 
 ---
 
-### 3.7 랭킹
+### 3.8 랭킹
 
 #### `GET /rankings?page={page}&limit={limit}` - 전체 랭킹 조회
 
@@ -1176,7 +1244,7 @@ session_id: string;
 
 ---
 
-### 3.8 프로필
+### 3.9 프로필
 
 #### `POST /profile-setup` - 프로필 설정
 
@@ -1243,7 +1311,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 3.9 Realtime 채널
+### 3.10 Realtime 채널
 
 Supabase Realtime을 사용하여 WebSocket 기반 실시간 통신을 수행합니다.
 
@@ -1962,16 +2030,19 @@ apps/web/src/
 
 **작업 내용**
 
-- Python FinanceDataReader로 10개 종목 2010-2024년 OHLCV 데이터 수집
 - 종목 선정 (카테고리 분산: IT 2, 엔터 2, 바이오 1, 식품 1, 뷰티 1, 화학 1, 조선 1, 금융 1)
-- CSV → Supabase `stocks` + `stock_daily_prices` 테이블에 적재
-- 데이터 정합성 검증 (거래일 수, 결측치, 이상치)
-- `alias_code` 매핑 (A~J)
+- `seed-stock-data` Edge Function 구현 및 배포
+  - Yahoo Finance API에서 10개 종목 2010-2024년 OHLCV 데이터 fetch
+  - `stocks` 테이블에 종목 마스터 INSERT (alias_code A~J 매핑)
+  - `stock_daily_prices` 테이블에 일별 시세 배치 INSERT
+- Edge Function 실행하여 데이터 적재
+- `execute_sql`로 데이터 정합성 검증 (거래일 수, 결측치, 이상치)
 
 **산출물**
 
+- `seed-stock-data` Edge Function 배포 완료
 - 10개 종목 데이터 적재 완료
-- 데이터 품질 검증 보고
+- 데이터 품질 검증 (SQL 쿼리로 확인)
 
 #### Day 5-7: Lightweight Charts 통합 + 실시간 렌더링
 
