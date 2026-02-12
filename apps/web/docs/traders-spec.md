@@ -34,7 +34,7 @@
 |--------|------|
 | PostgreSQL 15 | 주 데이터베이스 (종목, 가격, 게임 세션, 거래 내역) |
 | Auth | 소셜 로그인 (Google, Kakao OAuth), 익명 로그인 |
-| Realtime | WebSocket 기반 실시간 주가 스트리밍, 게임 이벤트 |
+| Realtime | WebSocket 기반 게임 이벤트 동기화 (거래 확인, 결산 알림) |
 | Edge Functions | Deno 기반 서버리스 API (거래 처리, 게임 로직) |
 | Storage | 뉴스 이미지, 차트 캐시 저장 |
 
@@ -78,30 +78,47 @@ user_profiles ──┬── game_sessions ──┬── portfolio_holdings
                 ├── user_quiz_answers
                 └── rankings
 
-stocks ──── stock_daily_prices
+stocks ──┬── stock_secrets (관리자 전용: real_name, ticker)
+         └── stock_daily_prices
 
 quizzes (연도별 퀴즈)
 hints (연도별 힌트)
+blur_events (블러 차트 이벤트)
 ```
 
-### 2.1 `stocks` - 종목 마스터
+### 2.1 `stocks` - 종목 마스터 (공개 정보)
 
-종목 정보를 저장하며, 게임 중에는 `alias_code`만 노출합니다.
+게임 중 클라이언트에 노출되는 공개 정보만 저장합니다. `real_name`, `ticker`는 별도 테이블(`stock_secrets`)에 분리하여 보안을 유지합니다.
 
 ```sql
 CREATE TABLE stocks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   alias_code VARCHAR(2) NOT NULL UNIQUE,       -- 'A', 'B', 'C' ... 'J'
-  real_name VARCHAR(100) NOT NULL,              -- 실제 종목명 (삼성전자 등)
-  ticker VARCHAR(20) NOT NULL UNIQUE,           -- 종목 코드 (005930 등)
   category VARCHAR(50) NOT NULL,                -- 카테고리 (IT, 엔터, 바이오 등)
-  description TEXT,                             -- 종목 설명 (게임 종료 후 공개)
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- 인덱스
 CREATE INDEX idx_stocks_alias_code ON stocks(alias_code);
 CREATE INDEX idx_stocks_category ON stocks(category);
+```
+
+### 2.1.1 `stock_secrets` - 종목 비공개 정보 (관리자 전용)
+
+실제 종목명과 티커를 저장합니다. 클라이언트에서 직접 조회할 수 없으며, Edge Function(service_role)에서만 접근합니다. 게임 완료 시에만 Edge Function이 `real_name`을 응답에 포함합니다.
+
+```sql
+CREATE TABLE stock_secrets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  stock_id UUID NOT NULL REFERENCES stocks(id) ON DELETE CASCADE UNIQUE,
+  real_name VARCHAR(100) NOT NULL,              -- 실제 종목명 (삼성전자 등)
+  ticker VARCHAR(20) NOT NULL UNIQUE,           -- 종목 코드 (005930 등)
+  description TEXT,                             -- 종목 설명 (게임 종료 후 공개)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 인덱스
+CREATE INDEX idx_stock_secrets_stock ON stock_secrets(stock_id);
 ```
 
 ### 2.2 `stock_daily_prices` - 일별 OHLCV 데이터
@@ -124,7 +141,7 @@ CREATE TABLE stock_daily_prices (
   UNIQUE(stock_id, date)
 );
 
--- 인덱스 (게임 스트리밍 쿼리 최적화)
+-- 인덱스 (연도별 주가 조회 최적화)
 CREATE INDEX idx_stock_daily_prices_stock_date ON stock_daily_prices(stock_id, date);
 CREATE INDEX idx_stock_daily_prices_date ON stock_daily_prices(date);
 ```
@@ -143,8 +160,6 @@ CREATE TABLE game_sessions (
   total_asset NUMERIC(15, 2) NOT NULL DEFAULT 10000000,  -- 총자산 (현금 + 주식 평가액)
   status VARCHAR(20) NOT NULL DEFAULT 'playing' -- 'playing' | 'settling' | 'completed' | 'abandoned'
     CHECK (status IN ('playing', 'settling', 'completed', 'abandoned')),
-  playback_speed NUMERIC(3, 1) NOT NULL DEFAULT 1.0, -- 재생 속도 (1.0, 2.0, 5.0)
-  is_streaming BOOLEAN NOT NULL DEFAULT FALSE,  -- 현재 스트리밍 진행 중 여부
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -267,7 +282,24 @@ CREATE TABLE hints (
 CREATE INDEX idx_hints_year ON hints(year);
 ```
 
-### 2.9 `user_hint_unlocks` - 사용자별 힌트 해금 기록
+### 2.9 `blur_events` - 블러 차트 이벤트
+
+2년마다 발생하는 블러 차트 이벤트 정보를 저장합니다.
+
+```sql
+CREATE TABLE blur_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  year INT NOT NULL UNIQUE,                     -- 이벤트 연도 (2012, 2014, 2016, 2018, 2020, 2022, 2024)
+  description TEXT NOT NULL,                    -- 이벤트 설명
+  preview_months INT[] NOT NULL,                -- 미리보기 대상 월 배열 (3개월, 예: {3,4,5})
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 인덱스
+CREATE INDEX idx_blur_events_year ON blur_events(year);
+```
+
+### 2.10 `user_hint_unlocks` - 사용자별 힌트 해금 기록
 
 ```sql
 CREATE TABLE user_hint_unlocks (
@@ -285,7 +317,7 @@ CREATE TABLE user_hint_unlocks (
 CREATE INDEX idx_user_hint_unlocks_session ON user_hint_unlocks(session_id);
 ```
 
-### 2.10 `user_quiz_answers` - 사용자별 퀴즈 답변 기록
+### 2.11 `user_quiz_answers` - 사용자별 퀴즈 답변 기록
 
 ```sql
 CREATE TABLE user_quiz_answers (
@@ -303,7 +335,7 @@ CREATE TABLE user_quiz_answers (
 CREATE INDEX idx_user_quiz_answers_session ON user_quiz_answers(session_id);
 ```
 
-### 2.11 `rankings` - 최종 랭킹
+### 2.12 `rankings` - 최종 랭킹
 
 게임 완료 후 최종 랭킹을 저장합니다.
 
@@ -327,7 +359,7 @@ CREATE INDEX idx_rankings_final_asset ON rankings(final_asset DESC);
 CREATE INDEX idx_rankings_user ON rankings(user_id);
 ```
 
-### 2.12 `user_profiles` - 사용자 프로필
+### 2.13 `user_profiles` - 사용자 프로필
 
 ```sql
 CREATE TABLE user_profiles (
@@ -412,16 +444,24 @@ CREATE POLICY "Users can manage own profile"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- stocks, stock_daily_prices, quizzes, hints: 읽기 전용 공개
+-- stocks: 공개 정보만 포함하므로 읽기 전용 공개
 ALTER TABLE stocks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can read stocks" ON stocks FOR SELECT USING (true);
+
+-- stock_secrets: 클라이언트 직접 접근 차단 (Edge Function의 service_role만 접근)
+ALTER TABLE stock_secrets ENABLE ROW LEVEL SECURITY;
+-- RLS 정책 없음 = 클라이언트에서 SELECT 불가. service_role 키를 사용하는 Edge Function만 접근 가능.
+
+-- stock_daily_prices, quizzes, hints, blur_events: 읽기 전용 공개
 ALTER TABLE stock_daily_prices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quizzes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE blur_events ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Anyone can read stocks" ON stocks FOR SELECT USING (true);
 CREATE POLICY "Anyone can read stock prices" ON stock_daily_prices FOR SELECT USING (true);
 CREATE POLICY "Anyone can read quizzes" ON quizzes FOR SELECT USING (true);
 CREATE POLICY "Anyone can read hints" ON hints FOR SELECT USING (true);
+CREATE POLICY "Anyone can read blur events" ON blur_events FOR SELECT USING (true);
 ```
 
 ---
@@ -536,8 +576,6 @@ session_id: string;             // 게임 세션 UUID
     cash_balance: number;
     total_asset: number;
     status: 'playing' | 'settling' | 'completed' | 'abandoned';
-    playback_speed: number;
-    is_streaming: boolean;
   };
   portfolio: Array<{
     stock_id: string;
@@ -616,7 +654,7 @@ Content-Type: application/json
 
 | 상태 코드 | 설명 |
 |-----------|------|
-| 400 | 아직 12월이 아님 / 스트리밍 진행 중 |
+| 400 | 아직 12월이 아님 |
 | 401 | 인증 실패 |
 | 404 | 세션을 찾을 수 없음 |
 
@@ -691,7 +729,7 @@ Content-Type: application/json
     alias_code: string;
     trade_type: 'buy' | 'sell';
     quantity: number;
-    price: number;              // 체결 단가 (현재 스트리밍 시점의 가격)
+    price: number;              // 체결 단가 (현재 재생 시점의 가격)
     total_amount: number;
   };
   updated_balance: {
@@ -727,7 +765,7 @@ Content-Type: application/json
 | 400 | 잔액 부족 / 보유 수량 부족 / 유효하지 않은 수량 |
 | 401 | 인증 실패 |
 | 404 | 세션 또는 종목을 찾을 수 없음 |
-| 409 | 현재 스트리밍이 일시정지 상태 (거래 불가) |
+| 409 | 현재 재생이 일시정지 상태 (거래 불가) |
 
 ---
 
@@ -735,7 +773,7 @@ Content-Type: application/json
 
 #### `POST /seed-stock-data` - 주식 데이터 수집 및 적재
 
-Yahoo Finance API에서 10개 종목의 2010-2024년 일별 OHLCV 데이터를 수집하여 DB에 적재합니다. 초기 1회 실행용 관리 API입니다.
+Yahoo Finance API에서 **1개 종목**의 2010-2024년 일별 OHLCV 데이터를 수집하여 DB에 적재합니다. Edge Function 타임아웃(60초)을 고려하여 **종목 단위로 분리 호출**하며, 10개 종목을 순차적으로 실행합니다.
 
 **Request**
 
@@ -746,12 +784,10 @@ Content-Type: application/json
 
 // Body
 {
-  tickers: Array<{
-    ticker: string;               // Yahoo Finance 티커 (예: '005930.KS')
-    alias_code: string;           // 'A' ~ 'J'
-    real_name: string;            // '삼성전자'
-    category: string;             // 'IT'
-  }>;
+  ticker: string;                 // Yahoo Finance 티커 (예: '005930.KS')
+  alias_code: string;             // 'A' ~ 'J'
+  real_name: string;              // '삼성전자'
+  category: string;               // 'IT'
   start_date: string;             // '2010-01-01'
   end_date: string;               // '2024-12-31'
 }
@@ -762,27 +798,33 @@ Content-Type: application/json
 ```typescript
 {
   result: {
-    total_stocks: number;         // 적재 완료 종목 수
-    total_rows: number;           // 적재된 총 데이터 행 수
-    stocks: Array<{
-      ticker: string;
-      alias_code: string;
-      rows_inserted: number;      // 해당 종목 적재 행 수
-      date_range: {
-        first: string;            // 최초 거래일
-        last: string;             // 마지막 거래일
-      };
-    }>;
+    stock_id: string;             // 생성된 종목 UUID
+    alias_code: string;
+    rows_inserted: number;        // 적재된 데이터 행 수
+    date_range: {
+      first: string;              // 최초 거래일
+      last: string;               // 마지막 거래일
+    };
   };
 }
 ```
 
 **처리 로직**
 
-1. `tickers` 배열을 순회하며 `stocks` 테이블에 종목 마스터 INSERT
-2. 각 종목에 대해 Yahoo Finance API 호출 (`https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?period1={start}&period2={end}&interval=1d`)
-3. 응답에서 OHLCV 데이터 파싱 → `stock_daily_prices` 테이블에 배치 INSERT
-4. 적재 완료 후 데이터 건수 검증 (거래일 수 확인)
+1. `stocks` 테이블에 종목 공개 정보 INSERT (alias_code, category)
+2. `stock_secrets` 테이블에 비공개 정보 INSERT (real_name, ticker)
+3. Yahoo Finance API 호출 (`https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?period1={start}&period2={end}&interval=1d`)
+4. 응답에서 OHLCV 데이터 파싱 → `stock_daily_prices` 테이블에 배치 INSERT
+5. 적재 완료 후 데이터 건수 반환
+
+**호출 예시 (10개 종목 순차 실행)**
+
+```bash
+# MCP deploy_edge_function으로 배포 후, 종목별 순차 호출
+POST /seed-stock-data { ticker: '005930.KS', alias_code: 'A', real_name: '삼성전자', category: 'IT', ... }
+POST /seed-stock-data { ticker: '035720.KS', alias_code: 'B', real_name: '카카오', category: 'IT', ... }
+# ... 10개 종목 반복
+```
 
 **에러 응답**
 
@@ -790,7 +832,7 @@ Content-Type: application/json
 |-----------|------|
 | 401 | 인증 실패 |
 | 403 | 관리자 권한 없음 |
-| 409 | 이미 데이터가 적재되어 있음 |
+| 409 | 해당 alias_code가 이미 적재되어 있음 |
 | 502 | Yahoo Finance API 호출 실패 |
 
 > **참고**: 이 Edge Function은 `verify_jwt: true`로 배포하되, 함수 내부에서 관리자 권한을 추가 검증합니다. 데이터 적재 후에는 비활성화하거나 삭제해도 무방합니다.
@@ -873,7 +915,7 @@ stock_id: string;
 
 #### `GET /stock-blur-preview?session_id={session_id}&year={year}` - 블러 차트 데이터 조회
 
-블러 차트용 해당 연도 전체 가격 데이터를 조회합니다. 블러 차트를 해금한 경우에만 데이터를 반환합니다.
+블러 차트용 해당 연도의 **3개월 구간** 가격 데이터를 조회합니다. `blur_events` 테이블의 `preview_months`에 지정된 3개월 구간의 일별 종가만 반환하며, 블러 차트를 해금한 경우에만 데이터를 제공합니다.
 
 **Request**
 
@@ -892,11 +934,13 @@ year: number;                   // 블러 이벤트 연도 (2012, 2014, 2016, 20
 {
   year: number;
   is_unlocked: boolean;
-  preview_data: Array<{         // is_unlocked = true일 때만 데이터 포함
+  preview_months: number[];       // 미리보기 대상 월 (예: [3, 4, 5])
+  description: string;            // 이벤트 설명
+  preview_data: Array<{           // is_unlocked = true일 때만 데이터 포함
     stock_id: string;
     alias_code: string;
-    monthly_closes: Array<{     // 12개월 월말 종가
-      month: number;
+    daily_closes: Array<{         // 3개월 구간의 일별 종가
+      date: string;               // 'YYYY-MM-DD'
       close: number;
     }>;
   }> | null;
@@ -914,102 +958,29 @@ year: number;                   // 블러 이벤트 연도 (2012, 2014, 2016, 20
 
 ---
 
-### 3.6 실시간 스트리밍 제어
+### 3.6 주가 재생 (클라이언트 사이드)
 
-#### `POST /stock-stream-start` - 주가 스트리밍 시작
+> **설계 결정**: 주가 스트리밍은 Edge Function이 아닌 **클라이언트 사이드**에서 처리합니다.
+> Edge Function의 실행 시간 제한(60초)으로 인해 장시간 스트리밍이 불가능하며,
+> 클라이언트에서 연도 데이터를 한 번에 fetch한 후 `setInterval`로 재생하는 방식이
+> 서버 리소스를 최소화하고 속도 조절도 즉시 반영됩니다.
 
-해당 연도의 실시간 주가 스트리밍을 시작합니다. Supabase Realtime Broadcast로 데이터를 전송합니다.
+**재생 방식**
 
-**Request**
+1. `GET /stock-prices?year={year}` API로 해당 연도의 전 종목 일별 데이터를 한 번에 로드
+2. 클라이언트의 `useStockPlayback` 훅에서 `setInterval`로 1일씩 순차 재생
+3. 재생/일시정지/속도 변경은 클라이언트 상태로 즉시 제어 (서버 호출 없음)
+4. 현재 재생 위치(년/월/일)를 Zustand 스토어에서 관리
 
-```typescript
-// Headers
-Authorization: Bearer <access_token>
-Content-Type: application/json
+**재생 속도**
 
-// Body
-{
-  session_id: string;
-  start_month: number;          // 스트리밍 시작 월 (기본 2, 1월은 힌트 페이즈)
-}
-```
+| 배속 | 1일 데이터 표시 간격 | 1개월(~22거래일) 소요 시간 |
+|------|---------------------|--------------------------|
+| 1x | 1000ms | ~22초 |
+| 2x | 500ms | ~11초 |
+| 5x | 200ms | ~4.4초 |
 
-**Response (200 OK)**
-
-```typescript
-{
-  channel_name: string;         // Realtime 채널명 'game:{session_id}:ticker'
-  streaming_from: {
-    year: number;
-    month: number;
-  };
-  playback_speed: number;
-}
-```
-
-**스트리밍 방식**
-
-- Edge Function 내부에서 `stock_daily_prices` 데이터를 순차 조회
-- Supabase Realtime Broadcast로 `game:{session_id}:ticker` 채널에 전송
-- 1배속 기준: 1일 데이터를 1초 간격으로 전송 (1개월 = 약 22초)
-- 2배속: 0.5초 간격, 5배속: 0.2초 간격
-
----
-
-#### `POST /stock-stream-pause` - 주가 스트리밍 일시정지/재개
-
-**Request**
-
-```typescript
-// Headers
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-// Body
-{
-  session_id: string;
-  action: 'pause' | 'resume';
-}
-```
-
-**Response (200 OK)**
-
-```typescript
-{
-  is_streaming: boolean;
-  paused_at: {                  // pause 시
-    year: number;
-    month: number;
-    day: number;
-  } | null;
-}
-```
-
----
-
-#### `POST /stock-stream-speed` - 재생 속도 변경
-
-**Request**
-
-```typescript
-// Headers
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-// Body
-{
-  session_id: string;
-  speed: 1.0 | 2.0 | 5.0;
-}
-```
-
-**Response (200 OK)**
-
-```typescript
-{
-  playback_speed: number;
-}
-```
+**별도 API 불필요** - `stock-prices` API(3.5절)로 데이터를 조회하고, 재생 로직은 전적으로 클라이언트에서 처리합니다.
 
 ---
 
@@ -1313,63 +1284,13 @@ Authorization: Bearer <access_token>
 
 ### 3.10 Realtime 채널
 
-Supabase Realtime을 사용하여 WebSocket 기반 실시간 통신을 수행합니다.
+Supabase Realtime을 사용하여 게임 이벤트를 동기화합니다.
 
-#### `game:{session_id}:ticker` - 실시간 주가 데이터 스트리밍
-
-Edge Function에서 Broadcast로 전송하는 주가 데이터를 수신합니다.
-
-**수신 이벤트: `price-update`**
-
-```typescript
-{
-  event: 'price-update';
-  payload: {
-    date: string;               // 'YYYY-MM-DD'
-    year: number;
-    month: number;
-    day: number;
-    stocks: Array<{
-      stock_id: string;
-      alias_code: string;
-      open: number;
-      high: number;
-      low: number;
-      close: number;
-      volume: number;
-      change_rate: number;
-    }>;
-  };
-}
-```
-
-**수신 이벤트: `month-end`**
-
-```typescript
-{
-  event: 'month-end';
-  payload: {
-    year: number;
-    month: number;
-  };
-}
-```
-
-**수신 이벤트: `year-end`**
-
-```typescript
-{
-  event: 'year-end';
-  payload: {
-    year: number;
-    message: string;            // '2010년이 종료되었습니다. 결산을 진행합니다.'
-  };
-}
-```
+> **참고**: 주가 스트리밍은 클라이언트 사이드에서 처리하므로(3.6절), Realtime은 게임 이벤트 전달 용도로만 사용합니다.
 
 #### `game:{session_id}:events` - 게임 이벤트 채널
 
-게임 상태 변경, 거래 확인 등의 이벤트를 수신합니다.
+거래 확인, 결산 완료, 게임 종료 등의 서버 이벤트를 수신합니다.
 
 **수신 이벤트: `trade-confirmed`**
 
@@ -1443,7 +1364,7 @@ function useGameFunnel(sessionId: string) {
 
   // Realtime 이벤트에 따른 자동 전환
   useEffect(() => {
-    const channel = supabase.channel(`game:${sessionId}:ticker`);
+    const channel = supabase.channel(`game:${sessionId}:events`);
 
     channel.on('broadcast', { event: 'month-end' }, ({ payload }) => {
       if (payload.month === 1) setStep('trading');  // 1월 종료 → 트레이딩 시작
@@ -1472,7 +1393,7 @@ interface GameState {
   cashBalance: number;
   totalAsset: number;
   playbackSpeed: 1 | 2 | 5;
-  isStreaming: boolean;
+  isPlaying: boolean;
   portfolio: PortfolioHolding[];
   currentPrices: Record<string, StockPrice>;  // stock_id → 최신 가격
 }
@@ -1489,32 +1410,33 @@ interface GameActions {
 
 ### 4.2 익명 종목 시스템
 
-**핵심 기술**: DB `alias_code` 필드 + Edge Function 접근 제어
+**핵심 기술**: `stocks` / `stock_secrets` 테이블 분리 + Edge Function `service_role` 접근 제어
 
 **구현 방법**
 
-- `stocks` 테이블에서 `real_name`은 RLS로 직접 조회 불가하도록 제한
-- 모든 API 응답에서 `alias_code`와 `category`만 반환
-- 게임 완료(`status = 'completed'`) 시에만 `real_name`을 반환하는 전용 로직
+- `stocks` 테이블: 공개 정보만 저장 (`alias_code`, `category`) → 클라이언트에서 직접 조회 가능 (RLS: public read)
+- `stock_secrets` 테이블: 실명 정보 저장 (`real_name`, `ticker`) → RLS 정책 없음 (클라이언트 접근 불가)
+- 게임 중 모든 API 응답에서 `alias_code`와 `category`만 반환
+- 게임 완료(`status = 'completed'`) 시에만 Edge Function에서 `service_role`로 `stock_secrets` JOIN 후 `real_name` 반환
 
 ```sql
--- stocks 테이블에 대한 커스텀 보안 함수
-CREATE OR REPLACE FUNCTION get_stock_display(p_stock_id UUID, p_session_id UUID)
-RETURNS TABLE(alias_code VARCHAR, category VARCHAR, display_name VARCHAR) AS $$
+-- 게임 완료 시 종목 공개를 위한 보안 함수 (Edge Function에서 service_role로 호출)
+CREATE OR REPLACE FUNCTION reveal_stock_names(p_session_id UUID)
+RETURNS TABLE(alias_code VARCHAR, category VARCHAR, real_name VARCHAR) AS $$
 DECLARE
   v_status VARCHAR;
 BEGIN
   SELECT status INTO v_status FROM game_sessions WHERE id = p_session_id;
 
-  IF v_status = 'completed' THEN
-    RETURN QUERY
-      SELECT s.alias_code, s.category, s.real_name AS display_name
-      FROM stocks s WHERE s.id = p_stock_id;
-  ELSE
-    RETURN QUERY
-      SELECT s.alias_code, s.category, '???' AS display_name
-      FROM stocks s WHERE s.id = p_stock_id;
+  IF v_status != 'completed' THEN
+    RAISE EXCEPTION 'Game session is not completed';
   END IF;
+
+  RETURN QUERY
+    SELECT s.alias_code, s.category, ss.real_name
+    FROM stocks s
+    JOIN stock_secrets ss ON s.id = ss.stock_id
+    ORDER BY s.alias_code;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
@@ -1592,40 +1514,77 @@ function HintPhase({ sessionId, year }: HintPhaseProps) {
 }
 ```
 
-### 4.4 실시간 차트
+### 4.4 실시간 차트 (클라이언트 사이드 재생)
 
-**핵심 기술**: Lightweight Charts + Supabase Realtime Broadcast
+**핵심 기술**: Lightweight Charts + 클라이언트 `setInterval` 기반 재생
+
+> Edge Function은 60초 타임아웃 제한이 있으므로, 연도별 OHLCV 데이터를 한 번에 로드한 후 클라이언트에서 1일 1초 간격으로 순차 재생합니다.
 
 **구현 방법**
 
 ```typescript
-// hooks/useRealtimeChart.ts
-function useRealtimeChart(sessionId: string, stockId: string) {
+// hooks/useStockPlayback.ts
+function useStockPlayback(prices: StockDailyPrice[]) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState<1 | 2 | 5>(1);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const currentPrice = prices[currentIndex] ?? null;
+  const displayedPrices = prices.slice(0, currentIndex + 1);
+  const isCompleted = currentIndex >= prices.length - 1;
+
+  const play = useCallback(() => {
+    if (isCompleted) return;
+    setIsPlaying(true);
+  }, [isCompleted]);
+
+  const pause = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  const changeSpeed = useCallback((newSpeed: 1 | 2 | 5) => {
+    setSpeed(newSpeed);
+  }, []);
+
+  useEffect(() => {
+    if (!isPlaying) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex((prev) => {
+        if (prev >= prices.length - 1) {
+          setIsPlaying(false);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 1000 / speed);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPlaying, speed, prices.length]);
+
+  return { currentPrice, displayedPrices, currentIndex, isPlaying, speed, isCompleted, play, pause, changeSpeed };
+}
+```
+
+```typescript
+// components/StockChart/index.tsx
+// useStockPlayback의 displayedPrices를 Lightweight Charts에 연동
+function StockChart({ prices }: { prices: StockDailyPrice[] }) {
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Line'> | null>(null);
 
   useEffect(() => {
-    const channel = supabase.channel(`game:${sessionId}:ticker`);
+    if (!chartContainerRef.current) return;
 
-    channel.on('broadcast', { event: 'price-update' }, ({ payload }) => {
-      const stockPrice = payload.stocks.find(
-        (s: StockPrice) => s.stock_id === stockId
-      );
-      if (!stockPrice || !seriesRef.current) return;
-
-      seriesRef.current.update({
-        time: payload.date,
-        value: stockPrice.close,
-      });
-    });
-
-    channel.subscribe();
-    return () => { channel.unsubscribe(); };
-  }, [sessionId, stockId]);
-
-  const initChart = useCallback((container: HTMLDivElement) => {
-    chartRef.current = createChart(container, {
-      width: container.clientWidth,
+    chartRef.current = createChart(chartContainerRef.current, {
+      width: chartContainerRef.current.clientWidth,
       height: 400,
       layout: { background: { color: '#1a1a2e' }, textColor: '#e0e0e0' },
       grid: { vertLines: { color: '#2a2a3e' }, horzLines: { color: '#2a2a3e' } },
@@ -1637,27 +1596,61 @@ function useRealtimeChart(sessionId: string, stockId: string) {
       color: '#00d4aa',
       lineWidth: 2,
     });
+
+    return () => { chartRef.current?.remove(); };
   }, []);
 
-  return { initChart, chartRef };
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    seriesRef.current.setData(
+      prices.map((p) => ({ time: p.date, value: p.close }))
+    );
+  }, [prices]);
+
+  return <div ref={chartContainerRef} />;
 }
 ```
 
-**스트리밍 속도 제어**
+**재생 속도 제어**
 
-Edge Function에서 `setInterval` 기반으로 속도를 제어합니다:
+클라이언트 `setInterval` 기반으로 속도를 제어합니다:
 
-| 배속 | 1일 데이터 전송 간격 | 1개월(~22거래일) 소요 시간 |
-|------|---------------------|--------------------------|
+| 배속 | 1일 데이터 간격 | 1개월(~22거래일) 소요 시간 |
+|------|---------------|--------------------------|
 | 1x | 1000ms | ~22초 |
 | 2x | 500ms | ~11초 |
 | 5x | 200ms | ~4.4초 |
 
 ### 4.5 블러 차트 미리보기
 
-**핵심 기술**: Lightweight Charts AreaSeries + CSS `filter: blur()`
+**핵심 기술**: Lightweight Charts AreaSeries + CSS `filter: blur()` + `blur_events` 테이블
+
+> README 기준 "3개월 기간의 흐름"을 미리보기로 제공합니다. `blur_events` 테이블의 `preview_months`에 미리보기 대상 월(3개)을 지정합니다.
 
 **구현 방법**
+
+```typescript
+// hooks/useBlurChart.ts
+function useBlurChart(sessionId: string, stockId: string, year: number) {
+  return useQuery({
+    queryKey: QUERY_KEY.blurChart(sessionId, stockId, year),
+    queryFn: () =>
+      supabase.functions.invoke('stock-blur-preview', {
+        body: { session_id: sessionId, stock_id: stockId, year },
+      }),
+    select: (res) => res.data as BlurChartData,
+  });
+}
+
+interface BlurChartData {
+  stock_id: string;
+  alias_code: string;
+  year: number;
+  preview_months: number[];  // e.g. [1, 2, 3]
+  daily_closes: Array<{ date: string; close: number }>;
+  is_unlocked: boolean;
+}
+```
 
 ```typescript
 // components/BlurChart/index.tsx
@@ -1685,8 +1678,9 @@ function BlurChart({ data, isUnlocked }: BlurChartProps) {
       lineWidth: 2,
     });
 
+    // 3개월 일별 종가 데이터
     areaSeries.setData(
-      data.map((d) => ({ time: `${d.year}-${String(d.month).padStart(2, '0')}-01`, value: d.close }))
+      data.daily_closes.map((d) => ({ time: d.date, value: d.close }))
     );
 
     return () => chart.remove();
@@ -1967,8 +1961,8 @@ apps/web/src/
 │
 ├── hooks/
 │   ├── useGameFunnel.ts             # 게임 Funnel 관리
-│   ├── useRealtimeChart.ts          # 실시간 차트 데이터 구독
-│   ├── useRealtimeEvents.ts         # 게임 이벤트 구독
+│   ├── useStockPlayback.ts           # 클라이언트 사이드 주가 재생
+│   ├── useRealtimeEvents.ts         # 게임 이벤트 구독 (Supabase Realtime)
 │   ├── useTrade.ts                  # 매수/매도 mutation
 │   ├── useGameSession.ts            # 게임 세션 CRUD
 │   ├── useRankings.ts               # 랭킹 무한스크롤
@@ -2013,7 +2007,7 @@ apps/web/src/
 **작업 내용**
 
 - Supabase 프로젝트 생성 및 Auth 설정 (Google, Kakao OAuth)
-- DB 스키마 마이그레이션 적용 (`stocks`, `stock_daily_prices`, `game_sessions`, `portfolio_holdings`, `trade_history`, `yearly_settlements`, `quizzes`, `hints`, `user_hint_unlocks`, `user_quiz_answers`, `rankings`, `user_profiles`)
+- DB 스키마 마이그레이션 적용 (`stocks`, `stock_secrets`, `stock_daily_prices`, `game_sessions`, `portfolio_holdings`, `trade_history`, `yearly_settlements`, `quizzes`, `hints`, `blur_events`, `user_hint_unlocks`, `user_quiz_answers`, `rankings`, `user_profiles`)
 - RLS 정책 전체 적용
 - `supabaseClient.ts` 설정
 - Zustand 게임 스토어 (`gameStore.ts`, `uiStore.ts`) 설계 및 구현
@@ -2044,20 +2038,20 @@ apps/web/src/
 - 10개 종목 데이터 적재 완료
 - 데이터 품질 검증 (SQL 쿼리로 확인)
 
-#### Day 5-7: Lightweight Charts 통합 + 실시간 렌더링
+#### Day 5-7: Lightweight Charts 통합 + 클라이언트 재생
 
 **작업 내용**
 
 - Lightweight Charts 설치 및 `StockChart` 컴포넌트 구현
 - 목업 데이터로 1개 종목 라인 차트 렌더링
-- `useRealtimeChart` 훅 구현 (Supabase Realtime 구독)
+- `useStockPlayback` 훅 구현 (클라이언트 `setInterval` 기반 1일 1초 재생)
 - `PlaybackControls` 컴포넌트 (재생/일시정지/1x/2x/5x)
-- `stock-stream-start` Edge Function 초안 (1개 종목 스트리밍)
-- 1초 간격 데이터 전송 + 차트 실시간 업데이트 검증
+- `stock-prices` Edge Function 구현 (연도별 OHLCV 데이터 일괄 조회)
+- 1초 간격 차트 순차 업데이트 검증
 
 **산출물**
 
-- 1개 종목 실시간 차트 동작
+- 1개 종목 클라이언트 재생 차트 동작
 - 재생 속도 제어 기능
 
 ---
@@ -2087,7 +2081,7 @@ apps/web/src/
 - `useGameFunnel` 훅 (HintPhase → TradingPhase → SettlementPhase)
 - `SettlementPage` 구현 (결산 결과 표시, 연도별 수익률)
 - `YearTimeline` 컴포넌트 (2010-2024 타임라인 진행 상황)
-- `stock-stream-pause`, `stock-stream-speed` Edge Function 구현
+- `stock-history` Edge Function 구현 (특정 종목 연도별 데이터 조회)
 - `month-end`, `year-end` Realtime 이벤트 처리
 
 **산출물**
@@ -2172,7 +2166,7 @@ apps/web/src/
 
 - `StockList` 컴포넌트 (10개 종목 탭 전환)
 - 종목 탭 클릭 시 차트 데이터 전환
-- 10개 종목 동시 스트리밍 처리 (Edge Function 수정)
+- 10개 종목 클라이언트 재생 처리 (`useStockPlayback` 확장)
 - 종목별 현재가 + 등락률 실시간 표시
 - 종목 비교 기능 (최대 3개 차트 동시 표시)
 - `stock-prices`, `stock-history` Edge Function 구현
