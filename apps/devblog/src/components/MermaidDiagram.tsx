@@ -26,7 +26,8 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
       if (containerRef.current && chart) {
         try {
           const uniqueId = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-          const { svg } = await mermaid.render(uniqueId, chart);
+          const cleanChart = chart.replace(/%%\{init:.*?\}%%\n?/g, '');
+          const { svg } = await mermaid.render(uniqueId, cleanChart);
           containerRef.current.innerHTML = svg;
         } catch (error) {
           console.error('Mermaid rendering error:', error);
