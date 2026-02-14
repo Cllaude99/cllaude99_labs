@@ -1,8 +1,4 @@
 {
-  "commitMessage": {
-    "language": "ko",
-    "instruction": "커밋 메시지를 한국어로 작성해주세요. Conventional Commits 형식을 따르되, 설명은 한국어로 작성합니다."
-  },
   "mcpServers": {
     "Talk_to_Figma_MCP": {
       "command": "bunx",
