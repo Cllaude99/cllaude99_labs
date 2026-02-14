@@ -2,29 +2,26 @@
 
 import { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
+import { useTheme } from 'next-themes';
 
 interface MermaidDiagramProps {
   chart: string;
 }
 
-let mermaidInitialized = false;
-
 export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    if (!mermaidInitialized) {
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: 'default',
-        securityLevel: 'loose',
-        fontFamily: 'inherit',
-      });
-      mermaidInitialized = true;
-    }
-  }, []);
+    const mermaidTheme = resolvedTheme === 'dark' ? 'dark' : 'default';
 
-  useEffect(() => {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: mermaidTheme,
+      securityLevel: 'loose',
+      fontFamily: 'inherit',
+    });
+
     const renderDiagram = async () => {
       if (containerRef.current && chart) {
         try {
@@ -41,7 +38,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     };
 
     renderDiagram();
-  }, [chart]);
+  }, [chart, resolvedTheme]);
 
   return (
     <div
