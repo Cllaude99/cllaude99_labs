@@ -22,7 +22,6 @@ CDN은 이러한 물리적 거리로 인한 지연을 해결합니다.
 뉴욕 사용자는 뉴욕 근처의 엣지 서버에서, 서울 사용자는 서울의 엣지 서버에서 콘텐츠를 받아볼 수 있게 되는 것입니다.
 
 ```mermaid
-%%{init: {'theme':'dark'}}%%
 graph TB
     subgraph Origin["원본 서버 (서울)"]
         OS[("🖥️ Origin Server<br/>웹 애플리케이션")]
@@ -66,7 +65,6 @@ CDN의 동작 원리를 이해하기 위해서는 캐싱이라는 개념을 먼�
 이후 같은 지역의 다른 사용자가 동일한 콘텐츠를 요청하면, 원본 서버까지 갈 필요 없이 엣지 서버에 저장된 캐시에서 바로 응답할 수 있습니다.
 
 ```mermaid
-%%{init: {'theme':'dark'}}%%
 sequenceDiagram
     participant User1 as 사용자 A
     participant User2 as 사용자 B
@@ -151,7 +149,6 @@ AWS S3와 CloudFront를 조합해서 사용하는 것도 대표적인 패턴입�
 S3에 정적 파일을 업로드하고, CloudFront를 통해 전 세계에 배포하는 방식입니다.
 
 ```mermaid
-%%{init: {'theme':'dark'}}%%
 graph LR
     subgraph Build["빌드 프로세스"]
         Code["소스 코드"] --> Bundle["번들 파일<br/>(JS, CSS)"]

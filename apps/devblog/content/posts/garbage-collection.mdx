@@ -284,7 +284,6 @@ Mark-and-Sweep은 현대 JavaScript 엔진이 사용하는 가비지 컬렉션 �
 **1. Mark 단계: 루트부터 도달 가능한 객체 표시**
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'fontSize':'14px'}}}%%
 graph TB
     Root1["Root<br/>window/global"] --> A1["객체 A<br/>표시됨"]
     Root1 --> B1["객체 B<br/>표시됨"]
@@ -305,7 +304,6 @@ graph TB
 **2. Sweep 단계: 표시되지 않은 객체 제거**
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'fontSize':'14px'}}}%%
 graph TB
     Root2["Root<br/>window/global"] --> A2["객체 A<br/>유지"]
     Root2 --> B2["객체 B<br/>유지"]
