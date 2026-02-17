@@ -20,7 +20,7 @@ const Description = styled.p<InputDescriptionStyleProps>`
       case 'error':
         return `color: ${theme.palette.red500};`;
       case 'success':
-        return `color: ${theme.palette.green600};`;
+        return `color: ${theme.palette.blue600};`;
       default:
         return `color: ${theme.palette.grey500};`;
     }
