@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Lock, Delete, X, Check } from 'lucide-react';
 
 const PIN_LENGTH = 4;
+const DUMMY_PRESS_COUNT = 2;
+const DUMMY_PRESS_DURATION_MS = 150;
+const NUMBER_KEYS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 type VerifyStatus = 'idle' | 'verifying' | 'success' | 'error';
 
@@ -13,6 +16,12 @@ interface PasswordModalProps {
   onVerify: (password: string) => Promise<boolean>;
 }
 
+function getRandomDummyKeys(pressedKey: string, count: number): string[] {
+  const candidates = NUMBER_KEYS.filter((k) => k !== pressedKey);
+  const shuffled = candidates.sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
 export function PasswordModal({
   isOpen,
   onClose,
@@ -20,15 +29,36 @@ export function PasswordModal({
 }: PasswordModalProps) {
   const [pin, setPin] = useState<string[]>([]);
   const [status, setStatus] = useState<VerifyStatus>('idle');
+  const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
+  const dummyTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const clearPressedKeys = useCallback(() => {
+    if (dummyTimerRef.current) clearTimeout(dummyTimerRef.current);
+    dummyTimerRef.current = setTimeout(() => {
+      setPressedKeys(new Set());
+    }, DUMMY_PRESS_DURATION_MS);
+  }, []);
+
+  const triggerDummyPress = useCallback(
+    (realKey: string) => {
+      const dummyKeys = getRandomDummyKeys(realKey, DUMMY_PRESS_COUNT);
+      setPressedKeys(new Set([realKey, ...dummyKeys]));
+      clearPressedKeys();
+    },
+    [clearPressedKeys],
+  );
 
   const resetPin = useCallback(() => {
     setPin([]);
     setStatus('idle');
+    setPressedKeys(new Set());
   }, []);
 
   const handleNumberInput = useCallback(
     (num: string) => {
       if (status !== 'idle' || pin.length >= PIN_LENGTH) return;
+
+      triggerDummyPress(num);
 
       const newPin = [...pin, num];
       setPin(newPin);
@@ -47,7 +77,7 @@ export function PasswordModal({
         });
       }
     },
-    [pin, status, onVerify, resetPin],
+    [pin, status, onVerify, resetPin, triggerDummyPress],
   );
 
   const handleDelete = useCallback(() => {
@@ -86,6 +116,12 @@ export function PasswordModal({
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, handleKeyDown, resetPin]);
+
+  useEffect(() => {
+    return () => {
+      if (dummyTimerRef.current) clearTimeout(dummyTimerRef.current);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -170,11 +206,17 @@ export function PasswordModal({
               );
             }
 
+            const isPressed = pressedKeys.has(key);
+
             return (
               <button
                 key={index}
                 onClick={() => handleNumberInput(key)}
-                className="flex items-center justify-center h-14 rounded-xl text-xl font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all"
+                className={`flex items-center justify-center h-14 rounded-xl text-xl font-medium transition-all duration-100 ${
+                  isPressed
+                    ? 'bg-gray-300 dark:bg-gray-600 scale-95 text-gray-900 dark:text-gray-100'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95'
+                }`}
               >
                 {key}
               </button>
