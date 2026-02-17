@@ -5,6 +5,7 @@ import { MarkdownContent } from '@/components/MarkdownContent';
 import { Header } from '@/components/Header';
 import { Comments } from '@/components/Comments';
 import { TableOfContents } from '@/components/TableOfContents';
+import { PrivatePostGuard } from '@/components/PrivatePostGuard';
 
 interface PostPageProps {
   params: Promise<{
@@ -42,10 +43,8 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
-  return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-[#171717]">
-      <Header posts={allPosts} variant="centered" />
-
+  const postContent = (
+    <>
       <div className="flex-1 w-full">
         <div className="max-w-[1400px] mx-auto px-4 py-8 flex gap-8 justify-center">
           {/* 왼쪽 여백 (목차와 대칭) */}
@@ -102,6 +101,18 @@ export default async function PostPage({ params }: PostPageProps) {
           <p>© 2025 Cllaude99</p>
         </div>
       </footer>
+    </>
+  );
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white dark:bg-[#171717]">
+      <Header posts={allPosts} variant="centered" />
+
+      {post.isPrivate ? (
+        <PrivatePostGuard slug={slug}>{postContent}</PrivatePostGuard>
+      ) : (
+        postContent
+      )}
     </div>
   );
 }
