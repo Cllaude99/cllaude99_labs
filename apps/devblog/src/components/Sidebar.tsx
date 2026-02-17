@@ -3,12 +3,20 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Code2, Monitor, FileText, LucideIcon } from 'lucide-react';
+import {
+  BookOpen,
+  Code2,
+  Monitor,
+  FileText,
+  Lock,
+  LucideIcon,
+} from 'lucide-react';
 
 interface Post {
   slug: string;
   title: string;
   category?: string;
+  isPrivate?: boolean;
 }
 
 interface SidebarProps {
@@ -124,7 +132,12 @@ export function Sidebar({ posts }: SidebarProps) {
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                     }`}
                   >
-                    {post.title}
+                    <span className="flex items-center gap-1.5">
+                      {post.isPrivate && (
+                        <Lock className="w-3 h-3 flex-shrink-0" />
+                      )}
+                      {post.title}
+                    </span>
                   </Link>
                 </li>
               );

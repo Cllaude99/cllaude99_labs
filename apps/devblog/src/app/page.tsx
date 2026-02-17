@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { Lock } from 'lucide-react';
 import { getAllPosts } from '@/lib/posts';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -29,7 +30,10 @@ export default function HomePage() {
                   <Link href={`/post/${post.slug}`} key={post.slug}>
                     <article className="group rounded-lg px-4 py-5 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <div className="flex items-baseline justify-between gap-4">
-                        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex-1 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors truncate">
+                        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex-1 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors truncate flex items-center gap-2">
+                          {post.isPrivate && (
+                            <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          )}
                           {post.title}
                         </h2>
                         <div className="hidden md:flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500 flex-shrink-0">
