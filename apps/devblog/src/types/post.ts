@@ -8,6 +8,7 @@ export interface Post {
   category?: string;
   author?: string;
   content: string;
+  isPrivate?: boolean;
   readingTime: {
     text: string;
     minutes: number;
@@ -24,4 +25,5 @@ export interface PostFrontMatter {
   tags?: string[];
   category?: string;
   author?: string;
+  isPrivate?: boolean;
 }

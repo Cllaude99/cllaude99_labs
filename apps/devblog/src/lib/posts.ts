@@ -30,6 +30,7 @@ export function getAllPosts(): Post[] {
         category: frontMatter.category,
         author: frontMatter.author || 'Default Author',
         content,
+        isPrivate: frontMatter.isPrivate || false,
         readingTime: readingTime(content),
       };
     })
@@ -49,4 +50,14 @@ export function getPostBySlug(slug: string): Post | null {
 export function getAllSlugs(): string[] {
   const posts = getAllPosts();
   return posts.map((post) => post.slug);
+}
+
+export function verifyPostPassword(password: string): boolean {
+  const correctPassword = process.env.PRIVATE_POST_PASSWORD;
+
+  if (!correctPassword) {
+    return false;
+  }
+
+  return correctPassword === password;
 }
