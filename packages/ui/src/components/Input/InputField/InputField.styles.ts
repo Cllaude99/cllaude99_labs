@@ -92,20 +92,20 @@ const Wrapper = styled.div<InputFieldStyleProps>`
       case 'success':
         return isFileInput
           ? `
-            border-color: ${theme.palette.green500};
+            border-color: ${theme.palette.blue500};
             background-color: ${theme.palette.white};
 
             &:hover {
-              border-color: ${theme.palette.green600};
+              border-color: ${theme.palette.blue600};
             }
           `
           : `
-            border-color: ${theme.palette.green500};
+            border-color: ${theme.palette.blue500};
             background-color: ${theme.palette.white};
 
             &:focus-within {
-              border-color: ${theme.palette.green500};
-              box-shadow: 0 0 0 3px ${theme.palette.green50};
+              border-color: ${theme.palette.blue500};
+              box-shadow: 0 0 0 3px ${theme.palette.blue50};
             }
           `;
       default:
