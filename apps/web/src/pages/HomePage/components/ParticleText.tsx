@@ -439,6 +439,11 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
             'https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap';
           link.rel = 'stylesheet';
           document.head.appendChild(link);
+          // 스타일시트 로딩 완료 대기
+          await new Promise<void>((resolve) => {
+            link.onload = () => resolve();
+            link.onerror = () => resolve();
+          });
         }
         await document.fonts.load(`${FONT_WEIGHT} 48px ${FONT_FAMILY}`);
         await document.fonts.ready;
