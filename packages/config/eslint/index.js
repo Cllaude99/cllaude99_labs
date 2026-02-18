@@ -23,6 +23,13 @@ module.exports = {
     react: {
       version: 'detect',
     },
+    'jsx-a11y': {
+      components: {
+        Button: 'button',
+        InputField: 'input',
+        InputLabel: 'label',
+      },
+    },
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
