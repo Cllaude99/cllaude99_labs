@@ -159,6 +159,8 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
   const mouseRef = useRef({ x: 0, y: 0, isDown: false, isInside: false });
   const entranceProgressRef = useRef(0);
   const breakpointRef = useRef<'desktop' | 'tablet' | 'mobile' | null>(null);
+  const ghostGeometryRef = useRef<THREE.BufferGeometry | null>(null);
+  const ghostMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
   const [webglSupported, setWebglSupported] = useState(true);
 
   const initScene = useCallback((skipEntrance = false) => {
@@ -172,6 +174,8 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
     if (geometryRef.current) geometryRef.current.dispose();
     if (materialRef.current) materialRef.current.dispose();
     if (textureRef.current) textureRef.current.dispose();
+    if (ghostGeometryRef.current) ghostGeometryRef.current.dispose();
+    if (ghostMaterialRef.current) ghostMaterialRef.current.dispose();
     if (rendererRef.current) {
       rendererRef.current.dispose();
       const oldCanvas = container.querySelector('canvas');
@@ -284,6 +288,64 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
     const points = new THREE.Points(geometry, material);
     scene.add(points);
 
+    // Ghost particles (원래 위치에 고정, 마우스 근처에서만 희미하게 보임)
+    const ghostGeometry = new THREE.BufferGeometry();
+    const ghostPositions = new Float32Array(particleData.count * 3);
+    for (let i = 0; i < particleData.count; i++) {
+      ghostPositions[i * 3] = particleData.originalX[i];
+      ghostPositions[i * 3 + 1] = particleData.originalY[i];
+      ghostPositions[i * 3 + 2] = 0;
+    }
+    ghostGeometry.setAttribute('position', new THREE.BufferAttribute(ghostPositions, 3));
+    ghostGeometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+    ghostGeometry.setAttribute('size', new THREE.BufferAttribute(particleData.sizes.slice(), 1));
+    ghostGeometryRef.current = ghostGeometry;
+
+    const ghostMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        color: { value: new THREE.Color(textColor) },
+        pointTexture: { value: texture },
+        uMouse: { value: new THREE.Vector2(-9999, -9999) },
+        uMouseActive: { value: 0.0 },
+        uRadius: { value: MOUSE_AREA },
+      },
+      vertexShader: `
+        uniform vec2 uMouse;
+        uniform float uMouseActive;
+        uniform float uRadius;
+        attribute float size;
+        varying vec3 vColor;
+        varying float vAlpha;
+        void main() {
+          vColor = color;
+          float dist = distance(position.xy, uMouse);
+          float fade = 1.0 - smoothstep(0.0, uRadius, dist);
+          vAlpha = fade * uMouseActive;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color;
+        uniform sampler2D pointTexture;
+        varying vec3 vColor;
+        varying float vAlpha;
+        void main() {
+          if (vAlpha < 0.01) discard;
+          vec4 texColor = texture2D(pointTexture, gl_PointCoord);
+          gl_FragColor = vec4(color * vColor * vAlpha * 0.25, 1.0) * texColor;
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      depthTest: false,
+      transparent: true,
+      vertexColors: true,
+    });
+    ghostMaterialRef.current = ghostMaterial;
+    scene.add(new THREE.Points(ghostGeometry, ghostMaterial));
+    const ghostMat = ghostMaterial;
+
     // Animation loop
     const animate = () => {
       animFrameRef.current = requestAnimationFrame(animate);
@@ -353,6 +415,12 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
       posAttr.needsUpdate = true;
       sizeAttr.needsUpdate = true;
 
+      // Ghost 파티클 업데이트
+      ghostMat.uniforms.uMouse.value.set(mouse.x, mouse.y);
+      const ghostTarget = mouse.isInside && entranceEase >= 0.7 ? 1.0 : 0.0;
+      ghostMat.uniforms.uMouseActive.value +=
+        (ghostTarget - ghostMat.uniforms.uMouseActive.value) * 0.08;
+
       renderer.render(scene, camera);
     };
 
@@ -414,6 +482,8 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
       if (geometryRef.current) geometryRef.current.dispose();
       if (materialRef.current) materialRef.current.dispose();
       if (textureRef.current) textureRef.current.dispose();
+      if (ghostGeometryRef.current) ghostGeometryRef.current.dispose();
+      if (ghostMaterialRef.current) ghostMaterialRef.current.dispose();
       if (rendererRef.current) {
         rendererRef.current.dispose();
       }
@@ -433,17 +503,10 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
       };
     };
 
-    const setMouseCSS = (clientX: number, clientY: number) => {
-      const rect = container.getBoundingClientRect();
-      container.style.setProperty('--mouse-x', `${clientX - rect.left}px`);
-      container.style.setProperty('--mouse-y', `${clientY - rect.top}px`);
-    };
-
     const onMouseMove = (e: MouseEvent) => {
       const coords = toThreeCoords(e.clientX, e.clientY);
       mouseRef.current.x = coords.x;
       mouseRef.current.y = coords.y;
-      setMouseCSS(e.clientX, e.clientY);
     };
 
     const onMouseDown = () => {
@@ -456,13 +519,11 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
 
     const onMouseEnter = () => {
       mouseRef.current.isInside = true;
-      container.style.setProperty('--base-text-opacity', '1');
     };
 
     const onMouseLeave = () => {
       mouseRef.current.isInside = false;
       mouseRef.current.isDown = false;
-      container.style.setProperty('--base-text-opacity', '0');
     };
 
     const onTouchStart = (e: TouchEvent) => {
@@ -472,8 +533,6 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
         mouseRef.current.y = coords.y;
         mouseRef.current.isDown = true;
         mouseRef.current.isInside = true;
-        setMouseCSS(e.touches[0].clientX, e.touches[0].clientY);
-        container.style.setProperty('--base-text-opacity', '1');
       }
     };
 
@@ -482,14 +541,12 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
         const coords = toThreeCoords(e.touches[0].clientX, e.touches[0].clientY);
         mouseRef.current.x = coords.x;
         mouseRef.current.y = coords.y;
-        setMouseCSS(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
 
     const onTouchEnd = () => {
       mouseRef.current.isDown = false;
       mouseRef.current.isInside = false;
-      container.style.setProperty('--base-text-opacity', '0');
     };
 
     container.addEventListener('mousemove', onMouseMove);
@@ -525,11 +582,6 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
 
   return (
     <S.Container ref={containerRef}>
-      <S.BaseText>
-        {lines.map((line, i) => (
-          <span key={i}>{line}</span>
-        ))}
-      </S.BaseText>
       <S.ScreenReaderOnly>{lines.join(' ')}</S.ScreenReaderOnly>
       <S.GuideWrapper>
         <S.MouseIcon />

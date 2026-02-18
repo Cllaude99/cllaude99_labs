@@ -135,48 +135,9 @@ const MouseIcon = styled.div`
   }
 `;
 
-const BaseText = styled.div`
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Black Han Sans', sans-serif;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 22px;
-  line-height: 1.4;
-  pointer-events: none;
-  user-select: none;
-  opacity: var(--base-text-opacity, 0);
-  transition: opacity 0.4s ease;
-  -webkit-mask-image: radial-gradient(
-    circle 150px at var(--mouse-x, -9999px) var(--mouse-y, -9999px),
-    black 0%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    circle 150px at var(--mouse-x, -9999px) var(--mouse-y, -9999px),
-    black 0%,
-    transparent 100%
-  );
-
-  ${mq.tablet} {
-    font-size: 38px;
-    line-height: 1.35;
-  }
-
-  ${mq.desktop} {
-    font-size: 55px;
-    line-height: 1.3;
-  }
-`;
-
 export {
   Container,
   ScreenReaderOnly,
-  BaseText,
   FallbackWrapper,
   FallbackTitle,
   FallbackSubtitle,
