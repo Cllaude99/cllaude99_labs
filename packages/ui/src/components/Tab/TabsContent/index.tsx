@@ -14,7 +14,7 @@ const TabsContent = ({ value, children }: TabsContentProps) => {
     return null;
   }
 
-  return <S.Container role="tab_content">{children}</S.Container>;
+  return <S.Container role="tabpanel">{children}</S.Container>;
 };
 
 export default TabsContent;

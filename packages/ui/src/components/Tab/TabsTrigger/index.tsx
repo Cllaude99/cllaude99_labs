@@ -14,7 +14,7 @@ const TabsTrigger = ({ value, children, ...rest }: TabsTriggerProps) => {
   return (
     <S.Button
       type="button"
-      role="tab_button"
+      role="tab"
       aria-selected={isActive}
       isActive={isActive}
       onClick={() => setValue(value)}
