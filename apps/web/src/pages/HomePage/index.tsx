@@ -7,8 +7,11 @@ import Dock from '@/components/Dock';
 import Layout from '@/components/Layout';
 import { PROJECTS } from '@/constants';
 
+import ParticleText from './components/ParticleText';
 import PlanetScene from './components/PlanetScene';
 import * as S from './HomePage.styles';
+
+const PARTICLE_TEXT_LINES = ['Cllaude99_Labs', '관심있는 것을 실험해보는 공간'];
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -23,12 +26,11 @@ const HomePage = () => {
       <S.Background />
       <S.Content>
         <S.Header
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
-          <S.Title>Cllaude99_Labs</S.Title>
-          <S.Subtitle>관심있는 것을 실험해보는 공간</S.Subtitle>
+          <ParticleText lines={PARTICLE_TEXT_LINES} textColor="#ffffff" />
         </S.Header>
 
         {/* 3D 행성 시스템 */}

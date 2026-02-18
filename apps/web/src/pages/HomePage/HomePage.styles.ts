@@ -6,6 +6,7 @@ import { palette } from '@cllaude99/ui/design-system/palette';
 import { typography } from '@cllaude99/ui/design-system/typography';
 
 const PlanetSystemZIndex = 1;
+const HeaderZIndex = 5;
 const ProjectInfoZIndex = 10;
 const ProjectInfoMaxWidth = `550px;`;
 
@@ -56,23 +57,16 @@ const Content = styled.div`
 `;
 
 const Header = styled(motion.div)`
-  position: absolute;
-  top: 30px;
-  inset-inline: 0;
+  position: fixed;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-
-  ${mq.tablet} {
-    top: 40px;
-    gap: 10px;
-  }
-
-  ${mq.desktop} {
-    top: 60px;
-    gap: 16px;
-  }
+  z-index: ${HeaderZIndex};
+  pointer-events: none;
 `;
 
 const Title = styled.h1`
