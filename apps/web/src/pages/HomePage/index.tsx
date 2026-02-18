@@ -11,7 +11,7 @@ import ParticleText from './components/ParticleText';
 import PlanetScene from './components/PlanetScene';
 import * as S from './HomePage.styles';
 
-const PARTICLE_TEXT_LINES = ['Cllaude99_Labs', '관심있는 것을 실험해보는 공간'];
+const PARTICLE_TEXT_LINES = ['Cllaude99_Labs'];
 
 const HomePage = () => {
   const navigate = useNavigate();
