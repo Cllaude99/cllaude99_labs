@@ -3,6 +3,11 @@ const PATH = {
   ROOT: '/',
   TRADERS: '/traders',
   SKETCH: '/sketch',
+  A11Y: '/a11y',
+  A11Y_SEMANTIC: '/a11y/semantic',
+  A11Y_ARIA_ROLE: '/a11y/aria-role',
+  A11Y_KEYBOARD: '/a11y/keyboard',
+  A11Y_ARIA_HIDDEN: '/a11y/aria-hidden',
 } as const;
 
 /* 사이드 프로젝트 메타 데이터 */
