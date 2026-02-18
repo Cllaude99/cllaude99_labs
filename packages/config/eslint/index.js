@@ -8,9 +8,10 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
+    'plugin:jsx-a11y/recommended',
     'prettier',
   ],
-  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'import'],
+  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'import', 'jsx-a11y'],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
@@ -27,6 +28,13 @@ module.exports = {
     'react/react-in-jsx-scope': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
+
+    // jsx-a11y: recommended 기본값(error)을 warn으로 완화 (점진적 도입)
+    'jsx-a11y/click-events-have-key-events': 'warn',
+    'jsx-a11y/no-static-element-interactions': 'warn',
+    'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+    // jsx-a11y: recommended에 미포함, 수동 활성화
+    'jsx-a11y/control-has-associated-label': 'warn',
 
     // Import 정렬 규칙
     'import/order': [
