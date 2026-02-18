@@ -1,8 +1,8 @@
 import { PATH } from '@/constants';
 
 import * as S from './SemanticPage.styles';
-import * as Shared from '../shared/A11yShared.styles';
-import ScreenReaderSimulator from '../shared/ScreenReaderSimulator';
+import * as Shared from '../components/A11yShared.styles';
+import ScreenReaderSimulator from '../components/ScreenReaderSimulator';
 
 const BAD_SR_LINES = [
   'generic',

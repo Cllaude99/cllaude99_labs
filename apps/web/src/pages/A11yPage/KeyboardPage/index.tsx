@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { PATH } from '@/constants';
 
 import * as S from './KeyboardPage.styles';
-import * as Shared from '../shared/A11yShared.styles';
+import * as Shared from '../components/A11yShared.styles';
 
 const CHALLENGE_BUTTONS = ['좋아요', '댓글', '공유하기', '저장', '신고'];
 const TARGET_BUTTON = '공유하기';

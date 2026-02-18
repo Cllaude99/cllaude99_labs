@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { PATH } from '@/constants';
 
 import * as S from './AriaHiddenPage.styles';
-import * as Shared from '../shared/A11yShared.styles';
+import * as Shared from '../components/A11yShared.styles';
 
 const StarIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">

@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { PATH } from '@/constants';
 
 import * as S from './AriaRolePage.styles';
-import * as Shared from '../shared/A11yShared.styles';
+import * as Shared from '../components/A11yShared.styles';
 
 const TAB_ITEMS = ['프로필', '설정', '알림'];
 const TAB_CONTENTS = [
