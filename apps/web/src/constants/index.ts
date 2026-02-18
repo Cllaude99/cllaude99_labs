@@ -26,6 +26,14 @@ const PROJECTS = [
     path: PATH.TRADERS,
     techStack: ['React', 'Supabase', 'Lightweight Charts', 'WebSocket'],
   },
+  {
+    id: 2,
+    title: 'A11y 체험',
+    description:
+      '시맨틱 태그, ARIA, 키보드 내비게이션의 차이를 직접 체험해보는 접근성 데모',
+    path: PATH.A11Y,
+    techStack: ['Semantic HTML', 'ARIA', 'Keyboard A11y', 'Web Speech API'],
+  },
 ];
 
 export { PATH, PROJECTS };
