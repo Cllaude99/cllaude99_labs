@@ -19,7 +19,7 @@ interface ParticleData {
   count: number;
 }
 
-const FONT_FAMILY = "'Jua', sans-serif";
+const FONT_FAMILY = "'Black Han Sans', sans-serif";
 const FONT_WEIGHT = 400;
 const PARTICLE_TEXTURE_SIZE = 64;
 const MOUSE_AREA = 250;
@@ -305,7 +305,7 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
       const mouse = mouseRef.current;
       const mouseArea = MOUSE_AREA;
       const isDown = mouse.isDown;
-      const forceMultiplier = isDown ? 8 : 3;
+      const forceMultiplier = isDown ? 6 : 3;
       const ease = isDown ? 0.01 : 0.05;
 
       for (let i = 0; i < data.count; i++) {
@@ -326,8 +326,9 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
           if (dist < mouseArea) {
             const force = (1 - dist / mouseArea) * forceMultiplier;
             const angle = Math.atan2(dy, dx);
-            data.currentX[i] += Math.cos(angle) * force;
-            data.currentY[i] += Math.sin(angle) * force;
+            const direction = isDown ? -1 : 1;
+            data.currentX[i] += Math.cos(angle) * force * direction;
+            data.currentY[i] += Math.sin(angle) * force * direction;
           }
         }
 
@@ -364,10 +365,10 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
     // Google Font 로드 + 폰트 로딩 후 초기화
     const init = async () => {
       try {
-        if (!document.querySelector('link[href*="family=Jua"]')) {
+        if (!document.querySelector('link[href*="family=Black+Han+Sans"]')) {
           const link = document.createElement('link');
           link.href =
-            'https://fonts.googleapis.com/css2?family=Jua&display=swap';
+            'https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap';
           link.rel = 'stylesheet';
           document.head.appendChild(link);
         }
@@ -432,10 +433,17 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
       };
     };
 
+    const setMouseCSS = (clientX: number, clientY: number) => {
+      const rect = container.getBoundingClientRect();
+      container.style.setProperty('--mouse-x', `${clientX - rect.left}px`);
+      container.style.setProperty('--mouse-y', `${clientY - rect.top}px`);
+    };
+
     const onMouseMove = (e: MouseEvent) => {
       const coords = toThreeCoords(e.clientX, e.clientY);
       mouseRef.current.x = coords.x;
       mouseRef.current.y = coords.y;
+      setMouseCSS(e.clientX, e.clientY);
     };
 
     const onMouseDown = () => {
@@ -448,11 +456,13 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
 
     const onMouseEnter = () => {
       mouseRef.current.isInside = true;
+      container.style.setProperty('--base-text-opacity', '1');
     };
 
     const onMouseLeave = () => {
       mouseRef.current.isInside = false;
       mouseRef.current.isDown = false;
+      container.style.setProperty('--base-text-opacity', '0');
     };
 
     const onTouchStart = (e: TouchEvent) => {
@@ -462,6 +472,8 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
         mouseRef.current.y = coords.y;
         mouseRef.current.isDown = true;
         mouseRef.current.isInside = true;
+        setMouseCSS(e.touches[0].clientX, e.touches[0].clientY);
+        container.style.setProperty('--base-text-opacity', '1');
       }
     };
 
@@ -470,12 +482,14 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
         const coords = toThreeCoords(e.touches[0].clientX, e.touches[0].clientY);
         mouseRef.current.x = coords.x;
         mouseRef.current.y = coords.y;
+        setMouseCSS(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
 
     const onTouchEnd = () => {
       mouseRef.current.isDown = false;
       mouseRef.current.isInside = false;
+      container.style.setProperty('--base-text-opacity', '0');
     };
 
     container.addEventListener('mousemove', onMouseMove);
@@ -511,6 +525,11 @@ const ParticleText = ({ lines, textColor = '#ffffff' }: ParticleTextProps) => {
 
   return (
     <S.Container ref={containerRef}>
+      <S.BaseText>
+        {lines.map((line, i) => (
+          <span key={i}>{line}</span>
+        ))}
+      </S.BaseText>
       <S.ScreenReaderOnly>{lines.join(' ')}</S.ScreenReaderOnly>
       <S.GuideWrapper>
         <S.MouseIcon />
