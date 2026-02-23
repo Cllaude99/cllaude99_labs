@@ -2,6 +2,13 @@
 const PATH = {
   ROOT: '/',
   TRADERS: '/traders',
+  TRADERS_GAME: '/traders/game',
+  TRADERS_RANKING: '/traders/ranking',
+  TRADERS_PROFILE: '/traders/profile',
+  TRADERS_GAME_COMPLETE: '/traders/game/complete',
+  TRADERS_AUTH_CALLBACK: '/traders/auth/callback',
+  TRADERS_ROOM: '/traders/room',
+  TRADERS_ROOM_WAITING: '/traders/room/:roomCode',
   SKETCH: '/sketch',
   A11Y: '/a11y',
   A11Y_SEMANTIC: '/a11y/semantic',
