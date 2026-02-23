@@ -11,7 +11,6 @@ import { useRoomRealtime } from '../hooks/useRoomRealtime';
 import { useGameStore } from '../stores/gameStore';
 import { useRoomStore } from '../stores/roomStore';
 
-
 const RoomWaitingPage = () => {
   const navigate = useNavigate();
   const {
@@ -37,7 +36,7 @@ const RoomWaitingPage = () => {
     }
   }, [roomId, participantId, navigate]);
 
-  // 게임 시작 감지 → GamePage로 이동
+  // 게임 시작 감지 및 GamePage로 이동
   useEffect(() => {
     if (roomStatus === 'playing' && roomPhase === 'hint') {
       // 내 session_id를 찾아 gameStore에 설정
@@ -141,9 +140,7 @@ const RoomWaitingPage = () => {
             <S.StartButton
               whileTap={{ scale: 0.97 }}
               onClick={handleStart}
-              disabled={
-                participants.length < 2 || startMutation.isPending
-              }
+              disabled={participants.length < 2 || startMutation.isPending}
             >
               {startMutation.isPending
                 ? '시작 중...'
