@@ -1,6 +1,5 @@
 import {
   createBrowserRouter,
-  RouteObject,
   RouterProvider,
   Outlet,
 } from 'react-router-dom';
@@ -17,19 +16,12 @@ import SemanticPage from '@/pages/A11yPage/SemanticPage';
 import HomePage from '@/pages/HomePage';
 import SketchPage from '@/pages/SketchPage';
 import TradersPage from '@/pages/TradersPage';
-
-import PrivateRoute from './PrivateRoute';
-import PublicRoute from './PublicRoute';
-
-type ROUTE_TYPE = 'PRIVATE' | 'PUBLIC';
-
-const createAuthRouter = (routeType: ROUTE_TYPE, children: RouteObject[]) => {
-  const authRouter = children.map((child: RouteObject) => ({
-    element: routeType === 'PRIVATE' ? <PrivateRoute /> : <PublicRoute />,
-    children: [child],
-  }));
-  return authRouter;
-};
+import AuthCallbackPage from '@/pages/TradersPage/AuthCallbackPage';
+import GameCompletePage from '@/pages/TradersPage/GameCompletePage';
+import GamePage from '@/pages/TradersPage/GamePage';
+import RankingPage from '@/pages/TradersPage/RankingPage';
+import RoomLobbyPage from '@/pages/TradersPage/RoomLobbyPage';
+import RoomWaitingPage from '@/pages/TradersPage/RoomWaitingPage';
 
 const router = createBrowserRouter([
   {
@@ -50,6 +42,30 @@ const router = createBrowserRouter([
       {
         path: PATH.TRADERS,
         element: <TradersPage />,
+      },
+      {
+        path: PATH.TRADERS_GAME,
+        element: <GamePage />,
+      },
+      {
+        path: PATH.TRADERS_GAME_COMPLETE,
+        element: <GameCompletePage />,
+      },
+      {
+        path: PATH.TRADERS_RANKING,
+        element: <RankingPage />,
+      },
+      {
+        path: PATH.TRADERS_AUTH_CALLBACK,
+        element: <AuthCallbackPage />,
+      },
+      {
+        path: PATH.TRADERS_ROOM,
+        element: <RoomLobbyPage />,
+      },
+      {
+        path: PATH.TRADERS_ROOM_WAITING,
+        element: <RoomWaitingPage />,
       },
       {
         path: PATH.SKETCH,
@@ -75,9 +91,6 @@ const router = createBrowserRouter([
         path: PATH.A11Y_ARIA_HIDDEN,
         element: <AriaHiddenPage />,
       },
-
-      ...createAuthRouter('PRIVATE', []),
-      ...createAuthRouter('PUBLIC', []),
       {
         path: '*',
         element: <SomethingWentWrong />,
