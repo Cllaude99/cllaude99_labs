@@ -41,10 +41,6 @@ const ChartSection = styled.section`
   flex-shrink: 0;
 `;
 
-const ControlSection = styled.div`
-  padding: 0 16px;
-`;
-
 const BottomSection = styled.div`
   flex: 1;
   display: flex;
@@ -153,21 +149,6 @@ const LoadingContainer = styled.div`
   font-size: 16px;
 `;
 
-const AbandonButton = styled.button`
-  padding: 4px 8px;
-  border: 1px solid ${({ theme }) => theme.palette.grey200};
-  border-radius: 6px;
-  background: transparent;
-  color: ${({ theme }) => theme.palette.grey500};
-  font-size: 12px;
-  cursor: pointer;
-
-  &:hover {
-    border-color: ${({ theme }) => theme.palette.red500};
-    color: ${({ theme }) => theme.palette.red500};
-  }
-`;
-
 export {
   Container,
   TopBar,
@@ -175,7 +156,6 @@ export {
   YearMonth,
   TotalAsset,
   ChartSection,
-  ControlSection,
   BottomSection,
   TradeActions,
   TradeButton,
@@ -185,5 +165,4 @@ export {
   PhaseLabel,
   EmptyChartMessage,
   LoadingContainer,
-  AbandonButton,
 };
