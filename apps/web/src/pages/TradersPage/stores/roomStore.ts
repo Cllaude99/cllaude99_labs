@@ -18,8 +18,6 @@ interface RoomState {
   roomStatus: RoomStatus;
   roomPhase: RoomPhase;
   currentYear: number;
-  readyCount: number;
-  totalCount: number;
   roundResult: RoomRoundResult | null;
 }
 
@@ -34,7 +32,6 @@ interface RoomActions {
   setParticipants: (participants: RoomParticipant[]) => void;
   setRoomStatus: (status: RoomStatus) => void;
   setRoomPhase: (phase: RoomPhase) => void;
-  setReadyState: (readyCount: number, totalCount: number) => void;
   setRoundResult: (result: RoomRoundResult | null) => void;
   setCurrentYear: (year: number) => void;
   setIsHost: (isHost: boolean) => void;
@@ -51,8 +48,6 @@ const initialState: RoomState = {
   roomStatus: 'waiting',
   roomPhase: 'waiting_start',
   currentYear: 2010,
-  readyCount: 0,
-  totalCount: 0,
   roundResult: null,
 };
 
@@ -69,9 +64,6 @@ export const useRoomStore = create<RoomState & RoomActions>()(
       setRoomStatus: (roomStatus) => set({ roomStatus }),
 
       setRoomPhase: (roomPhase) => set({ roomPhase }),
-
-      setReadyState: (readyCount, totalCount) =>
-        set({ readyCount, totalCount }),
 
       setRoundResult: (roundResult) => set({ roundResult }),
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { INITIAL_CASH } from '../constants/game';
 import type { GamePhase } from '../constants/game';
 import type { EnhancedSettlementResult, PortfolioItem, StockInfo } from '../interfaces/game';
 import type { UpdatedHolding } from '../interfaces/trade';
@@ -27,12 +28,22 @@ interface GameActions {
   reset: () => void;
 }
 
+function isPersistedState(value: unknown): value is GameState {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'sessionId' in value &&
+    'phase' in value &&
+    'cashBalance' in value
+  );
+}
+
 const initialState: GameState = {
   sessionId: null,
   currentYear: 2010,
   phase: 'hint',
-  cashBalance: 10_000_000,
-  totalAsset: 10_000_000,
+  cashBalance: INITIAL_CASH,
+  totalAsset: INITIAL_CASH,
   stocks: [],
   portfolio: [],
   settlementHistory: [],
@@ -112,14 +123,13 @@ export const useGameStore = create<GameState & GameActions>()(
       name: 'traders-game',
       version: 2,
       migrate: (persisted, version) => {
-        if (version < 2) {
-          const old = persisted as Record<string, unknown>;
-          return {
-            ...old,
-            phase: 'hint' as GamePhase,
-          };
+        if (!isPersistedState(persisted)) {
+          return initialState;
         }
-        return persisted as GameState & GameActions;
+        if (version < 2) {
+          return { ...persisted, phase: 'hint' };
+        }
+        return persisted;
       },
       partialize: (state) => ({
         sessionId: state.sessionId,
