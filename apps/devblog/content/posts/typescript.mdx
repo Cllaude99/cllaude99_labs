@@ -1,0 +1,762 @@
+---
+title: 'TypeScript 쓰면서 궁금했던 것들'
+description: 'interface와 type의 차이, 타입 단언, satisfies, 제네릭, 유틸리티 타입, 타입 좁히기까지 TypeScript 핵심 개념들을 정리해요'
+date: '2026-02-24'
+published: true
+category: 'Tech'
+tags:
+  ['TypeScript', 'interface', 'type', 'Generic', 'Utility Types', 'satisfies']
+author: 'Cllaude99'
+---
+
+이전 [never과 unknown 알아보기](https://www.cllaude99.com/post/never-unknown) 글에서 `never`와 `unknown` 타입에 대해 정리한 적이 있는데요.
+이번에는 그 연장선상에서 TypeScript를 사용하며 궁금했던 개념들을 하나씩 정리해보려고 해요.
+
+## interface와 type의 차이
+
+TypeScript에서는 타입을 정의할 때 `interface`와 `type` 두 가지를 사용할 수 있어요.
+둘 다 객체의 형태를 정의할 수 있지만, 몇 가지 중요한 차이점이 있어요.
+
+### 선언 병합 (Declaration Merging)
+
+`interface`는 같은 이름으로 여러 번 선언할 수 있고, 자동으로 병합돼요.
+반면 `type`은 같은 이름으로 두 번 선언하면 에러가 발생해요.
+
+```typescript
+interface User {
+  name: string;
+}
+
+interface User {
+  age: number;
+}
+
+const user: User = {
+  name: '태윤',
+  age: 25,
+};
+
+type Product = {
+  name: string;
+};
+
+type Product = {
+  price: number;
+};
+
+// 에러: Duplicate identifier 'Product'
+```
+
+이러한 **선언 병합** 기능은 외부 라이브러리의 타입을 확장할 때 유용해요.
+예를 들어, 라이브러리에서 제공하는 인터페이스에 커스텀 속성을 추가하고 싶을 때 같은 이름의 인터페이스를 선언하면 돼요.
+
+### 동일 키에 다른 타입을 선언하면?
+
+interface를 사용하는 경우, 선언 병합 시 같은 키에 **호환되지 않는 다른 타입**을 지정하면 에러가 발생해요.
+
+```typescript
+interface Config {
+  value: string;
+}
+
+interface Config {
+  value: number;
+}
+
+// 에러: Duplicate identifier 'Config'
+```
+
+TypeScript는 선언 병합 시 각 속성의 타입이 호환되는지 검사하는데요,
+이때 동일한 키에 서로 다른 타입을 지정하면 충돌이 발생하여 컴파일 에러가 나게 돼요.
+
+### 메서드 오버로드
+
+그런데 **메서드의 경우**는 조금 달라요.
+같은 이름의 메서드를 파라미터만 달리하여 여러 번 선언하면, 에러가 아닌 **오버로드**가 돼요.
+
+```typescript
+interface Calculator {
+  add(a: number, b: number): number;
+}
+
+interface Calculator {
+  add(a: string, b: string): string;
+}
+
+const calc: Calculator = {
+  add(a: any, b: any) {
+    return a + b;
+  },
+};
+
+calc.add(1, 2);
+calc.add('Hello, ', 'World');
+```
+
+정리해보자면 속성은 동일 키에 다른 타입을 허용하지 않지만, 메서드는 선언 병합을 통해 오버로드를 지원해요.
+
+### type의 & 연산 시 never 발생
+
+`type`은 선언 병합이 안 되기 때문에, 두 타입을 합칠 때 `&`(인터섹션) 연산자를 사용하는데요.
+이때 동일한 키가 **호환 불가능한 타입**을 가지면 해당 키의 타입이 `never`가 돼요.
+
+```typescript
+type A = {
+  value: string;
+};
+
+type B = {
+  value: number;
+};
+
+type Combined = A & B;
+
+const item: Combined = {
+  value: 'hello',
+};
+```
+
+`Combined`의 `value`는 `string & number`인데, 이를 동시에 만족하는 값은 존재할 수 없기 때문에 `never`가 되는 거예요.
+이 부분은 이전에 작성한 [never과 unknown 알아보기](https://www.cllaude99.com/post/never-unknown) 글에서 다룬 `never` 타입의 개념과 연결돼요.
+
+## 타입 단언은 왜 좋지 않을까?
+
+TypeScript를 쓰다 보면 `as` 키워드로 타입을 강제 지정하는 타입 단언(Type Assertion)을 사용한 코드를 보게되는데요.
+이러한 타입 단언은 신중하게 사용해야 해요.
+
+### 타입 단언이 위험한 이유
+
+타입 단언을 사용하면 TypeScript의 타입 체크를 우회할 수 있어요.
+컴파일러는 개발자가 "이 타입이 맞다"고 말한 것을 그대로 믿기 때문에 실제 런타임에서 문제가 발생할 수 있어요.
+
+```typescript
+interface User {
+  name: string;
+  age: number;
+  email: string;
+}
+
+const user = {} as User;
+
+console.log(user.name.toUpperCase());
+```
+
+위 코드에서 `user`는 빈 객체이지만, `as User`로 인해 TypeScript는 `name`, `age`, `email` 속성이 모두 있다고 판단해요.
+하지만 실제로는 아무 속성도 없기 때문에 런타임에 `Cannot read properties of undefined` 에러가 발생해요.
+
+### 올바른 방법: 타입 선언 사용
+
+타입 단언 대신 **타입 선언**을 사용하면 TypeScript가 올바르게 타입을 검사해요.
+
+```typescript
+interface User {
+  name: string;
+  age: number;
+  email: string;
+}
+
+const user: User = {};
+
+const validUser: User = {
+  name: '태윤',
+  age: 25,
+  email: 'taeyoon@example.com',
+};
+```
+
+타입 선언을 사용하는 경우, 빈 객체를 `User` 타입으로 선언하면 필수 속성이 없다는 컴파일 에러가 바로 발생해요.
+즉, 모든 속성을 올바르게 채워야 정상적으로 동작해요.
+
+TypeScript를 사용하는 이유 중 하나는 **컴파일 타임에 타입 오류를 잡아내는 것**이에요.
+하지만 타입 단언(`as`)은 이 타입 체크를 우회하기 때문에, TypeScript를 사용하는 이유 자체를 잃게 만들 수 있어요.
+따라서 타입 단언이 꼭 필요한 상황이 아니라면 타입 선언을 사용하는 것이 좋아요.
+
+## satisfies
+
+TypeScript 4.9에서 도입된 `satisfies` 연산자는 값이 특정 타입을 만족하는지 검증하면서도 추론된 좁은 타입을 그대로 유지해줘요.
+
+### 타입 선언의 한계
+
+앞서 타입 단언 대신 타입 선언을 사용하라고 했는데요, 타입 선언에도 한 가지 아쉬운 점이 있어요. 타입 선언을 사용하면 값의 타입이 선언한 타입으로 넓어져요.
+
+```typescript
+type Color = 'red' | 'green' | 'blue';
+type ColorConfig = Record<Color, string | number[]>;
+
+const palette: ColorConfig = {
+  red: '#ff0000',
+  green: [0, 255, 0],
+  blue: '#0000ff',
+};
+
+palette.red.toUpperCase();
+```
+
+`palette.red`는 실제로 문자열이지만, 타입 선언에 의해 `string | number[]`로 넓어져서 `toUpperCase()`를 바로 호출할 수 없어요.
+
+### satisfies로 좁은 타입 유지하기
+
+`satisfies`를 사용하면 타입 검증은 하면서도 각 속성의 추론된 타입이 그대로 유지돼요.
+
+```typescript
+type Color = 'red' | 'green' | 'blue';
+type ColorConfig = Record<Color, string | number[]>;
+
+const palette = {
+  red: '#ff0000',
+  green: [0, 255, 0],
+  blue: '#0000ff',
+} satisfies ColorConfig;
+
+palette.red.toUpperCase();
+palette.green.map((v) => v * 2);
+```
+
+`satisfies`는 `ColorConfig` 타입을 만족하는지 검증하면서도, `palette.red`는 `string`으로, `palette.green`은 `number[]`로 좁은 타입이 유지돼요.
+
+만약 타입에 맞지 않는 값을 넣으면 컴파일 에러가 발생해요.
+
+```typescript
+const palette = {
+  red: '#ff0000',
+  green: false,
+  blue: '#0000ff',
+} satisfies ColorConfig;
+
+// 에러: Type 'false' is not assignable to type 'string | number[]'.
+```
+
+위에서 `false`는 `string | number[]`에 할당할 수 없기 때문에 컴파일 타임에 바로 잡아줘요.
+
+### 정리: as vs 타입 선언 vs satisfies
+
+| 방법             | 타입 검증 | 타입 추론                 |
+| ---------------- | --------- | ------------------------- |
+| `as Type`        | 안 함     | 선언한 타입으로 강제 변환 |
+| `: Type`         | 함        | 선언한 타입으로 넓어짐    |
+| `satisfies Type` | 함        | 추론된 좁은 타입 유지     |
+
+> `satisfies`는 **타입 검증**과 **좁은 타입 유지**를 동시에 할 수 있는 연산자예요.
+> 타입의 구조를 검증하면서도 각 속성의 구체적인 타입을 잃지 않고 싶을 때 사용하면 좋아요.
+
+## enum보다 as const를 사용하는 것이 좋은 이유
+
+TypeScript에서 상수 집합을 정의할 때 `enum`과 `as const`를 모두 사용할 수 있어요.
+하지만 번들 크기와 트리쉐이킹 관점에서 `as const`가 더 나은 선택이에요.
+
+### enum의 컴파일 결과
+
+`enum`은 컴파일 시 즉시 실행 함수(IIFE)로 변환돼요.
+
+```typescript
+enum Status {
+  IDLE = 'idle',
+  LOADING = 'loading',
+  SUCCESS = 'success',
+  ERROR = 'error',
+}
+```
+
+위 코드가 JavaScript로 컴파일되면 다음과 같이 변환돼요.
+
+```javascript
+var Status;
+(function (Status) {
+  Status['IDLE'] = 'idle';
+  Status['LOADING'] = 'loading';
+  Status['SUCCESS'] = 'success';
+  Status['ERROR'] = 'error';
+})(Status || (Status = {}));
+```
+
+여기서 문제는 IIFE 내부에서 **사이드 이펙트가 발생할 수 있다**고 번들러(Webpack, Rollup 등)가 판단한다는 거예요.
+그래서 해당 `enum`을 사용하지 않더라도 번들에서 제거되지 않아요. 즉, **트리쉐이킹이 동작하지 않아요**.
+
+### as const의 컴파일 결과
+
+반면 `as const`는 일반 객체로 유지되기 때문에 번들러가 사용되지 않는 부분을 안전하게 제거할 수 있어요.
+이러한 이유로 번들 크기를 줄이는 데 도움이 돼요.
+
+```typescript
+const Status = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error',
+} as const;
+```
+
+컴파일 결과는 다음과 같아요.
+
+```javascript
+const Status = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
+```
+
+IIFE 없이 순수한 객체 리터럴이 되므로, 번들러가 사용되지 않는 코드를 안전하게 제거할 수 있어요.
+
+### as const에서 타입 추출하기
+
+`as const`를 사용하면 `typeof`와 `keyof`를 조합하여 타입을 추출할 수 있어요.
+
+```typescript
+const Status = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error',
+} as const;
+
+type StatusKey = keyof typeof Status;
+// 'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'
+
+type StatusValue = (typeof Status)[StatusKey];
+// 'idle' | 'loading' | 'success' | 'error'
+
+function getStatusMessage(status: StatusValue): string {
+  switch (status) {
+    case Status.IDLE:
+      return '대기 중';
+    case Status.LOADING:
+      return '로딩 중';
+    case Status.SUCCESS:
+      return '성공';
+    case Status.ERROR:
+      return '에러 발생';
+  }
+}
+```
+
+### enum vs as const 비교
+
+| 항목        | enum             | as const                     |
+| ----------- | ---------------- | ---------------------------- |
+| 런타임 코드 | IIFE로 변환      | 일반 객체 유지               |
+| 트리쉐이킹  | 불가능           | 가능                         |
+| 번들 크기   | 상대적으로 큼    | 상대적으로 작음              |
+| 타입 추론   | 자체 타입 제공   | `typeof` + `keyof` 조합 필요 |
+| 양방향 매핑 | 숫자 enum만 지원 | 지원하지 않음                |
+
+정리해보자면, 번들 최적화가 중요한 프로젝트라면 `enum` 대신 `as const`를 사용하는 것을 권장해요.
+또,`typeof`와 `keyof`를 조합하면 `enum`과 동일한 수준의 타입 안전성을 확보할 수 있어요.
+
+## 제네릭
+
+제네릭(Generic)은 타입을 **매개변수처럼** 사용할 수 있게 해주는 기능이에요.
+함수, 인터페이스, 클래스 등을 정의할 때 구체적인 타입을 지정하지 않고, 사용하는 시점에 타입을 결정할 수 있어요.
+
+### 제네릭 선언
+
+함수에 제네릭을 적용하는 가장 기본적인 형태예요.
+
+```typescript
+function getFirstItem(arr: any[]): any {
+  return arr[0];
+}
+
+function getFirstItem<T>(arr: T[]): T {
+  return arr[0];
+}
+
+const firstNumber = getFirstItem([1, 2, 3]);
+const firstString = getFirstItem(['a', 'b', 'c']);
+```
+
+`<T>`는 **타입 매개변수**로, 함수 호출 시 전달되는 인자의 타입에 따라 자동으로 결정돼요.
+이때, `any`를 사용하면 타입 정보를 잃지만, 제네릭을 사용하면 입력과 출력의 타입 관계를 유지할 수 있어요.
+
+### 제네릭 활용: API 응답 타입
+
+실무에서 제네릭이 자주 활용되는 패턴 중 하나는 API 응답 타입이에요.
+
+```typescript
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
+async function fetchUser(id: number): Promise<ApiResponse<User>> {
+  const response = await fetch(`/api/users/${id}`);
+  return response.json();
+}
+
+async function fetchProducts(): Promise<ApiResponse<Product[]>> {
+  const response = await fetch('/api/products');
+  return response.json();
+}
+
+const userResponse = await fetchUser(1);
+console.log(userResponse.data.name);
+console.log(userResponse.data.price);
+```
+
+`ApiResponse<T>`라는 하나의 인터페이스로 모든 API 응답의 공통 구조를 정의하고, `T`에 각 API별 데이터 타입을 전달하여 재사용하는 패턴이에요.
+이때, `userResponse.data.name`은 `string`으로 정상 추론되지만, `User`에 존재하지 않는 `price`에 접근하면 컴파일 에러가 발생해요.
+
+### 제네릭 제한 (Constraints)
+
+제네릭은 기본적으로 어떤 타입이든 받을 수 있지만, `extends` 키워드를 사용하여 특정 조건을 만족하는 타입만 허용하도록 **제약 조건**을 걸 수 있어요.
+
+```typescript
+function getLength<T extends { length: number }>(item: T): number {
+  return item.length;
+}
+
+getLength('hello');
+getLength([1, 2, 3]);
+getLength(123);
+```
+
+`string`과 배열은 `length` 속성이 있어서 정상 동작하지만, `number`에는 `length` 속성이 없기 때문에 컴파일 에러가 발생해요.
+
+`keyof`와 결합하면 객체의 키만 허용하도록 제한할 수도 있어요.
+
+```typescript
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key];
+}
+
+const user = { name: '태윤', age: 25, email: 'taeyoon@naver.com' };
+
+getProperty(user, 'name');
+getProperty(user, 'age');
+getProperty(user, 'address');
+```
+
+위에서 `'address'`는 `user` 객체의 키가 아니기 때문에 컴파일 에러가 발생해요.
+
+정리해보자면, 제네릭을 사용하면 **재사용성**과 **타입 안전성**을 동시에 확보할 수 있어요.
+또,`extends`로 제약 조건을 추가하면 의도하지 않은 타입의 사용을 컴파일 타임에 방지할 수 있어요.
+
+## 유틸리티 타입
+
+TypeScript는 기존 타입을 변환하여 새로운 타입을 만들 수 있는 **유틸리티 타입**을 제공해요.
+자주 사용되는 유틸리티 타입들을 논리적인 쌍으로 묶어 정리해볼게요.
+
+### Partial과 Required
+
+`Partial<T>`는 모든 속성을 선택적(optional)으로 만들고, `Required<T>`는 모든 속성을 필수(required)로 만들어요.
+
+```typescript
+interface User {
+  name: string;
+  age: number;
+  email: string;
+}
+
+type PartialUser = Partial<User>;
+// { name?: string; age?: number; email?: string; }
+
+type RequiredUser = Required<Partial<User>>;
+// { name: string; age: number; email: string; }
+```
+
+`Partial`은 **업데이트 API**에서 사용할 수 있어요.
+그 이유는 사용자 정보를 수정할 때 변경된 필드만 보내면 되기 때문이에요.
+
+```typescript
+async function updateUser(id: number, updates: Partial<User>): Promise<User> {
+  const response = await fetch(`/api/users/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+  return response.json();
+}
+
+updateUser(1, { name: '새이름' });
+updateUser(1, { email: 'new@example.com' });
+updateUser(1, { address: '서울' });
+```
+
+`name`이나 `email`만 보내는 것은 `Partial<User>`에 의해 허용되지만, `User`에 존재하지 않는 `address`를 보내면 컴파일 에러가 발생해요.
+
+### Pick과 Omit
+
+`Pick<T, K>`는 특정 속성만 **골라서** 새로운 타입을 만들고, `Omit<T, K>`는 특정 속성을 **제외**하여 새로운 타입을 만들어요.
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  createdAt: Date;
+}
+
+type UserProfile = Pick<User, 'name' | 'email'>;
+// { name: string; email: string; }
+
+type CreateUserInput = Omit<User, 'id' | 'createdAt'>;
+// { name: string; email: string; password: string; }
+```
+
+예를 들어 회원가입 폼을 만들 때, `id`나 `createdAt`은 서버에서 자동 생성되는 필드이므로 입력 타입에서 제외할 수 있어요.
+
+```typescript
+type SignupFormData = Omit<User, 'id' | 'createdAt'>;
+
+function handleSignup(formData: SignupFormData) {
+  return fetch('/api/signup', {
+    method: 'POST',
+    body: JSON.stringify(formData),
+  });
+}
+```
+
+### Record
+
+`Record<K, T>`는 키의 타입이 `K`이고 값의 타입이 `T`인 객체 타입을 만들어요.
+
+```typescript
+type ScoreMap = Record<string, number>;
+
+const scores: ScoreMap = {
+  math: 95,
+  english: 88,
+  science: 92,
+};
+
+type StatusMessage = Record<'idle' | 'loading' | 'success' | 'error', string>;
+
+const messages: StatusMessage = {
+  idle: '대기 중',
+  loading: '로딩 중',
+  success: '완료',
+  error: '오류 발생',
+};
+```
+
+`Record`는 특정 키 집합에 대해 일관된 값 타입을 가진 객체를 정의할 때 유용해요.
+위 예시처럼 상태별 메시지를 정의하면, 모든 상태에 대해 메시지가 빠짐없이 정의되었는지 컴파일 타임에 검증할 수 있어요.
+
+### Extract와 Exclude
+
+`Extract<T, U>`는 유니온 타입에서 특정 타입만 **추출**하고, `Exclude<T, U>`는 특정 타입을 **제외**해요.
+
+```typescript
+type AllEvents = 'click' | 'scroll' | 'mousemove' | 'keydown' | 'keyup';
+
+type MouseEvents = Extract<AllEvents, 'click' | 'scroll' | 'mousemove'>;
+// 'click' | 'scroll' | 'mousemove'
+
+type KeyboardEvents = Exclude<AllEvents, 'click' | 'scroll' | 'mousemove'>;
+// 'keydown' | 'keyup'
+```
+
+`Extract`와 `Exclude`는 내부적으로 조건부 타입(Conditional Types)과 `never`를 활용하여 구현되어 있어요.
+
+```typescript
+type Extract<T, U> = T extends U ? T : never;
+
+type Exclude<T, U> = T extends U ? never : T;
+```
+
+유니온 타입에 조건부 타입을 적용하면 각 멤버에 대해 개별적으로 평가돼요.
+조건을 만족하지 않는 멤버는 `never`가 되고, 유니온에서 `never`는 자동으로 제거돼요. [never과 unknown 알아보기](https://www.cllaude99.com/post/never-unknown) 글에서 다룬 것처럼, `never`가 이런 타입 레벨 연산에서 핵심적인 역할을 하는 것을 알 수 있어요.
+
+### ReturnType
+
+`ReturnType<T>`는 함수의 **반환 타입**을 추출해요.
+
+```typescript
+function createUser() {
+  return {
+    id: 1,
+    name: '태윤',
+    email: 'taeyoon@example.com',
+    createdAt: new Date(),
+  };
+}
+
+type CreatedUser = ReturnType<typeof createUser>;
+// { id: number; name: string; email: string; createdAt: Date; }
+```
+
+`ReturnType`은 함수의 반환 타입을 직접 작성하지 않고도 추출할 수 있어서, 함수의 구현이 변경되었을 때 타입도 자동으로 따라가는 장점이 있어요.
+
+### NonNullable
+
+`NonNullable<T>`은 타입에서 `null`과 `undefined`를 **제거**해요.
+
+```typescript
+type MaybeString = string | null | undefined;
+
+type DefinitelyString = NonNullable<MaybeString>;
+// string
+```
+
+API 응답이나 선택적 속성에서 `null`과 `undefined`를 제외한 타입이 필요할 때 유용해요.
+
+```typescript
+interface UserProfile {
+  name: string;
+  nickname?: string | null;
+}
+
+function getDisplayName(user: UserProfile): string {
+  if (user.nickname) {
+    return formatNickname(user.nickname);
+  }
+  return user.name;
+}
+
+function formatNickname(
+  nickname: NonNullable<UserProfile['nickname']>,
+): string {
+  return `@${nickname}`;
+}
+```
+
+`formatNickname` 함수는 `NonNullable`로 `null`과 `undefined`가 제거된 타입만 받기 때문에, 함수 내부에서 별도의 null 체크 없이 안전하게 값을 사용할 수 있어요.
+
+`NonNullable`의 내부 구현은 앞서 살펴본 조건부 타입과 `never`를 활용하고 있어요.
+
+```typescript
+type NonNullable<T> = T extends null | undefined ? never : T;
+```
+
+`null`과 `undefined`에 해당하는 멤버를 `never`로 만들어 유니온에서 제거하는 방식이에요.
+
+정리해보자면, 유틸리티 타입은 기존 타입을 변환하여 새로운 타입을 만드는 **타입 레벨의 함수**예요.
+이미 정의된 타입을 기반으로 필요한 형태의 타입을 쉽게 만들 수 있으므로, 중복 없이 타입을 관리할 수 있어요.
+
+## 타입 좁히기 (Type Narrowing)
+
+앞서 타입 단언(`as`)이 위험한 이유를 살펴보았는데요, 타입 좁히기(Type Narrowing)는 타입 단언 없이도 TypeScript가 **자동으로 타입을 추론**하도록 하는 안전한 방법이에요.
+
+### typeof
+
+`typeof`는 **원시 타입**을 구분할 때 사용해요.
+
+```typescript
+function formatValue(value: string | number): string {
+  if (typeof value === 'string') {
+    return value.toUpperCase();
+  }
+  return value.toFixed(2);
+}
+
+formatValue('hello');
+formatValue(3.14159);
+```
+
+`typeof` 검사를 통과한 블록 안에서 TypeScript는 자동으로 타입을 좁혀줘요. `typeof`는 `'string'`, `'number'`, `'boolean'`, `'undefined'`, `'object'`, `'function'`, `'symbol'`, `'bigint'` 등의 원시 타입을 구분할 수 있어요.
+
+### instanceof
+
+`instanceof`는 **클래스 인스턴스**를 구분할 때 사용해요.
+
+```typescript
+class ApiError {
+  constructor(
+    public statusCode: number,
+    public message: string,
+  ) {}
+}
+
+class NetworkError {
+  constructor(public message: string) {}
+}
+
+function handleError(error: ApiError | NetworkError) {
+  if (error instanceof ApiError) {
+    console.log(`API 에러 (${error.statusCode}): ${error.message}`);
+  } else {
+    console.log(`네트워크 에러: ${error.message}`);
+  }
+}
+```
+
+`instanceof` 검사를 통과한 블록 안에서 `error`는 `ApiError`로 추론되기 때문에 `statusCode` 속성에 안전하게 접근할 수 있어요.
+
+### in
+
+`in` 연산자는 객체에 **특정 속성이 존재하는지** 확인하여 타입을 좁혀요.
+
+```typescript
+interface Dog {
+  name: string;
+  bark: () => void;
+}
+
+interface Cat {
+  name: string;
+  meow: () => void;
+}
+
+function makeSound(animal: Dog | Cat) {
+  if ('bark' in animal) {
+    animal.bark();
+  } else {
+    animal.meow();
+  }
+}
+```
+
+`in` 연산자는 특히 판별 유니온(Discriminated Union) 패턴과 함께 유용하게 사용돼요. 공통 속성 없이도 고유한 속성의 존재 여부로 타입을 구분할 수 있어요.
+
+### keyof
+
+`keyof`는 객체 타입의 **키를 유니온 타입**으로 추출해요. 타입 좁히기라기보다는 타입을 제한하는 용도로 활용돼요.
+
+```typescript
+interface User {
+  name: string;
+  age: number;
+  email: string;
+}
+
+function getUserField(user: User, field: keyof User) {
+  return user[field];
+}
+
+const user: User = { name: '태윤', age: 25, email: 'taeyoon@example.com' };
+
+getUserField(user, 'name');
+getUserField(user, 'age');
+getUserField(user, 'address');
+```
+
+`keyof User`는 `'name' | 'age' | 'email'`로 추출되기 때문에, 존재하지 않는 `'address'`를 전달하면 컴파일 에러가 발생해요. 오타나 존재하지 않는 속성에 접근하는 실수를 방지할 수 있어요.
+
+### 타입 좁히기 요약
+
+| 방법         | 사용 시점            | 예시                        |
+| ------------ | -------------------- | --------------------------- |
+| `typeof`     | 원시 타입 구분       | `typeof value === 'string'` |
+| `instanceof` | 클래스 인스턴스 구분 | `error instanceof ApiError` |
+| `in`         | 객체 속성 존재 여부  | `'bark' in animal`          |
+| `keyof`      | 객체 키 유니온 추출  | `field: keyof User`         |
+
+> 타입 좁히기는 타입 단언(`as`) 없이도 TypeScript가 올바른 타입을 추론하게 만드는 안전한 방법이에요. 조건문을 통해 타입을 좁히면 각 분기에서 정확한 타입의 속성과 메서드를 사용할 수 있어요.
+
+## 마치며
+
+이번 글에서는 TypeScript를 사용하면서 궁금했던 핵심 개념들을 정리해봤어요.
+이전 [never과 unknown 알아보기](https://www.cllaude99.com/post/never-unknown) 글에서는 `never`와 `unknown`이라는 특수한 타입에 집중했다면, 이번 글에서는 실제 프로젝트에서 자주 마주치는 TypeScript의 기본기를 정리해봤어요.
+
+## 참고 자료
+
+- [TypeScript Handbook - Interfaces](https://www.typescriptlang.org/docs/handbook/interfaces.html)
+- [TypeScript Handbook - Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+- [TypeScript Handbook - Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+- [TypeScript Handbook - Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+- [TypeScript 4.9 - satisfies](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html)
+- [TypeScript Deep Dive - Enums](https://basarat.gitbook.io/typescript/type-system/enums)
