@@ -1,5 +1,4 @@
-import { supabase } from '@/lib/supabase';
-
+import { invokeFunction } from '../../apis/utils';
 import type { BlurChartData, StockDailyPrice } from '../../interfaces/stock';
 
 interface StockPriceData {
@@ -29,25 +28,22 @@ export interface StockHistoryResponse {
 }
 
 export async function getStockPrices(sessionId: string, year: number): Promise<StockPricesResponse> {
-  const { data, error } = await supabase.functions.invoke('stock-prices', {
-    body: { session_id: sessionId, year },
+  return invokeFunction<StockPricesResponse>('stock-prices', {
+    session_id: sessionId,
+    year,
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function getStockHistory(sessionId: string, stockId: string): Promise<StockHistoryResponse> {
-  const { data, error } = await supabase.functions.invoke('stock-history', {
-    body: { session_id: sessionId, stock_id: stockId },
+  return invokeFunction<StockHistoryResponse>('stock-history', {
+    session_id: sessionId,
+    stock_id: stockId,
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function getBlurPreview(sessionId: string, year: number): Promise<BlurChartData> {
-  const { data, error } = await supabase.functions.invoke('stock-blur-preview', {
-    body: { session_id: sessionId, year },
+  return invokeFunction<BlurChartData>('stock-blur-preview', {
+    session_id: sessionId,
+    year,
   });
-  if (error) throw error;
-  return data;
 }

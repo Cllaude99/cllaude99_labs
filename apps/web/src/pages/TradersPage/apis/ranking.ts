@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { invokeFunction } from './utils';
 
 export interface RankingEntry {
   rank_position: number;
@@ -61,25 +61,17 @@ export interface LiveRankingsResponse {
 }
 
 export async function getRankings(page: number, limit: number = 20): Promise<RankingsResponse> {
-  const { data, error } = await supabase.functions.invoke('rankings', {
-    body: { page, limit },
-  });
-  if (error) throw error;
-  return data;
+  return invokeFunction<RankingsResponse>('rankings', { page, limit });
 }
 
 export async function getMyRanking(sessionId: string): Promise<MyRankingResponse> {
-  const { data, error } = await supabase.functions.invoke('rankings-me', {
-    body: { session_id: sessionId },
+  return invokeFunction<MyRankingResponse>('rankings-me', {
+    session_id: sessionId,
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function getLiveRankings(sessionId: string): Promise<LiveRankingsResponse> {
-  const { data, error } = await supabase.functions.invoke('rankings-live', {
-    body: { session_id: sessionId },
+  return invokeFunction<LiveRankingsResponse>('rankings-live', {
+    session_id: sessionId,
   });
-  if (error) throw error;
-  return data;
 }

@@ -1,5 +1,4 @@
-import { supabase } from '@/lib/supabase';
-
+import { invokeFunction, invokeRpc } from './utils';
 import type { StockInfo } from '../interfaces/game';
 import type { RoomParticipant, RoomRoundResult } from '../interfaces/room';
 
@@ -39,93 +38,81 @@ export interface RoomFinalRanking {
 export async function createRoom(
   nickname: string,
 ): Promise<RoomCreateResponse> {
-  const { data, error } = await supabase.functions.invoke('room-create', {
-    body: { nickname },
-  });
-  if (error) throw error;
-  return data;
+  return invokeFunction<RoomCreateResponse>('room-create', { nickname });
 }
 
 export async function joinRoom(
   roomCode: string,
   nickname: string,
 ): Promise<RoomJoinResponse> {
-  const { data, error } = await supabase.functions.invoke('room-join', {
-    body: { room_code: roomCode, nickname },
+  return invokeFunction<RoomJoinResponse>('room-join', {
+    room_code: roomCode,
+    nickname,
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function startRoom(
   roomId: string,
   participantId: string,
 ): Promise<RoomStartResponse> {
-  const { data, error } = await supabase.functions.invoke('room-start', {
-    body: { room_id: roomId, participant_id: participantId },
+  return invokeFunction<RoomStartResponse>('room-start', {
+    room_id: roomId,
+    participant_id: participantId,
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function readyRoom(
   roomId: string,
   participantId: string,
 ): Promise<RoomReadyResponse> {
-  const { data, error } = await supabase.functions.invoke('room-ready', {
-    body: { room_id: roomId, participant_id: participantId },
+  return invokeFunction<RoomReadyResponse>('room-ready', {
+    room_id: roomId,
+    participant_id: participantId,
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function getRoundResult(
   roomId: string,
   year: number,
 ): Promise<RoomRoundResult> {
-  const { data, error } = await supabase.functions.invoke(
-    'room-round-result',
-    {
-      body: { room_id: roomId, year },
-    },
-  );
-  if (error) throw error;
-  return data;
+  return invokeFunction<RoomRoundResult>('room-round-result', {
+    room_id: roomId,
+    year,
+  });
 }
 
 export async function nextRound(
   roomId: string,
   participantId: string,
 ): Promise<{ year: number; is_completed: boolean }> {
-  const { data, error } = await supabase.functions.invoke('room-next-round', {
-    body: { room_id: roomId, participant_id: participantId },
-  });
-  if (error) throw error;
-  return data;
+  return invokeFunction<{ year: number; is_completed: boolean }>(
+    'room-next-round',
+    {
+      room_id: roomId,
+      participant_id: participantId,
+    },
+  );
 }
 
 export async function leaveRoom(
   roomId: string,
   participantId: string,
 ): Promise<{ success: boolean }> {
-  const { data, error } = await supabase.functions.invoke('room-leave', {
-    body: { room_id: roomId, participant_id: participantId },
+  return invokeFunction<{ success: boolean }>('room-leave', {
+    room_id: roomId,
+    participant_id: participantId,
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function getRoomFinalRankings(
   roomId: string,
 ): Promise<RoomFinalRanking[]> {
-  const { data, error } = await supabase.rpc('get_room_final_rankings', {
-    p_room_id: roomId,
-  });
-  if (error) throw error;
-  return (data ?? []).map(
-    (entry: Omit<RoomFinalRanking, 'rank_position'>, idx: number) => ({
-      ...entry,
-      rank_position: idx + 1,
-    }),
+  const data = await invokeRpc<Omit<RoomFinalRanking, 'rank_position'>[] | null>(
+    'get_room_final_rankings',
+    { p_room_id: roomId },
   );
+  return (data ?? []).map((entry, idx) => ({
+    ...entry,
+    rank_position: idx + 1,
+  }));
 }

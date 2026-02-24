@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { invokeFunction } from '../../apis/utils';
 
 export interface QuizQuestion {
   quiz_id: string;
@@ -37,36 +37,32 @@ export interface HintEntry {
 }
 
 export async function getQuizList(year: number): Promise<{ year: number; quizzes: QuizQuestion[] }> {
-  const { data, error } = await supabase.functions.invoke('quiz-list', {
-    body: { year },
-  });
-  if (error) throw error;
-  return data;
+  return invokeFunction<{ year: number; quizzes: QuizQuestion[] }>(
+    'quiz-list',
+    { year },
+  );
 }
 
 export async function submitQuizAnswers(
   sessionId: string,
   answers: Array<{ quiz_id: string; selected_option: number }>,
 ): Promise<QuizAnswerResponse> {
-  const { data, error } = await supabase.functions.invoke('quiz-answer', {
-    body: { session_id: sessionId, answers },
+  return invokeFunction<QuizAnswerResponse>('quiz-answer', {
+    session_id: sessionId,
+    answers,
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function unlockHintByAd(sessionId: string, year: number) {
-  const { data, error } = await supabase.functions.invoke('hint-unlock', {
-    body: { session_id: sessionId, year, method: 'ad' },
+  return invokeFunction('hint-unlock', {
+    session_id: sessionId,
+    year,
+    method: 'ad',
   });
-  if (error) throw error;
-  return data;
 }
 
 export async function getHints(sessionId: string): Promise<{ hints: HintEntry[] }> {
-  const { data, error } = await supabase.functions.invoke('hints', {
-    body: { session_id: sessionId },
+  return invokeFunction<{ hints: HintEntry[] }>('hints', {
+    session_id: sessionId,
   });
-  if (error) throw error;
-  return data;
 }

@@ -1,5 +1,4 @@
-import { supabase } from '@/lib/supabase';
-
+import { invokeFunction } from '../../apis/utils';
 import type { TradeType, UpdatedHolding } from '../../interfaces/trade';
 
 interface TradeExecuteRequest {
@@ -31,9 +30,5 @@ export interface TradeExecuteResponse {
 export async function executeTrade(
   params: TradeExecuteRequest,
 ): Promise<TradeExecuteResponse> {
-  const { data, error } = await supabase.functions.invoke('trade-execute', {
-    body: params,
-  });
-  if (error) throw error;
-  return data;
+  return invokeFunction<TradeExecuteResponse>('trade-execute', params);
 }
