@@ -4,7 +4,6 @@ const PATH = {
   TRADERS: '/traders',
   TRADERS_GAME: '/traders/game',
   TRADERS_RANKING: '/traders/ranking',
-  TRADERS_PROFILE: '/traders/profile',
   TRADERS_GAME_COMPLETE: '/traders/game/complete',
   TRADERS_AUTH_CALLBACK: '/traders/auth/callback',
   TRADERS_ROOM: '/traders/room',
