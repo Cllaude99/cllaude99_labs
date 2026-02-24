@@ -8,5 +8,6 @@ export const useQuizList = (year: number) => {
   return useQuery({
     queryKey: QUERY_KEY(year),
     queryFn: () => getQuizList(year),
+    staleTime: Infinity,
   });
 };

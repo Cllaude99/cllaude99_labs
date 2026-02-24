@@ -6,6 +6,22 @@ import { getRoundResult } from '../apis/room';
 import type { RoomPhase, RoomStatus } from '../interfaces/room';
 import { useRoomStore } from '../stores/roomStore';
 
+interface RoomRow {
+  status: RoomStatus;
+  current_phase: RoomPhase;
+  current_year: number;
+}
+
+function isRoomRow(value: unknown): value is RoomRow {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'status' in value &&
+    'current_phase' in value &&
+    'current_year' in value
+  );
+}
+
 export const useRoomRealtime = (roomId: string | null) => {
   const {
     setRoomStatus,
@@ -31,20 +47,21 @@ export const useRoomRealtime = (roomId: string | null) => {
           filter: `id=eq.${roomId}`,
         },
         (payload) => {
-          const room = payload.new as {
-            status: RoomStatus;
-            current_phase: RoomPhase;
-            current_year: number;
-          };
-          setRoomStatus(room.status);
-          setRoomPhase(room.current_phase);
-          setCurrentYear(room.current_year);
+          if (!isRoomRow(payload.new)) return;
+
+          setRoomStatus(payload.new.status);
+          setRoomPhase(payload.new.current_phase);
+          setCurrentYear(payload.new.current_year);
 
           // round_result 감지 시 결과 자동 조회
-          if (room.current_phase === 'round_result') {
-            getRoundResult(roomId, room.current_year).then((result) => {
-              setRoundResult(result);
-            });
+          if (payload.new.current_phase === 'round_result') {
+            getRoundResult(roomId, payload.new.current_year)
+              .then((result) => {
+                setRoundResult(result);
+              })
+              .catch((err) => {
+                console.error('[useRoomRealtime] 라운드 결과 조회 실패:', err);
+              });
           }
         },
       )
@@ -77,7 +94,11 @@ export const useRoomRealtime = (roomId: string | null) => {
           }
         },
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.error('[useRoomRealtime] 구독 에러:', status, err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
