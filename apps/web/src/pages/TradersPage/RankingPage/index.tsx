@@ -44,7 +44,7 @@ const RankingPage = () => {
   return (
     <S.Container>
       <S.Header>
-        <S.BackButton onClick={() => navigate(-1)}>←</S.BackButton>
+        <S.BackButton onClick={() => navigate(-1)} aria-label="뒤로가기">←</S.BackButton>
         <S.Title>랭킹</S.Title>
       </S.Header>
 

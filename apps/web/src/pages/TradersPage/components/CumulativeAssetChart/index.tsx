@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import {
   type IChartApi,
@@ -79,24 +79,28 @@ const CumulativeAssetChart = ({
     };
   }, [height]);
 
+  const { assetData, baselineData } = useMemo(
+    () => ({
+      assetData: settlements.map((s) => ({
+        time: `${s.year}-12-31`,
+        value: s.ending_asset,
+      })),
+      baselineData: settlements.map((s) => ({
+        time: `${s.year}-12-31`,
+        value: INITIAL_CASH,
+      })),
+    }),
+    [settlements],
+  );
+
   useEffect(() => {
     if (!assetSeriesRef.current || !baselineSeriesRef.current) return;
-    if (settlements.length === 0) return;
-
-    const assetData = settlements.map((s) => ({
-      time: `${s.year}-12-31`,
-      value: s.ending_asset,
-    }));
-
-    const baselineData = settlements.map((s) => ({
-      time: `${s.year}-12-31`,
-      value: INITIAL_CASH,
-    }));
+    if (assetData.length === 0) return;
 
     assetSeriesRef.current.setData(assetData);
     baselineSeriesRef.current.setData(baselineData);
     chartRef.current?.timeScale().fitContent();
-  }, [settlements]);
+  }, [assetData, baselineData]);
 
   return (
     <S.ChartContainer>

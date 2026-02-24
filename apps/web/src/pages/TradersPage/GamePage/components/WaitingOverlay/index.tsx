@@ -1,18 +1,14 @@
 import * as S from './WaitingOverlay.styles';
 import type { RoomParticipant } from '../../../interfaces/room';
 
-
 interface WaitingOverlayProps {
-  readyCount: number;
-  totalCount: number;
   participants: RoomParticipant[];
 }
 
-const WaitingOverlay = ({
-  readyCount,
-  totalCount,
-  participants,
-}: WaitingOverlayProps) => {
+const WaitingOverlay = ({ participants }: WaitingOverlayProps) => {
+  const readyCount = participants.filter((p) => p.is_ready).length;
+  const totalCount = participants.length;
+
   return (
     <S.Overlay
       initial={{ opacity: 0 }}

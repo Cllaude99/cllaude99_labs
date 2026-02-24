@@ -41,17 +41,14 @@ const RoomWaitingPage = () => {
     if (roomStatus === 'playing' && roomPhase === 'hint') {
       // 내 session_id를 찾아 gameStore에 설정
       const me = participants.find((p) => p.id === participantId);
-      if (me?.session_id) {
-        // startMutation 성공 시 이미 설정됨 (호스트)
-        // 비호스트는 여기서 설정
-        if (!isHost) {
-          // 비호스트의 경우 startRoom의 응답 데이터가 없으므로
-          // Realtime으로 감지된 시점에 GamePage로 이동
-          navigate(PATH.TRADERS_GAME, { replace: true });
-        }
+      if (me?.session_id && !isHost) {
+        // 게스트: sessionId 설정 후 GamePage로 이동
+        // stocks는 GamePage에서 stockPricesData로부터 복원
+        setSession(me.session_id, []);
+        navigate(PATH.TRADERS_GAME, { replace: true });
       }
     }
-  }, [roomStatus, roomPhase, participants, participantId, isHost, navigate]);
+  }, [roomStatus, roomPhase, participants, participantId, isHost, navigate, setSession]);
 
   const startMutation = useMutation({
     mutationFn: () => startRoom(roomId!, participantId!),

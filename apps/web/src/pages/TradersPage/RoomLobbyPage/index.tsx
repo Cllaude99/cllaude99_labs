@@ -27,7 +27,7 @@ const RoomLobbyPage = () => {
         nickname,
         isHost: true,
       });
-      navigate(`/traders/room/${data.room_code}`);
+      navigate(`${PATH.TRADERS_ROOM}/${data.room_code}`);
     },
     onError: (err: Error) => {
       setError(err.message || '방 생성에 실패했습니다.');
@@ -44,7 +44,7 @@ const RoomLobbyPage = () => {
         nickname,
         isHost: false,
       });
-      navigate(`/traders/room/${data.room_code}`);
+      navigate(`${PATH.TRADERS_ROOM}/${data.room_code}`);
     },
     onError: (err: Error) => {
       setError(err.message || '방 참여에 실패했습니다.');

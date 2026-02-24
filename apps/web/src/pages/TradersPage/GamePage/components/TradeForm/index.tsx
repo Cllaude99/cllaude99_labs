@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import * as S from './TradeForm.styles';
 import type { TradeType } from '../../../interfaces/trade';
 
-
 interface TradeFormData {
   quantity: number;
 }
@@ -31,6 +30,7 @@ const TradeForm = ({
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<TradeFormData>();
 
@@ -72,19 +72,7 @@ const TradeForm = ({
         )}
         <S.MaxButton
           type="button"
-          onClick={() => {
-            const input = document.querySelector<HTMLInputElement>(
-              'input[name="quantity"]',
-            );
-            if (input) {
-              const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                window.HTMLInputElement.prototype,
-                'value',
-              )?.set;
-              nativeInputValueSetter?.call(input, String(maxQuantity));
-              input.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-          }}
+          onClick={() => setValue('quantity', maxQuantity)}
         >
           최대 {maxQuantity.toLocaleString()}주
         </S.MaxButton>
