@@ -1,7 +1,5 @@
 export type GamePhase = 'hint' | 'trading' | 'settlement';
 
-export type GameStatus = 'playing' | 'settling' | 'completed' | 'abandoned';
-
 export interface StockInfo {
   stock_id: string;
   alias_code: string;

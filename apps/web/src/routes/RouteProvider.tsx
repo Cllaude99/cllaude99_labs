@@ -16,7 +16,6 @@ import SemanticPage from '@/pages/A11yPage/SemanticPage';
 import HomePage from '@/pages/HomePage';
 import SketchPage from '@/pages/SketchPage';
 import TradersPage from '@/pages/TradersPage';
-import AuthCallbackPage from '@/pages/TradersPage/AuthCallbackPage';
 import GameCompletePage from '@/pages/TradersPage/GameCompletePage';
 import GamePage from '@/pages/TradersPage/GamePage';
 import RankingPage from '@/pages/TradersPage/RankingPage';
@@ -54,10 +53,6 @@ const router = createBrowserRouter([
       {
         path: PATH.TRADERS_RANKING,
         element: <RankingPage />,
-      },
-      {
-        path: PATH.TRADERS_AUTH_CALLBACK,
-        element: <AuthCallbackPage />,
       },
       {
         path: PATH.TRADERS_ROOM,

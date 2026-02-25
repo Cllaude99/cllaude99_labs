@@ -1,5 +1,5 @@
 import { invokeFunction, invokeRpc } from './utils';
-import type { AdvanceYearResponse, GameStatus, StockInfo } from '../interfaces/game';
+import type { AdvanceYearResponse, StockInfo } from '../interfaces/game';
 import type { RevealedStock } from '../interfaces/stock';
 
 export interface GameCreateResponse {
@@ -8,7 +8,6 @@ export interface GameCreateResponse {
   current_month: number;
   cash_balance: number;
   total_asset: number;
-  status: GameStatus;
   stocks: StockInfo[];
 }
 
