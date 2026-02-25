@@ -7,6 +7,7 @@ import { PATH } from '@/constants';
 
 import * as S from './RoomWaitingPage.styles';
 import { leaveRoom, startRoom } from '../apis/room';
+import { MAX_ROOM_PARTICIPANTS } from '../constants/game';
 import { useRoomRealtime } from '../hooks/useRoomRealtime';
 import { useGameStore } from '../stores/gameStore';
 import { useRoomStore } from '../stores/roomStore';
@@ -73,11 +74,14 @@ const RoomWaitingPage = () => {
       resetRoom();
       navigate(PATH.TRADERS_ROOM, { replace: true });
     },
+    onError: () => {
+      setError('방 나가기에 실패했습니다.');
+    },
   });
 
   const handleCopyCode = () => {
     if (roomCode) {
-      navigator.clipboard.writeText(roomCode);
+      navigator.clipboard.writeText(roomCode).catch(() => {});
     }
   };
 
@@ -90,8 +94,7 @@ const RoomWaitingPage = () => {
     leaveMutation.mutate();
   };
 
-  const maxParticipants = 6;
-  const emptySlots = Math.max(0, maxParticipants - participants.length);
+  const emptySlots = Math.max(0, MAX_ROOM_PARTICIPANTS - participants.length);
 
   return (
     <S.Container>
@@ -111,7 +114,7 @@ const RoomWaitingPage = () => {
 
         <S.ParticipantSection>
           <S.SectionTitle>
-            참가자 ({participants.length}/{maxParticipants})
+            참가자 ({participants.length}/{MAX_ROOM_PARTICIPANTS})
           </S.SectionTitle>
           <S.ParticipantList>
             {participants.map((p) => (

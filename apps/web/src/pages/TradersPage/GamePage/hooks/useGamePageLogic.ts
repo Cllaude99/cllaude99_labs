@@ -10,7 +10,7 @@ import { useStockHistory } from './useStockHistory';
 import { useStockPrices } from './useStockPrices';
 import { useTrade } from './useTrade';
 import { advanceYear } from '../../apis/game';
-import { START_YEAR } from '../../constants/game';
+import { START_YEAR, STORAGE_KEY_TUTORIAL_DONE } from '../../constants/game';
 import { useRoomRealtime } from '../../hooks/useRoomRealtime';
 import type { AdvanceYearResponse, PortfolioItem, StockInfo } from '../../interfaces/game';
 import type { StockDailyPrice } from '../../interfaces/stock';
@@ -93,7 +93,7 @@ export const useGamePageLogic = () => {
   const [settlementData, setSettlementData] =
     useState<AdvanceYearResponse | null>(null);
   const [showTutorial, setShowTutorial] = useState(() => {
-    return !localStorage.getItem('traders_tutorial_done');
+    return !localStorage.getItem(STORAGE_KEY_TUTORIAL_DONE);
   });
 
   // 현재 연도 주가 데이터
@@ -243,7 +243,7 @@ export const useGamePageLogic = () => {
   }, [setPhase]);
 
   const handleTutorialComplete = useCallback(() => {
-    localStorage.setItem('traders_tutorial_done', 'true');
+    localStorage.setItem(STORAGE_KEY_TUTORIAL_DONE, 'true');
     setShowTutorial(false);
   }, []);
 
