@@ -1,6 +1,10 @@
 import { SVGAttributes } from 'react';
 
-const Moon = ({ width = 24, height = 24, ...rest }: SVGAttributes<SVGSVGElement>) => {
+const Moon = ({
+  width = 14,
+  height = 14,
+  ...rest
+}: SVGAttributes<SVGSVGElement>) => {
   return (
     <svg
       width={width}
