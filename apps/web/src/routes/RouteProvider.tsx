@@ -7,7 +7,7 @@ import {
 import APIErrorBoundary from '@/components/ErrorBoundary/APIErrorBoundary';
 import UnknownErrorBoundary from '@/components/ErrorBoundary/UnKnownErrorBoudary';
 import SomethingWentWrong from '@/components/ErrorPage/SomethingWentWrong';
-import { PATH } from '@/constants';
+import { PATH, TRADERS_ROUTES } from '@/constants';
 import A11yPage from '@/pages/A11yPage';
 import AriaHiddenPage from '@/pages/A11yPage/AriaHiddenPage';
 import AriaRolePage from '@/pages/A11yPage/AriaRolePage';
@@ -16,11 +16,13 @@ import SemanticPage from '@/pages/A11yPage/SemanticPage';
 import HomePage from '@/pages/HomePage';
 import SketchPage from '@/pages/SketchPage';
 import TradersPage from '@/pages/TradersPage';
+import FloatingThemeToggle from '@/pages/TradersPage/components/FloatingThemeToggle';
 import GameCompletePage from '@/pages/TradersPage/GameCompletePage';
 import GamePage from '@/pages/TradersPage/GamePage';
 import RankingPage from '@/pages/TradersPage/RankingPage';
 import RoomLobbyPage from '@/pages/TradersPage/RoomLobbyPage';
 import RoomWaitingPage from '@/pages/TradersPage/RoomWaitingPage';
+import { TradersThemeProvider } from '@/pages/TradersPage/theme/TradersThemeProvider';
 
 const router = createBrowserRouter([
   {
@@ -40,27 +42,38 @@ const router = createBrowserRouter([
       },
       {
         path: PATH.TRADERS,
-        element: <TradersPage />,
-      },
-      {
-        path: PATH.TRADERS_GAME,
-        element: <GamePage />,
-      },
-      {
-        path: PATH.TRADERS_GAME_COMPLETE,
-        element: <GameCompletePage />,
-      },
-      {
-        path: PATH.TRADERS_RANKING,
-        element: <RankingPage />,
-      },
-      {
-        path: PATH.TRADERS_ROOM,
-        element: <RoomLobbyPage />,
-      },
-      {
-        path: PATH.TRADERS_ROOM_WAITING,
-        element: <RoomWaitingPage />,
+        element: (
+          <TradersThemeProvider>
+            <FloatingThemeToggle />
+            <Outlet />
+          </TradersThemeProvider>
+        ),
+        children: [
+          {
+            index: true,
+            element: <TradersPage />,
+          },
+          {
+            path: TRADERS_ROUTES.GAME,
+            element: <GamePage />,
+          },
+          {
+            path: TRADERS_ROUTES.GAME_COMPLETE,
+            element: <GameCompletePage />,
+          },
+          {
+            path: TRADERS_ROUTES.RANKING,
+            element: <RankingPage />,
+          },
+          {
+            path: TRADERS_ROUTES.ROOM,
+            element: <RoomLobbyPage />,
+          },
+          {
+            path: TRADERS_ROUTES.ROOM_WAITING,
+            element: <RoomWaitingPage />,
+          },
+        ],
       },
       {
         path: PATH.SKETCH,
