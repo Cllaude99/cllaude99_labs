@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { SVGAttributes } from 'react';
 
 const Sun = ({

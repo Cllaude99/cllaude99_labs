@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { SVGAttributes } from 'react';
 
 const Share = ({ width = 24, height = 24, ...rest }: SVGAttributes<SVGSVGElement>) => {
