@@ -6,17 +6,17 @@ const Badge = styled.button`
   gap: 4px;
   padding: 4px 10px;
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.palette.grey200};
-  background-color: ${({ theme }) => `${theme.palette.blue500}14`};
-  color: ${({ theme }) => theme.palette.blue500};
+  border: 1px solid ${({ theme }) => theme.traders.borderPrimary};
+  background-color: ${({ theme }) => `${theme.traders.ctaPrimary}14`};
+  color: ${({ theme }) => theme.traders.ctaPrimary};
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-variant-numeric: tabular-nums;
 
   &:hover {
-    background-color: ${({ theme }) => `${theme.palette.blue500}26`};
-    border-color: ${({ theme }) => theme.palette.blue500};
+    background-color: ${({ theme }) => `${theme.traders.ctaPrimary}26`};
+    border-color: ${({ theme }) => theme.traders.ctaPrimary};
   }
 `;
 
@@ -27,8 +27,8 @@ const Drawer = styled.div<{ open: boolean }>`
   width: 280px;
   max-width: 85vw;
   height: 100vh;
-  background-color: ${({ theme }) => theme.palette.white};
-  border-left: 1px solid ${({ theme }) => theme.palette.grey150};
+  background-color: ${({ theme }) => theme.traders.surfaceElevated};
+  border-left: 1px solid ${({ theme }) => theme.traders.borderSecondary};
   z-index: 200;
   transform: translateX(${({ open }) => (open ? '0' : '100%')});
   transition: transform 0.3s ease;
@@ -39,7 +39,7 @@ const Drawer = styled.div<{ open: boolean }>`
 const Overlay = styled.div<{ open: boolean }>`
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${({ theme }) => theme.traders.surfaceOverlay};
   z-index: 199;
   opacity: ${({ open }) => (open ? 1 : 0)};
   pointer-events: ${({ open }) => (open ? 'auto' : 'none')};
@@ -51,13 +51,13 @@ const DrawerHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey150};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const DrawerTitle = styled.h3`
   font-size: 16px;
   font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const CloseButton = styled.button`
@@ -67,32 +67,32 @@ const CloseButton = styled.button`
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  border: 1px solid ${({ theme }) => theme.palette.grey200};
+  border: 1px solid ${({ theme }) => theme.traders.borderPrimary};
   background: transparent;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
   font-size: 16px;
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ theme }) => theme.palette.grey50};
+    background-color: ${({ theme }) => theme.traders.bgSecondary};
   }
 `;
 
 const MyRankSection = styled.div`
   padding: 12px 16px;
-  background-color: ${({ theme }) => `${theme.palette.blue500}0D`};
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey150};
+  background-color: ${({ theme }) => `${theme.traders.ctaPrimary}0D`};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const MyRankLabel = styled.span`
   font-size: 11px;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const MyRankValue = styled.div`
   font-size: 20px;
   font-weight: 800;
-  color: ${({ theme }) => theme.palette.blue500};
+  color: ${({ theme }) => theme.traders.ctaPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -100,20 +100,20 @@ const MyReturnRate = styled.span<{ isProfit: boolean }>`
   font-size: 14px;
   font-weight: 600;
   color: ${({ theme, isProfit }) =>
-    isProfit ? theme.palette.blue500 : theme.palette.red500};
+    isProfit ? theme.traders.profitPositive : theme.traders.profitNegative};
   font-variant-numeric: tabular-nums;
 `;
 
 const TotalPlayers = styled.span`
   font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const SectionLabel = styled.div`
   padding: 8px 16px;
   font-size: 11px;
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
@@ -129,8 +129,8 @@ const RankItem = styled.div<{ isMe?: boolean }>`
   gap: 10px;
   padding: 10px 16px;
   background-color: ${({ theme, isMe }) =>
-    isMe ? `${theme.palette.blue500}0D` : 'transparent'};
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey100};
+    isMe ? `${theme.traders.ctaPrimary}0D` : 'transparent'};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.bgTertiary};
 `;
 
 const RankPosition = styled.span<{ isTop3?: boolean }>`
@@ -138,7 +138,7 @@ const RankPosition = styled.span<{ isTop3?: boolean }>`
   font-size: 14px;
   font-weight: 700;
   color: ${({ theme, isTop3 }) =>
-    isTop3 ? theme.palette.yellow500 : theme.palette.grey600};
+    isTop3 ? theme.traders.rankHighlight : theme.traders.textSecondary};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -152,19 +152,19 @@ const RankInfo = styled.div`
 const RankNickname = styled.span`
   font-size: 13px;
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const RankYear = styled.span`
   font-size: 11px;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const RankReturnRate = styled.span<{ isProfit: boolean }>`
   font-size: 13px;
   font-weight: 600;
   color: ${({ theme, isProfit }) =>
-    isProfit ? theme.palette.blue500 : theme.palette.red500};
+    isProfit ? theme.traders.profitPositive : theme.traders.profitNegative};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -172,7 +172,7 @@ const Separator = styled.div`
   padding: 4px 16px;
   text-align: center;
   font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey400};
+  color: ${({ theme }) => theme.traders.textTertiary};
 `;
 
 export {

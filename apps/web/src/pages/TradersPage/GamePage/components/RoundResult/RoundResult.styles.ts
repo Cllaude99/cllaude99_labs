@@ -18,18 +18,18 @@ export const Header = styled.div`
 export const Title = styled.h3`
   font-size: 20px;
   font-weight: 800;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 export const YearLabel = styled.span`
   font-size: 14px;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 export const RankingTable = styled.div`
   display: flex;
   flex-direction: column;
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
   border-radius: 10px;
   overflow: hidden;
 `;
@@ -39,14 +39,14 @@ export const RankingHeader = styled.div`
   grid-template-columns: 40px 1fr 100px 80px;
   gap: 4px;
   padding: 10px 12px;
-  background-color: ${({ theme }) => theme.palette.grey50};
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey150};
+  background-color: ${({ theme }) => theme.traders.bgSecondary};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 export const HeaderCell = styled.span`
   font-size: 12px;
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
   text-align: right;
 
   &:first-of-type,
@@ -57,15 +57,14 @@ export const HeaderCell = styled.span`
 
 export const RankingRow = styled(motion.div)<{
   isMe?: boolean;
-  isTop3?: boolean;
 }>`
   display: grid;
   grid-template-columns: 40px 1fr 100px 80px;
   gap: 4px;
   padding: 10px 12px;
   background-color: ${({ theme, isMe }) =>
-    isMe ? `${theme.palette.blue500}14` : 'transparent'};
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey50};
+    isMe ? `${theme.traders.ctaPrimary}14` : 'transparent'};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.bgSecondary};
 
   &:last-of-type {
     border-bottom: none;
@@ -76,19 +75,19 @@ export const RankCell = styled.span<{ isTop3?: boolean }>`
   font-size: 15px;
   font-weight: 700;
   color: ${({ theme, isTop3 }) =>
-    isTop3 ? theme.palette.blue500 : theme.palette.grey500};
+    isTop3 ? theme.traders.ctaPrimary : theme.traders.textSecondary};
 `;
 
 export const NicknameCell = styled.span`
   font-size: 14px;
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 export const AssetCell = styled.span`
   font-size: 14px;
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
   text-align: right;
   font-variant-numeric: tabular-nums;
 `;
@@ -97,7 +96,7 @@ export const ReturnCell = styled.span<{ isProfit: boolean }>`
   font-size: 14px;
   font-weight: 700;
   color: ${({ theme, isProfit }) =>
-    isProfit ? theme.palette.blue500 : theme.palette.red500};
+    isProfit ? theme.traders.profitPositive : theme.traders.profitNegative};
   text-align: right;
   font-variant-numeric: tabular-nums;
 `;
@@ -107,12 +106,8 @@ export const NextButton = styled(motion.button)`
   padding: 16px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.palette.blue500},
-    ${({ theme }) => theme.palette.blue600}
-  );
-  color: ${({ theme }) => theme.palette.white};
+  background-color: ${({ theme }) => theme.traders.ctaPrimary};
+  color: ${({ theme }) => theme.traders.textInverse};
   font-size: 17px;
   font-weight: 700;
   cursor: pointer;
@@ -130,8 +125,8 @@ export const WaitingText = styled.div`
   justify-content: center;
   padding: 16px;
   border-radius: 12px;
-  background-color: ${({ theme }) => theme.palette.grey50};
-  color: ${({ theme }) => theme.palette.grey500};
+  background-color: ${({ theme }) => theme.traders.bgSecondary};
+  color: ${({ theme }) => theme.traders.textSecondary};
   font-size: 15px;
   font-weight: 600;
 `;

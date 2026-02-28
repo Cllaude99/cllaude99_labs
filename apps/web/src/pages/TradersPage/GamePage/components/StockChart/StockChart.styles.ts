@@ -4,7 +4,7 @@ const ChartContainer = styled.div`
   width: 100%;
   border-radius: 12px;
   overflow: hidden;
-  background-color: ${({ theme }) => theme.palette.grey50};
+  background-color: ${({ theme }) => theme.traders.chartBg};
 `;
 
 export { ChartContainer };

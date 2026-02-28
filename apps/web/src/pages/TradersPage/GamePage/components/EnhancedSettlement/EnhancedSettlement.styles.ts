@@ -15,20 +15,19 @@ const Header = styled.div`
 `;
 
 const Year = styled.span`
-  font-size: 14px;
-  color: ${({ theme }) => theme.palette.grey500};
+  ${({ theme }) => theme.typography.body3};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const Title = styled.h2`
-  font-size: 20px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.heading4};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const ReturnRate = styled.span<{ isProfit: boolean }>`
-  font-size: 28px;
-  font-weight: 800;
-  color: ${({ theme, isProfit }) => (isProfit ? theme.palette.blue500 : theme.palette.red500)};
+  ${({ theme }) => theme.typography.heading1};
+  color: ${({ theme, isProfit }) =>
+    isProfit ? theme.traders.profitPositive : theme.traders.profitNegative};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -43,33 +42,31 @@ const SummaryItem = styled.div`
   flex-direction: column;
   gap: 4px;
   padding: 12px;
-  background-color: ${({ theme }) => theme.palette.grey100};
+  background-color: ${({ theme }) => theme.traders.bgTertiary};
   border-radius: 8px;
 `;
 
 const SummaryLabel = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey500};
+  ${({ theme }) => theme.typography.caption1};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const SummaryValue = styled.span`
-  font-size: 16px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.title2};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
 const SectionTitle = styled.h3`
-  font-size: 16px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.title2};
+  color: ${({ theme }) => theme.traders.textPrimary};
   margin-top: 4px;
 `;
 
 const PerformanceTable = styled.div`
   display: flex;
   flex-direction: column;
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
   border-radius: 8px;
   overflow: hidden;
 `;
@@ -79,14 +76,14 @@ const TableHeader = styled.div`
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 4px;
   padding: 10px 12px;
-  background-color: ${({ theme }) => theme.palette.white};
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey150};
+  background-color: ${({ theme }) => theme.traders.surfaceCard};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const TableHeaderCell = styled.span`
-  font-size: 11px;
+  ${({ theme }) => theme.typography.caption2};
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
   text-align: right;
 
   &:first-of-type {
@@ -99,7 +96,7 @@ const TableRow = styled.div`
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 4px;
   padding: 10px 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey100};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.bgTertiary};
 
   &:last-of-type {
     border-bottom: none;
@@ -107,8 +104,8 @@ const TableRow = styled.div`
 `;
 
 const TableCell = styled.span`
-  font-size: 13px;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.body4};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
   text-align: right;
 
@@ -119,9 +116,9 @@ const TableCell = styled.span`
 `;
 
 const PnlCell = styled.span<{ isProfit: boolean }>`
-  font-size: 13px;
-  font-weight: 600;
-  color: ${({ theme, isProfit }) => (isProfit ? theme.palette.blue500 : theme.palette.red500)};
+  ${({ theme }) => theme.typography.label2Bold};
+  color: ${({ theme, isProfit }) =>
+    isProfit ? theme.traders.profitPositive : theme.traders.profitNegative};
   font-variant-numeric: tabular-nums;
   text-align: right;
 `;
@@ -131,10 +128,9 @@ const NextButton = styled.button`
   padding: 14px;
   border-radius: 8px;
   border: none;
-  background-color: ${({ theme }) => theme.palette.blue500};
-  color: ${({ theme }) => theme.palette.white};
-  font-size: 16px;
-  font-weight: 600;
+  background-color: ${({ theme }) => theme.traders.ctaPrimary};
+  color: ${({ theme }) => theme.traders.textInverse};
+  ${({ theme }) => theme.typography.title2};
   cursor: pointer;
   margin-top: 8px;
 
@@ -146,8 +142,8 @@ const NextButton = styled.button`
 const EmptyPerformance = styled.div`
   padding: 20px;
   text-align: center;
-  color: ${({ theme }) => theme.palette.grey500};
-  font-size: 14px;
+  color: ${({ theme }) => theme.traders.textSecondary};
+  ${({ theme }) => theme.typography.body3};
 `;
 
 export {

@@ -77,6 +77,7 @@ const GamePage = () => {
       <HintPhase
         sessionId={sessionId}
         year={currentYear}
+        stocks={stocks}
         onComplete={handleHintComplete}
       />
     );
@@ -206,6 +207,7 @@ const GamePage = () => {
       {tradePanel.open && selectedStock && (
         <S.TradeOverlay onClick={closeTradePanel}>
           <S.TradePanel onClick={(e) => e.stopPropagation()}>
+            <S.HandleBar />
             <TradeForm
               tradeType={tradePanel.type}
               currentPrice={currentSelectedPrice}

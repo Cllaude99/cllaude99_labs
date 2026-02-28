@@ -4,8 +4,8 @@ const BlurChartWrapper = styled.div<{ isUnlocked: boolean }>`
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  background-color: ${({ theme }) => theme.palette.grey50};
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  background-color: ${({ theme }) => theme.traders.bgSecondary};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 
   > div:first-of-type {
     filter: ${({ isUnlocked }) => (isUnlocked ? 'none' : 'blur(8px)')};
@@ -32,19 +32,19 @@ const LockIcon = styled.span`
 const LockText = styled.span`
   font-size: 14px;
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const LockDesc = styled.span`
   font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const YearLabel = styled.div`
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const StockTabs = styled.div`
@@ -58,10 +58,12 @@ const StockTab = styled.button<{ active: boolean }>`
   padding: 6px 12px;
   border-radius: 6px;
   border: 1px solid
-    ${({ theme, active }) => (active ? theme.palette.blue400 : theme.palette.grey200)};
+    ${({ theme, active }) =>
+      active ? theme.traders.ctaSecondaryBorder : theme.traders.borderPrimary};
   background-color: ${({ theme, active }) =>
-    active ? `${theme.palette.blue400}26` : 'transparent'};
-  color: ${({ theme, active }) => (active ? theme.palette.blue400 : theme.palette.grey500)};
+    active ? `${theme.traders.ctaSecondaryBorder}26` : 'transparent'};
+  color: ${({ theme, active }) =>
+    active ? theme.traders.ctaSecondaryText : theme.traders.textSecondary};
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -69,7 +71,7 @@ const StockTab = styled.button<{ active: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    border-color: ${({ theme }) => theme.palette.blue400};
+    border-color: ${({ theme }) => theme.traders.ctaSecondaryBorder};
   }
 `;
 

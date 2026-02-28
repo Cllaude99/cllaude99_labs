@@ -5,9 +5,9 @@ const FormContainer = styled.form`
   flex-direction: column;
   gap: 16px;
   padding: 20px;
-  background-color: ${({ theme }) => theme.palette.grey50};
+  background-color: ${({ theme }) => theme.traders.bgSecondary};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const Header = styled.div`
@@ -17,20 +17,18 @@ const Header = styled.div`
 `;
 
 const StockCode = styled.span`
-  font-size: 20px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.heading4};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const TradeTypeLabel = styled.span<{ isBuy: boolean }>`
-  font-size: 14px;
-  font-weight: 600;
+  ${({ theme }) => theme.typography.label1Bold};
   padding: 4px 12px;
   border-radius: 6px;
   color: ${({ theme, isBuy }) =>
-    isBuy ? theme.palette.blue500 : theme.palette.red500};
+    isBuy ? theme.traders.buy : theme.traders.sell};
   background-color: ${({ theme, isBuy }) =>
-    isBuy ? `${theme.palette.blue500}26` : `${theme.palette.red500}26`};
+    isBuy ? `${theme.traders.buy}26` : `${theme.traders.sell}26`};
 `;
 
 const PriceInfo = styled.div`
@@ -40,14 +38,13 @@ const PriceInfo = styled.div`
 `;
 
 const Label = styled.span`
-  font-size: 13px;
-  color: ${({ theme }) => theme.palette.grey500};
+  ${({ theme }) => theme.typography.body4};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const Value = styled.span`
-  font-size: 16px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.title2};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -57,31 +54,64 @@ const InputGroup = styled.div`
   gap: 6px;
 `;
 
-const QuantityInput = styled.input`
-  width: 100%;
-  padding: 10px 14px;
+const QuantityInputWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0;
   border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.palette.grey200};
-  background-color: ${({ theme }) => theme.palette.grey100};
-  color: ${({ theme }) => theme.palette.grey900};
-  font-size: 16px;
-  font-variant-numeric: tabular-nums;
-  outline: none;
-  box-sizing: border-box;
+  border: 1px solid ${({ theme }) => theme.traders.borderPrimary};
+  background-color: ${({ theme }) => theme.traders.bgTertiary};
+  overflow: hidden;
 
-  &:focus {
-    border-color: ${({ theme }) => theme.palette.blue500};
+  &:focus-within {
+    border-color: ${({ theme }) => theme.traders.ctaPrimary};
+  }
+`;
+
+const StepperButton = styled.button`
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent;
+  color: ${({ theme }) => theme.traders.textSecondary};
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background-color: ${({ theme }) => theme.traders.borderSecondary};
   }
 
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+`;
+
+const QuantityInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+  border: none;
+  background-color: transparent;
+  color: ${({ theme }) => theme.traders.textPrimary};
+  ${({ theme }) => theme.typography.body1};
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  text-align: center;
+
   &::placeholder {
-    color: ${({ theme }) => theme.palette.grey300};
+    color: ${({ theme }) => theme.traders.textTertiary};
   }
 `;
 
 const MaxButton = styled.button`
   align-self: flex-end;
-  font-size: 12px;
-  color: ${({ theme }) => theme.palette.blue500};
+  ${({ theme }) => theme.typography.caption1};
+  color: ${({ theme }) => theme.traders.textLink};
   background: none;
   border: none;
   cursor: pointer;
@@ -92,9 +122,31 @@ const MaxButton = styled.button`
   }
 `;
 
+const QuickButtonRow = styled.div`
+  display: flex;
+  gap: 6px;
+`;
+
+const QuickButton = styled.button`
+  flex: 1;
+  padding: 6px 0;
+  border-radius: 6px;
+  border: 1px solid ${({ theme }) => theme.traders.borderPrimary};
+  background-color: ${({ theme }) => theme.traders.surfaceCard};
+  color: ${({ theme }) => theme.traders.textSecondary};
+  ${({ theme }) => theme.typography.caption1};
+  cursor: pointer;
+  min-height: 32px;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.traders.ctaPrimary};
+    color: ${({ theme }) => theme.traders.ctaPrimary};
+  }
+`;
+
 const ErrorText = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.palette.red500};
+  ${({ theme }) => theme.typography.caption1};
+  color: ${({ theme }) => theme.traders.statusError};
 `;
 
 const TotalAmount = styled.div`
@@ -102,13 +154,12 @@ const TotalAmount = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-top: 1px solid ${({ theme }) => theme.palette.grey150};
+  border-top: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const TotalValue = styled.span`
-  font-size: 18px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.title1};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -121,15 +172,14 @@ const CancelButton = styled.button`
   flex: 1;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.palette.grey200};
+  border: 1px solid ${({ theme }) => theme.traders.borderPrimary};
   background-color: transparent;
-  color: ${({ theme }) => theme.palette.grey600};
-  font-size: 15px;
-  font-weight: 600;
+  color: ${({ theme }) => theme.traders.textSecondary};
+  ${({ theme }) => theme.typography.body2Bold};
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ theme }) => theme.palette.grey50};
+    background-color: ${({ theme }) => theme.traders.bgSecondary};
   }
 `;
 
@@ -139,10 +189,9 @@ const SubmitButton = styled.button<{ isBuy: boolean }>`
   border-radius: 8px;
   border: none;
   background-color: ${({ theme, isBuy }) =>
-    isBuy ? theme.palette.blue500 : theme.palette.red500};
-  color: ${({ theme }) => theme.palette.white};
-  font-size: 15px;
-  font-weight: 600;
+    isBuy ? theme.traders.buy : theme.traders.sell};
+  color: ${({ theme }) => theme.traders.textInverse};
+  ${({ theme }) => theme.typography.body2Bold};
   cursor: pointer;
 
   &:disabled {
@@ -164,7 +213,11 @@ export {
   Label,
   Value,
   InputGroup,
+  QuantityInputWrapper,
+  StepperButton,
   QuantityInput,
+  QuickButtonRow,
+  QuickButton,
   MaxButton,
   ErrorText,
   TotalAmount,

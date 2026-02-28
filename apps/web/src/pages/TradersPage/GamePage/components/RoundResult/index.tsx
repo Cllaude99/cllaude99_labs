@@ -51,7 +51,6 @@ const RoundResult = ({
             <S.RankingRow
               key={entry.participant_id}
               isMe={isMe}
-              isTop3={isTop3}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: entry.rank * 0.05 }}

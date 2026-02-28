@@ -10,7 +10,7 @@ const Container = styled.div`
 const Title = styled.h2`
   font-size: 22px;
   font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
   text-align: center;
   margin-bottom: 8px;
 `;
@@ -20,9 +20,9 @@ const StockCard = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background-color: ${({ theme }) => theme.palette.grey50};
+  background-color: ${({ theme }) => theme.traders.bgSecondary};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
   perspective: 1000px;
 `;
 
@@ -35,17 +35,17 @@ const AliasSection = styled.div`
 const AliasCode = styled.span`
   font-size: 20px;
   font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textTertiary};
 `;
 
 const Category = styled.span`
   font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey300};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const Arrow = styled.span`
   font-size: 20px;
-  color: ${({ theme }) => theme.palette.blue500};
+  color: ${({ theme }) => theme.traders.ctaPrimary};
 `;
 
 const RealNameSection = styled.div`
@@ -58,7 +58,7 @@ const RealNameSection = styled.div`
 const RealName = styled.span`
   font-size: 18px;
   font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 export {

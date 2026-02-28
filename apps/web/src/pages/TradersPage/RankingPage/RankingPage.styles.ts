@@ -5,7 +5,7 @@ const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: ${({ theme }) => theme.palette.white};
+  background-color: ${({ theme }) => theme.traders.bgPrimary};
 `;
 
 const Header = styled.header`
@@ -13,22 +13,21 @@ const Header = styled.header`
   align-items: center;
   gap: 12px;
   padding: 16px;
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey150};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const BackButton = styled.button`
   padding: 6px;
   border: none;
   background: transparent;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-size: 18px;
   cursor: pointer;
 `;
 
 const Title = styled.h1`
-  font-size: 20px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.heading4};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const Content = styled.main`
@@ -48,11 +47,11 @@ const RankingItem = styled.div<{ isTop3: boolean }>`
   gap: 12px;
   padding: 14px 16px;
   background-color: ${({ theme, isTop3 }) =>
-    isTop3 ? `${theme.palette.blue500}14` : theme.palette.grey50};
+    isTop3 ? `${theme.traders.ctaPrimary}14` : theme.traders.bgSecondary};
   border-radius: 10px;
   border: 1px solid
     ${({ theme, isTop3 }) =>
-      isTop3 ? theme.palette.blue100 : theme.palette.grey150};
+      isTop3 ? theme.traders.ctaPrimaryLight : theme.traders.borderSecondary};
 `;
 
 const RankNumber = styled.span<{ isTop3: boolean }>`
@@ -60,7 +59,7 @@ const RankNumber = styled.span<{ isTop3: boolean }>`
   font-size: ${({ isTop3 }) => (isTop3 ? '18px' : '14px')};
   font-weight: 700;
   color: ${({ theme, isTop3 }) =>
-    isTop3 ? theme.palette.blue500 : theme.palette.grey500};
+    isTop3 ? theme.traders.ctaPrimary : theme.traders.textSecondary};
   text-align: center;
 `;
 
@@ -72,21 +71,19 @@ const RankInfo = styled.div`
 `;
 
 const Nickname = styled.span`
-  font-size: 15px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.body2Bold};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const RankDetail = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey400};
+  ${({ theme }) => theme.typography.caption1};
+  color: ${({ theme }) => theme.traders.textTertiary};
 `;
 
 const RankReturn = styled.span<{ isProfit: boolean }>`
-  font-size: 16px;
-  font-weight: 700;
+  ${({ theme }) => theme.typography.title2};
   color: ${({ theme, isProfit }) =>
-    isProfit ? theme.palette.blue500 : theme.palette.red500};
+    isProfit ? theme.traders.profitPositive : theme.traders.profitNegative};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -95,8 +92,8 @@ const LoadMoreTrigger = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${({ theme }) => theme.palette.grey400};
-  font-size: 13px;
+  color: ${({ theme }) => theme.traders.textTertiary};
+  ${({ theme }) => theme.typography.body4};
 `;
 
 const EmptyState = styled.div`
@@ -105,8 +102,8 @@ const EmptyState = styled.div`
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: ${({ theme }) => theme.palette.grey400};
-  font-size: 15px;
+  color: ${({ theme }) => theme.traders.textTertiary};
+  ${({ theme }) => theme.typography.body2};
 `;
 
 export {

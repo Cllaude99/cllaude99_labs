@@ -5,7 +5,7 @@ const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: ${({ theme }) => theme.palette.white};
+  background-color: ${({ theme }) => theme.traders.bgPrimary};
 `;
 
 const Header = styled.header`
@@ -14,14 +14,13 @@ const Header = styled.header`
 `;
 
 const Title = styled.h1`
-  font-size: 28px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.heading1};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const Subtitle = styled.p`
-  font-size: 14px;
-  color: ${({ theme }) => theme.palette.grey500};
+  ${({ theme }) => theme.typography.body3};
+  color: ${({ theme }) => theme.traders.textSecondary};
   margin-top: 4px;
 `;
 
@@ -33,9 +32,9 @@ const SummaryCard = styled.div`
   display: flex;
   justify-content: space-around;
   padding: 20px;
-  background-color: ${({ theme }) => theme.palette.grey50};
+  background-color: ${({ theme }) => theme.traders.bgSecondary};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const SummaryItem = styled.div`
@@ -46,22 +45,20 @@ const SummaryItem = styled.div`
 `;
 
 const SummaryLabel = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey500};
+  ${({ theme }) => theme.typography.caption1};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const SummaryValue = styled.span`
-  font-size: 18px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.title1};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
 const ReturnRate = styled.span<{ isProfit: boolean }>`
-  font-size: 24px;
-  font-weight: 800;
+  ${({ theme }) => theme.typography.heading2};
   color: ${({ theme, isProfit }) =>
-    isProfit ? theme.palette.blue500 : theme.palette.red500};
+    isProfit ? theme.traders.profitPositive : theme.traders.profitNegative};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -81,9 +78,8 @@ const ChartSection = styled.section`
 `;
 
 const SectionTitle = styled.h3`
-  font-size: 16px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.title2};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const YearlySummarySection = styled.section`
@@ -95,7 +91,7 @@ const YearlySummarySection = styled.section`
 const YearlySummaryTable = styled.div`
   display: flex;
   flex-direction: column;
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
   border-radius: 8px;
   overflow: hidden;
 `;
@@ -105,14 +101,14 @@ const YearlySummaryHeader = styled.div`
   grid-template-columns: 1fr 1.2fr 1.2fr 1fr;
   gap: 4px;
   padding: 10px 12px;
-  background-color: ${({ theme }) => theme.palette.white};
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey150};
+  background-color: ${({ theme }) => theme.traders.surfaceCard};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const YearlyHeaderCell = styled.span`
-  font-size: 11px;
+  ${({ theme }) => theme.typography.caption2};
   font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey500};
+  color: ${({ theme }) => theme.traders.textSecondary};
   text-align: right;
 
   &:first-of-type {
@@ -125,7 +121,7 @@ const YearlySummaryRow = styled.div`
   grid-template-columns: 1fr 1.2fr 1.2fr 1fr;
   gap: 4px;
   padding: 8px 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey50};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.bgSecondary};
 
   &:last-of-type {
     border-bottom: none;
@@ -133,8 +129,8 @@ const YearlySummaryRow = styled.div`
 `;
 
 const YearlyCell = styled.span`
-  font-size: 13px;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.body4};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
   text-align: right;
 
@@ -145,10 +141,9 @@ const YearlyCell = styled.span`
 `;
 
 const YearlyPnlCell = styled.span<{ isProfit: boolean }>`
-  font-size: 13px;
-  font-weight: 600;
+  ${({ theme }) => theme.typography.label2Bold};
   color: ${({ theme, isProfit }) =>
-    isProfit ? theme.palette.blue500 : theme.palette.red500};
+    isProfit ? theme.traders.profitPositive : theme.traders.profitNegative};
   font-variant-numeric: tabular-nums;
   text-align: right;
 `;
@@ -164,10 +159,9 @@ const PrimaryButton = styled.button`
   padding: 14px;
   border-radius: 8px;
   border: none;
-  background-color: ${({ theme }) => theme.palette.blue500};
-  color: ${({ theme }) => theme.palette.white};
-  font-size: 16px;
-  font-weight: 600;
+  background-color: ${({ theme }) => theme.traders.ctaPrimary};
+  color: ${({ theme }) => theme.traders.textInverse};
+  ${({ theme }) => theme.typography.title2};
   cursor: pointer;
 
   &:hover {
@@ -179,15 +173,14 @@ const SecondaryButton = styled.button`
   flex: 1;
   padding: 14px;
   border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.palette.grey200};
+  border: 1px solid ${({ theme }) => theme.traders.borderPrimary};
   background-color: transparent;
-  color: ${({ theme }) => theme.palette.grey600};
-  font-size: 15px;
-  font-weight: 600;
+  color: ${({ theme }) => theme.traders.textSecondary};
+  ${({ theme }) => theme.typography.body2Bold};
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ theme }) => theme.palette.grey50};
+    background-color: ${({ theme }) => theme.traders.bgSecondary};
   }
 `;
 

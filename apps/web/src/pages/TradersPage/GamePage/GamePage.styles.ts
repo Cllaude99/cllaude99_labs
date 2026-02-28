@@ -5,7 +5,7 @@ const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: ${({ theme }) => theme.palette.white};
+  background-color: ${({ theme }) => theme.traders.bgPrimary};
 `;
 
 const TopBar = styled.header`
@@ -13,14 +13,13 @@ const TopBar = styled.header`
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: ${({ theme }) => theme.palette.white};
-  border-bottom: 1px solid ${({ theme }) => theme.palette.grey150};
+  background-color: ${({ theme }) => theme.traders.bgPrimary};
+  border-bottom: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const YearMonth = styled.span`
-  font-size: 18px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.title1};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -31,9 +30,8 @@ const TopBarRight = styled.div`
 `;
 
 const TotalAsset = styled.span`
-  font-size: 14px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.palette.blue500};
+  ${({ theme }) => theme.typography.label1Bold};
+  color: ${({ theme }) => theme.traders.ctaPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -59,12 +57,12 @@ const TradeButton = styled.button<{ variant: 'buy' | 'sell' }>`
   flex: 1;
   padding: 12px;
   border-radius: 8px;
+  min-height: 48px;
   border: none;
   background-color: ${({ theme, variant }) =>
-    variant === 'buy' ? theme.palette.blue500 : theme.palette.red500};
-  color: ${({ theme }) => theme.palette.white};
-  font-size: 15px;
-  font-weight: 600;
+    variant === 'buy' ? theme.traders.buy : theme.traders.sell};
+  color: ${({ theme }) => theme.traders.textInverse};
+  ${({ theme }) => theme.typography.body2Bold};
   cursor: pointer;
 
   &:hover {
@@ -82,12 +80,14 @@ const InvestCompleteButton = styled.button`
   padding: 14px;
   border-radius: 10px;
   border: none;
-  background-color: ${({ theme }) => theme.palette.grey900};
-  color: ${({ theme }) => theme.palette.white};
-  font-size: 16px;
-  font-weight: 700;
+  background-color: ${({ theme }) => theme.traders.ctaPrimary};
+  color: ${({ theme }) => theme.traders.textInverse};
+  ${({ theme }) => theme.typography.title2};
   cursor: pointer;
   transition: opacity 0.2s;
+  position: sticky;
+  bottom: 0;
+  min-height: 48px;
 
   &:hover {
     opacity: 0.9;
@@ -102,7 +102,7 @@ const InvestCompleteButton = styled.button`
 const TradeOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: ${({ theme }) => theme.traders.surfaceOverlay};
   display: flex;
   align-items: flex-end;
   z-index: 100;
@@ -111,10 +111,18 @@ const TradeOverlay = styled.div`
 const TradePanel = styled.div`
   width: 100%;
   max-height: 80vh;
-  padding: 20px;
-  background-color: ${({ theme }) => theme.palette.white};
+  padding: 12px 20px 20px;
+  background-color: ${({ theme }) => theme.traders.surfaceElevated};
   border-radius: 16px 16px 0 0;
   overflow-y: auto;
+`;
+
+const HandleBar = styled.div`
+  width: 36px;
+  height: 4px;
+  background-color: ${({ theme }) => theme.traders.borderPrimary};
+  border-radius: 2px;
+  margin: 0 auto 12px;
 `;
 
 const PhaseLabel = styled.div`
@@ -122,11 +130,10 @@ const PhaseLabel = styled.div`
   align-items: center;
   justify-content: center;
   padding: 8px;
-  background-color: ${({ theme }) => `${theme.palette.blue500}1A`};
+  background-color: ${({ theme }) => `${theme.traders.ctaPrimary}1A`};
   border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.palette.blue500};
+  ${({ theme }) => theme.typography.label2Bold};
+  color: ${({ theme }) => theme.traders.ctaPrimary};
 `;
 
 const EmptyChartMessage = styled.div`
@@ -134,9 +141,9 @@ const EmptyChartMessage = styled.div`
   align-items: center;
   justify-content: center;
   height: 280px;
-  background-color: ${({ theme }) => theme.palette.grey50};
-  color: ${({ theme }) => theme.palette.grey400};
-  font-size: 14px;
+  background-color: ${({ theme }) => theme.traders.bgSecondary};
+  color: ${({ theme }) => theme.traders.textTertiary};
+  ${({ theme }) => theme.typography.body3};
 `;
 
 const LoadingContainer = styled.div`
@@ -144,9 +151,9 @@ const LoadingContainer = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: ${({ theme }) => theme.palette.white};
-  color: ${({ theme }) => theme.palette.grey900};
-  font-size: 16px;
+  background-color: ${({ theme }) => theme.traders.bgPrimary};
+  color: ${({ theme }) => theme.traders.textPrimary};
+  ${({ theme }) => theme.typography.body1};
 `;
 
 export {
@@ -162,6 +169,7 @@ export {
   InvestCompleteButton,
   TradeOverlay,
   TradePanel,
+  HandleBar,
   PhaseLabel,
   EmptyChartMessage,
   LoadingContainer,

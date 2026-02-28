@@ -5,9 +5,9 @@ const Container = styled.div`
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  background-color: ${({ theme }) => theme.palette.grey50};
+  background-color: ${({ theme }) => theme.traders.bgSecondary};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const Summary = styled.div`
@@ -24,20 +24,19 @@ const SummaryItem = styled.div`
 `;
 
 const SummaryLabel = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey500};
+  ${({ theme }) => theme.typography.caption1};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const SummaryValue = styled.span`
-  font-size: 16px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.title2};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
 const Divider = styled.div`
   height: 1px;
-  background-color: ${({ theme }) => theme.palette.grey150};
+  background-color: ${({ theme }) => theme.traders.borderSecondary};
 `;
 
 const HoldingList = styled.div`
@@ -51,7 +50,7 @@ const HoldingItem = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  background-color: ${({ theme }) => theme.palette.grey100};
+  background-color: ${({ theme }) => theme.traders.bgTertiary};
   border-radius: 8px;
 `;
 
@@ -62,14 +61,13 @@ const HoldingLeft = styled.div`
 `;
 
 const HoldingCode = styled.span`
-  font-size: 14px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey900};
+  ${({ theme }) => theme.typography.label1Bold};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const HoldingDetail = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.palette.grey500};
+  ${({ theme }) => theme.typography.caption1};
+  color: ${({ theme }) => theme.traders.textSecondary};
 `;
 
 const HoldingRight = styled.div`
@@ -80,23 +78,14 @@ const HoldingRight = styled.div`
 `;
 
 const HoldingValue = styled.span`
-  font-size: 14px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.palette.grey900};
-  font-variant-numeric: tabular-nums;
-`;
-
-const HoldingPnL = styled.span<{ isProfit: boolean }>`
-  font-size: 12px;
-  font-weight: 600;
-  color: ${({ theme, isProfit }) =>
-    isProfit ? theme.palette.blue500 : theme.palette.red500};
+  ${({ theme }) => theme.typography.label1Bold};
+  color: ${({ theme }) => theme.traders.textPrimary};
   font-variant-numeric: tabular-nums;
 `;
 
 const EmptyMessage = styled.p`
-  font-size: 13px;
-  color: ${({ theme }) => theme.palette.grey300};
+  ${({ theme }) => theme.typography.body4};
+  color: ${({ theme }) => theme.traders.textTertiary};
   text-align: center;
   padding: 16px 0;
 `;
@@ -115,6 +104,5 @@ export {
   HoldingDetail,
   HoldingRight,
   HoldingValue,
-  HoldingPnL,
   EmptyMessage,
 };

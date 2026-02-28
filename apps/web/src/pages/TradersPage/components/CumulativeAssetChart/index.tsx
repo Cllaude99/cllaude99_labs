@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 
+import { useTheme } from '@emotion/react';
 import {
   type IChartApi,
   type ISeriesApi,
@@ -7,12 +8,9 @@ import {
   createChart,
 } from 'lightweight-charts';
 
-import { palette } from '@cllaude99/ui/design-system/palette';
-
 import * as S from './CumulativeAssetChart.styles';
 import { INITIAL_CASH } from '../../constants/game';
 import type { EnhancedSettlementResult } from '../../interfaces/game';
-
 
 interface CumulativeAssetChartProps {
   settlements: EnhancedSettlementResult[];
@@ -27,6 +25,7 @@ const CumulativeAssetChart = ({
   const chartRef = useRef<IChartApi | null>(null);
   const assetSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const baselineSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const theme = useTheme();
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -35,30 +34,31 @@ const CumulativeAssetChart = ({
       width: chartContainerRef.current.clientWidth,
       height,
       layout: {
-        background: { color: palette.grey100 },
-        textColor: palette.grey500,
+        background: { color: theme.traders.chartBg },
+        textColor: theme.traders.textSecondary,
         fontSize: 11,
+        attributionLogo: false,
       },
       grid: {
-        vertLines: { color: palette.grey100 },
-        horzLines: { color: palette.grey100 },
+        vertLines: { color: theme.traders.bgTertiary },
+        horzLines: { color: theme.traders.bgTertiary },
       },
       timeScale: {
         timeVisible: false,
-        borderColor: palette.grey150,
+        borderColor: theme.traders.borderSecondary,
       },
       rightPriceScale: {
-        borderColor: palette.grey150,
+        borderColor: theme.traders.borderSecondary,
       },
     });
 
     assetSeriesRef.current = chartRef.current.addSeries(LineSeries, {
-      color: palette.blue500,
+      color: theme.traders.chartLine,
       lineWidth: 2,
     });
 
     baselineSeriesRef.current = chartRef.current.addSeries(LineSeries, {
-      color: palette.grey300,
+      color: theme.traders.textTertiary,
       lineWidth: 1,
       lineStyle: 2,
     });
@@ -77,7 +77,7 @@ const CumulativeAssetChart = ({
       window.removeEventListener('resize', handleResize);
       chartRef.current?.remove();
     };
-  }, [height]);
+  }, [height, theme]);
 
   const { assetData, baselineData } = useMemo(
     () => ({

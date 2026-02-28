@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { useTheme } from '@emotion/react';
 import {
   type IChartApi,
   AreaSeries,
@@ -10,18 +11,22 @@ import {
 import * as S from './BlurChart.styles';
 import type { BlurChartData } from '../../../interfaces/stock';
 
-
 interface BlurChartProps {
   data: BlurChartData | null;
+  stockId?: string;
 }
 
-const BlurChart = ({ data }: BlurChartProps) => {
+const BlurChart = ({ data, stockId }: BlurChartProps) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const [selectedStockIdx, setSelectedStockIdx] = useState(0);
+  const theme = useTheme();
 
   const isUnlocked = data?.is_unlocked ?? false;
-  const stocks = data?.preview_data ?? [];
+  const allStocks = data?.preview_data ?? [];
+  const stocks = stockId
+    ? allStocks.filter((s) => s.stock_id === stockId)
+    : allStocks;
   const selectedStock = stocks[selectedStockIdx];
 
   useEffect(() => {
@@ -34,7 +39,8 @@ const BlurChart = ({ data }: BlurChartProps) => {
       handleScale: false,
       layout: {
         background: { color: 'transparent' },
-        textColor: '#888',
+        textColor: theme.traders.textTertiary,
+        attributionLogo: false,
       },
       timeScale: { visible: false },
       rightPriceScale: { visible: false },
@@ -46,9 +52,9 @@ const BlurChart = ({ data }: BlurChartProps) => {
     });
 
     const areaSeries = chartRef.current.addSeries(AreaSeries, {
-      lineColor: '#4a90d9',
-      topColor: 'rgba(74, 144, 217, 0.4)',
-      bottomColor: 'rgba(74, 144, 217, 0.0)',
+      lineColor: theme.traders.chartLine,
+      topColor: `${theme.traders.chartLine}66`,
+      bottomColor: `${theme.traders.chartLine}05`,
       lineWidth: 2,
     });
 
@@ -61,7 +67,7 @@ const BlurChart = ({ data }: BlurChartProps) => {
     return () => {
       chartRef.current?.remove();
     };
-  }, [selectedStock]);
+  }, [selectedStock, theme]);
 
   if (!data || stocks.length === 0) return null;
 

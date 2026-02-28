@@ -22,13 +22,13 @@ const YearDot = styled.button<{ status: 'past' | 'current' | 'future' }>`
   border-radius: 14px;
   border: 1px solid
     ${({ theme, status }) => {
-      if (status === 'current') return theme.palette.blue500;
-      if (status === 'past') return theme.palette.blue100;
-      return theme.palette.grey150;
+      if (status === 'current') return theme.traders.ctaPrimary;
+      if (status === 'past') return theme.traders.ctaPrimaryLight;
+      return theme.traders.borderSecondary;
     }};
   background-color: ${({ theme, status }) => {
-    if (status === 'current') return `${theme.palette.blue500}26`;
-    if (status === 'past') return `${theme.palette.blue500}0D`;
+    if (status === 'current') return `${theme.traders.ctaPrimary}26`;
+    if (status === 'past') return `${theme.traders.ctaPrimary}0D`;
     return 'transparent';
   }};
   cursor: default;
@@ -39,9 +39,9 @@ const YearLabel = styled.span<{ status: 'past' | 'current' | 'future' }>`
   font-size: 11px;
   font-weight: ${({ status }) => (status === 'current' ? 700 : 400)};
   color: ${({ theme, status }) => {
-    if (status === 'current') return theme.palette.blue500;
-    if (status === 'past') return theme.palette.grey500;
-    return theme.palette.grey300;
+    if (status === 'current') return theme.traders.ctaPrimary;
+    if (status === 'past') return theme.traders.textSecondary;
+    return theme.traders.textTertiary;
   }};
   font-variant-numeric: tabular-nums;
 `;
@@ -50,7 +50,7 @@ const Connector = styled.div<{ active: boolean }>`
   width: 8px;
   height: 2px;
   background-color: ${({ theme, active }) =>
-    active ? theme.palette.blue100 : theme.palette.grey150};
+    active ? theme.traders.ctaPrimaryLight : theme.traders.borderSecondary};
   flex-shrink: 0;
 `;
 

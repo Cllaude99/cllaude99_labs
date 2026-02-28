@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: ${({ theme }) => theme.traders.surfaceOverlay};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,9 +14,9 @@ const Overlay = styled.div`
 const Dialog = styled.div`
   width: 100%;
   max-width: 380px;
-  background-color: ${({ theme }) => theme.palette.white};
+  background-color: ${({ theme }) => theme.traders.surfaceCard};
   border-radius: 16px;
-  border: 1px solid ${({ theme }) => theme.palette.grey150};
+  border: 1px solid ${({ theme }) => theme.traders.borderSecondary};
   padding: 32px 24px 24px;
   display: flex;
   flex-direction: column;
@@ -36,12 +36,12 @@ const StepContent = styled.div`
 const StepTitle = styled.h2`
   font-size: 20px;
   font-weight: 700;
-  color: ${({ theme }) => theme.palette.grey900};
+  color: ${({ theme }) => theme.traders.textPrimary};
 `;
 
 const StepDescription = styled.p`
   font-size: 15px;
-  color: ${({ theme }) => theme.palette.grey600};
+  color: ${({ theme }) => theme.traders.textSecondary};
   line-height: 1.6;
 `;
 
@@ -56,7 +56,8 @@ const Dot = styled.div<{ active: boolean }>`
   width: ${({ active }) => (active ? '20px' : '8px')};
   height: 8px;
   border-radius: 4px;
-  background-color: ${({ theme, active }) => (active ? theme.palette.blue500 : theme.palette.grey200)};
+  background-color: ${({ theme, active }) =>
+    active ? theme.traders.ctaPrimary : theme.traders.borderPrimary};
   transition: all 0.3s;
 `;
 
@@ -69,15 +70,15 @@ const PrevButton = styled.button`
   flex: 1;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.palette.grey200};
+  border: 1px solid ${({ theme }) => theme.traders.borderPrimary};
   background-color: transparent;
-  color: ${({ theme }) => theme.palette.grey600};
+  color: ${({ theme }) => theme.traders.textSecondary};
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ theme }) => theme.palette.grey50};
+    background-color: ${({ theme }) => theme.traders.bgSecondary};
   }
 `;
 
@@ -86,8 +87,8 @@ const NextButton = styled.button`
   padding: 12px;
   border-radius: 8px;
   border: none;
-  background-color: ${({ theme }) => theme.palette.blue500};
-  color: ${({ theme }) => theme.palette.white};
+  background-color: ${({ theme }) => theme.traders.ctaPrimary};
+  color: ${({ theme }) => theme.traders.textInverse};
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;

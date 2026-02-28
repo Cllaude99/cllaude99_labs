@@ -1,7 +1,6 @@
 import * as S from './PortfolioDashboard.styles';
 import type { PortfolioItem } from '../../../interfaces/game';
 
-
 interface PortfolioDashboardProps {
   cashBalance: number;
   totalAsset: number;
@@ -41,32 +40,23 @@ const PortfolioDashboard = ({
         {portfolio.length === 0 ? (
           <S.EmptyMessage>보유 종목이 없습니다</S.EmptyMessage>
         ) : (
-          portfolio.map((item) => {
-            const isProfit = item.unrealized_pnl >= 0;
-            return (
-              <S.HoldingItem key={item.stock_id}>
-                <S.HoldingLeft>
-                  <S.HoldingCode>
-                    {item.alias_code} ({item.category})
-                  </S.HoldingCode>
-                  <S.HoldingDetail>
-                    {item.quantity}주 · 평균 {item.avg_buy_price.toLocaleString()}원
-                  </S.HoldingDetail>
-                </S.HoldingLeft>
-                <S.HoldingRight>
-                  <S.HoldingValue>
-                    {(item.current_price * item.quantity).toLocaleString()}원
-                  </S.HoldingValue>
-                  <S.HoldingPnL isProfit={isProfit}>
-                    {isProfit ? '+' : ''}
-                    {item.unrealized_pnl.toLocaleString()}원 (
-                    {isProfit ? '+' : ''}
-                    {item.return_rate.toFixed(1)}%)
-                  </S.HoldingPnL>
-                </S.HoldingRight>
-              </S.HoldingItem>
-            );
-          })
+          portfolio.map((item) => (
+            <S.HoldingItem key={item.stock_id}>
+              <S.HoldingLeft>
+                <S.HoldingCode>
+                  {item.alias_code} ({item.category})
+                </S.HoldingCode>
+                <S.HoldingDetail>
+                  {item.quantity}주 · 평균 {item.avg_buy_price.toLocaleString()}원
+                </S.HoldingDetail>
+              </S.HoldingLeft>
+              <S.HoldingRight>
+                <S.HoldingValue>
+                  {(item.current_price * item.quantity).toLocaleString()}원
+                </S.HoldingValue>
+              </S.HoldingRight>
+            </S.HoldingItem>
+          ))
         )}
       </S.HoldingList>
     </S.Container>
