@@ -1,4 +1,3 @@
-/** @jsxImportSource react */
 import { SVGAttributes } from 'react';
 
 const Moon = ({
