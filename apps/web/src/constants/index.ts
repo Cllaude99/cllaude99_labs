@@ -1,13 +1,27 @@
-/* 페이지 경로 */
+/* Traders 하위 라우트 */
+const TRADERS_ROUTES = {
+  GAME: 'game',
+  GAME_COMPLETE: 'game/complete',
+  RANKING: 'ranking',
+  ROOM: 'room',
+  ROOM_WAITING: 'room/:roomCode',
+} as const;
+
+/* 페이지 경로 (절대 경로) */
 const PATH = {
   ROOT: '/',
+  /* Traders 하위 라우트 */
   TRADERS: '/traders',
-  TRADERS_GAME: '/traders/game',
-  TRADERS_RANKING: '/traders/ranking',
-  TRADERS_GAME_COMPLETE: '/traders/game/complete',
-  TRADERS_ROOM: '/traders/room',
-  TRADERS_ROOM_WAITING: '/traders/room/:roomCode',
+  TRADERS_GAME: `/traders/${TRADERS_ROUTES.GAME}`,
+  TRADERS_RANKING: `/traders/${TRADERS_ROUTES.RANKING}`,
+  TRADERS_GAME_COMPLETE: `/traders/${TRADERS_ROUTES.GAME_COMPLETE}`,
+  TRADERS_ROOM: `/traders/${TRADERS_ROUTES.ROOM}`,
+  TRADERS_ROOM_WAITING: `/traders/${TRADERS_ROUTES.ROOM_WAITING}`,
+
+  /* Sketch 하위 라우트 */
   SKETCH: '/sketch',
+
+  /* A11y 하위 라우트 */
   A11Y: '/a11y',
   A11Y_SEMANTIC: '/a11y/semantic',
   A11Y_ARIA_ROLE: '/a11y/aria-role',
@@ -41,4 +55,4 @@ const PROJECTS = [
   },
 ];
 
-export { PATH, PROJECTS };
+export { PATH, TRADERS_ROUTES, PROJECTS };
