@@ -7,16 +7,24 @@ import * as S from '../HintPhase.styles';
 interface HintDisplayScreenProps {
   sessionId: string;
   year: number;
+  stockId?: string;
   onContinue: () => void;
 }
 
-const HintDisplayScreen = ({ sessionId, year, onContinue }: HintDisplayScreenProps) => {
+const HintDisplayScreen = ({
+  sessionId,
+  year,
+  stockId,
+  onContinue,
+}: HintDisplayScreenProps) => {
   const { data } = useHints(sessionId);
   const { data: blurData } = useBlurChart(sessionId, year);
 
-  const yearHints = (data?.hints ?? []).filter(
-    (h: HintEntry) => h.year === year,
-  );
+  const yearHints = (data?.hints ?? []).filter((h: HintEntry) => {
+    if (h.year !== year) return false;
+    if (stockId) return h.stock_id === stockId || h.stock_id === null;
+    return true;
+  });
 
   return (
     <>
@@ -33,7 +41,7 @@ const HintDisplayScreen = ({ sessionId, year, onContinue }: HintDisplayScreenPro
         ))
       )}
 
-      {blurData && <BlurChart data={blurData} />}
+      {blurData && <BlurChart data={blurData} stockId={stockId} />}
 
       <S.SubmitButton onClick={onContinue}>투자 시작</S.SubmitButton>
     </>

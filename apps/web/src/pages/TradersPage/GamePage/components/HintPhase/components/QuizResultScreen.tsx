@@ -8,6 +8,7 @@ interface QuizResultScreenProps {
 
 const QuizResultScreen = ({ result, onContinue }: QuizResultScreenProps) => {
   const rewardText = (() => {
+    if (result.reward.hint_level === 3) return '레벨 3 힌트 획득!';
     if (result.reward.hint_level === 2) return '레벨 2 힌트 획득!';
     if (result.reward.hint_level === 1) return '레벨 1 힌트 획득!';
     return '힌트를 얻지 못했습니다';

@@ -10,11 +10,12 @@ import * as S from '../HintPhase.styles';
 interface QuizScreenProps {
   year: number;
   sessionId: string;
+  stockId: string;
   onComplete: (result: QuizAnswerResponse) => void;
 }
 
-const QuizScreen = ({ year, sessionId, onComplete }: QuizScreenProps) => {
-  const { data } = useQuizList(year);
+const QuizScreen = ({ year, sessionId, stockId, onComplete }: QuizScreenProps) => {
+  const { data, isLoading, isError } = useQuizList(year, stockId);
 
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<
@@ -25,7 +26,7 @@ const QuizScreen = ({ year, sessionId, onComplete }: QuizScreenProps) => {
   const submitMutation = useMutation({
     mutationFn: (
       allAnswers: Array<{ quiz_id: string; selected_option: number }>,
-    ) => submitQuizAnswers(sessionId, allAnswers),
+    ) => submitQuizAnswers(sessionId, allAnswers, stockId),
     onSuccess: (result) => onComplete(result),
   });
 
@@ -56,8 +57,16 @@ const QuizScreen = ({ year, sessionId, onComplete }: QuizScreenProps) => {
     submitMutation,
   ]);
 
-  if (!currentQuiz) {
+  if (isLoading) {
     return <S.Subtitle>퀴즈를 불러오는 중...</S.Subtitle>;
+  }
+
+  if (isError || (!isLoading && quizzes.length === 0)) {
+    return <S.Subtitle>퀴즈를 불러올 수 없습니다. 다시 시도해주세요.</S.Subtitle>;
+  }
+
+  if (!currentQuiz) {
+    return null;
   }
 
   return (
