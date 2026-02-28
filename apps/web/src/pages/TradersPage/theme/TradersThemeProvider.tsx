@@ -1,22 +1,29 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 import { ThemeProvider as EmotionThemeProvider } from '@emotion/react';
 
+import generateLocalStorageKey from '@/utils/generateLocalStorageKey';
+
 import { tradersLightColors, tradersDarkColors } from './colors';
 
-type ThemeMode = 'light' | 'dark' | 'system';
+type ThemeMode = 'light' | 'dark';
 
-const TRADERS_THEME_KEY = 'traders-theme-mode';
+const TRADERS_THEME_KEY = generateLocalStorageKey('traders-theme');
 
 interface TradersThemeModeContextValue {
   mode: ThemeMode;
-  resolvedMode: 'light' | 'dark';
   setMode: (mode: ThemeMode) => void;
 }
 
 const TradersThemeModeContext = createContext<TradersThemeModeContextValue>({
   mode: 'light',
-  resolvedMode: 'light',
   setMode: () => {},
 });
 
@@ -26,20 +33,31 @@ interface TradersThemeProviderProps {
   children: ReactNode;
 }
 
-export const TradersThemeProvider = ({ children }: TradersThemeProviderProps) => {
+const getSystemPreference = (): ThemeMode =>
+  window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+export const TradersThemeProvider = ({
+  children,
+}: TradersThemeProviderProps) => {
+  const [isUserChosen, setIsUserChosen] = useState(
+    () => !!localStorage.getItem(TRADERS_THEME_KEY),
+  );
+
   const [mode, setModeState] = useState<ThemeMode>(() => {
     try {
       const stored = localStorage.getItem(TRADERS_THEME_KEY);
-      if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
+      if (stored === 'light' || stored === 'dark') {
+        return stored;
+      }
     } catch {
       /* SSR/Private Browsing 대응 */
     }
-    return 'light';
+    return getSystemPreference();
   });
-  const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>('light');
 
   const setMode = useCallback((newMode: ThemeMode) => {
     setModeState(newMode);
+    setIsUserChosen(true);
     try {
       localStorage.setItem(TRADERS_THEME_KEY, newMode);
     } catch {
@@ -48,22 +66,26 @@ export const TradersThemeProvider = ({ children }: TradersThemeProviderProps) =>
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setSystemPreference(mediaQuery.matches ? 'dark' : 'light');
+    if (isUserChosen) {
+      return;
+    }
 
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e: MediaQueryListEvent) => {
-      setSystemPreference(e.matches ? 'dark' : 'light');
+      setModeState(e.matches ? 'dark' : 'light');
     };
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
+  }, [isUserChosen]);
 
-  const resolvedMode = mode === 'system' ? systemPreference : mode;
-  const resolvedColors = resolvedMode === 'dark' ? tradersDarkColors : tradersLightColors;
+  const resolvedColors =
+    mode === 'dark' ? tradersDarkColors : tradersLightColors;
 
   return (
-    <TradersThemeModeContext.Provider value={{ mode, resolvedMode, setMode }}>
-      <EmotionThemeProvider theme={(base) => ({ ...base, traders: resolvedColors })}>
+    <TradersThemeModeContext.Provider value={{ mode, setMode }}>
+      <EmotionThemeProvider
+        theme={(base) => ({ ...base, traders: resolvedColors })}
+      >
         {children}
       </EmotionThemeProvider>
     </TradersThemeModeContext.Provider>
