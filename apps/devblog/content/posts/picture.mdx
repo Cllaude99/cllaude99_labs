@@ -1,0 +1,156 @@
+---
+title: 'HTML picture 태그 사용법과 srcset과의 차이점'
+description: 'HTML picture 태그의 사용법을 알아보고, img srcset과의 차이점을 정리합니다.'
+date: '2026-03-02'
+published: true
+category: 'Tech'
+tags: ['HTML', 'Web', '반응형 이미지']
+author: 'Cllaude99'
+---
+
+반응형 이미지를 다루는 방법에는 크게 `img` 태그의 `srcset` 속성을 사용하는 방법과 `<picture>` 태그를 사용하는 방법이 있어요.
+[이전 글](https://www.cllaude99.com/post/html)에서 `srcset`의 기본 사용법을 정리했는데, 이번에는 `<picture>` 태그가 무엇이고, `srcset`과는 어떤 차이가 있는지 정리해보려고 해요.
+
+## picture 태그란?
+
+`<picture>` 태그는 0개 이상의 `<source>` 요소와 하나의 `<img>` 요소를 감싸는 컨테이너예요.
+브라우저는 `<source>` 목록을 위에서 아래로 순회하면서 조건에 맞는 첫 번째 소스를 선택하고, 일치하는 소스가 없으면 마지막 `<img>` 태그의 이미지를 보여줘요.
+
+```html
+<picture>
+  <source srcset="image-wide.jpg" media="(min-width: 800px)" />
+  <source srcset="image-narrow.jpg" media="(min-width: 400px)" />
+  <img src="image-default.jpg" alt="반응형 이미지" />
+</picture>
+```
+
+여기서 각 요소의 역할은 다음과 같아요.
+
+- **`<picture>`**: `<source>`와 `<img>`를 묶어주는 컨테이너. 자체적으로 렌더링하는 것은 없어요.
+- **`<source>`**: 조건(`media`, `type`)과 이미지 경로(`srcset`)를 정의해요. 브라우저가 조건을 평가해서 일치하면 해당 이미지를 사용해요.
+- **`<img>`**: 최종 폴백 이미지이자 실제 렌더링을 담당하는 요소예요. `alt` 텍스트도 여기에 작성해요.
+
+> 주의할 점은 `<img>` 태그는 반드시 포함해야 한다는 것이에요. 만약 `<picture>` 안에 `<img>`가 없으면 아무것도 렌더링되지 않아요.
+
+## picture 태그 사용법
+
+### 미디어 쿼리 기반 이미지 전환
+
+화면 크기에 따라 **완전히 다른 이미지**를 보여주고 싶을 때 `media` 속성을 사용해요.
+예를 들어 넓은 화면에서는 가로로 넓은 전체 사진을, 좁은 화면에서는 핵심만 크롭한 세로 사진을 보여주는 경우가 대표적이에요.
+
+```html
+<picture>
+  <!-- 데스크톱: 가로로 넓은 풍경 사진 -->
+  <source srcset="hero-wide.jpg" media="(min-width: 1024px)" />
+  <!-- 태블릿: 중간 크기 사진 -->
+  <source srcset="hero-medium.jpg" media="(min-width: 600px)" />
+  <!-- 모바일: 핵심만 크롭한 세로 사진 -->
+  <img src="hero-narrow.jpg" alt="메인 히어로 이미지" />
+</picture>
+```
+
+이 패턴을 **Art Direction**이라고 부르는데, 단순히 이미지 크기만 바꾸는 것이 아니라 구도나 크롭 자체를 화면 크기에 맞게 바꾸는 기법이에요.
+
+### 이미지 포맷 전환
+
+브라우저가 지원하는 이미지 포맷에 따라 최적의 포맷을 제공할 수 있어요.
+이때는 `type` 속성을 사용하면 돼요.
+
+```html
+<picture>
+  <!-- AVIF를 지원하면 AVIF 사용 (최고 압축률) -->
+  <source srcset="image.avif" type="image/avif" />
+  <!-- WebP를 지원하면 WebP 사용 -->
+  <source srcset="image.webp" type="image/webp" />
+  <!-- 둘 다 미지원이면 JPEG 폴백 -->
+  <img src="image.jpg" alt="포맷 전환 이미지" />
+</picture>
+```
+
+브라우저는 `type` 속성을 보고 자신이 지원하는 포맷인지 확인한 뒤, 지원하지 않으면 다음 `<source>`로 넘어가요.
+AVIF와 WebP는 JPEG보다 파일 크기가 훨씬 작기 때문에, 이 패턴만으로도 페이지 로딩 성능을 크게 개선할 수 있어요.
+
+### 미디어 쿼리 + 포맷 전환 조합
+
+`media`와 `type` 속성을 함께 사용하면 화면 크기와 포맷 지원 여부를 동시에 고려할 수 있어요.
+
+```html
+<picture>
+  <!-- 데스크톱 + AVIF -->
+  <source
+    srcset="hero-wide.avif"
+    media="(min-width: 1024px)"
+    type="image/avif"
+  />
+  <!-- 데스크톱 + WebP -->
+  <source
+    srcset="hero-wide.webp"
+    media="(min-width: 1024px)"
+    type="image/webp"
+  />
+  <!-- 모바일 + AVIF -->
+  <source srcset="hero-narrow.avif" type="image/avif" />
+  <!-- 모바일 + WebP -->
+  <source srcset="hero-narrow.webp" type="image/webp" />
+  <!-- 최종 폴백 -->
+  <img src="hero-narrow.jpg" alt="메인 히어로 이미지" />
+</picture>
+```
+
+`<source>` 순서가 중요해요. 브라우저는 위에서부터 조건을 평가하기 때문에, 가장 좁은 조건(데스크톱 + 최신 포맷)부터 넓은 조건 순으로 작성하는 것이 일반적이에요.
+
+## srcset과 picture 태그의 차이점
+
+`img srcset`과 `<picture>` 태그는 둘 다 반응형 이미지를 위한 것이지만, 근본적인 차이가 있어요.
+
+| 구분          | `img srcset`                   | `<picture>`                          |
+| ------------- | ------------------------------ | ------------------------------------ |
+| **선택 주체** | 브라우저가 자동으로 선택       | 개발자가 조건을 명시                 |
+| **용도**      | 같은 이미지의 다른 해상도 제공 | 다른 이미지 또는 다른 포맷 제공      |
+| **핵심 속성** | `srcset`, `sizes`              | `<source>`의 `media`, `type`         |
+| **대표 사례** | 1x/2x/3x 해상도 대응           | Art Direction, 포맷 폴백 (AVIF/WebP) |
+| **제어 수준** | 브라우저 재량 (힌트만 제공)    | 조건이 맞으면 반드시 해당 소스 사용  |
+
+핵심 차이를 한 줄로 요약하면 이래요.
+
+- **`srcset`**: "같은 사진인데 해상도만 달라. 브라우저가 알아서 골라줘."
+- **`<picture>`**: "상황에 따라 이 사진을 보여줘. 내가 조건을 정할게."
+
+### 언제 어떤 것을 쓸까?
+
+**`img srcset`을 쓰는 경우**
+
+- 같은 이미지를 다양한 해상도로 제공할 때 (1x, 2x, 3x)
+- 뷰포트 크기에 따라 같은 이미지의 다른 사이즈를 로드할 때
+- 이미지의 구도/크롭이 동일하고 크기만 다를 때
+
+**`<picture>`를 쓰는 경우**
+
+- 화면 크기에 따라 완전히 다른 이미지를 보여줄 때 (Art Direction)
+- WebP, AVIF 등 최신 포맷을 지원하면서 JPEG 폴백이 필요할 때
+- 미디어 쿼리 조건에 따라 개발자가 이미지 선택을 직접 제어하고 싶을 때
+
+물론 아래 예시와 같이 `<source>` 태그 안에서 `srcset`과 `sizes`를 함께 쓰면 Art Direction과 해상도 대응을 동시에 할 수 있어요.
+
+```html
+<picture>
+  <source
+    srcset="hero-wide-1x.jpg 1024w, hero-wide-2x.jpg 2048w"
+    sizes="100vw"
+    media="(min-width: 1024px)"
+  />
+  <img
+    src="hero-narrow.jpg"
+    srcset="hero-narrow-1x.jpg 600w, hero-narrow-2x.jpg 1200w"
+    sizes="100vw"
+    alt="메인 히어로 이미지"
+  />
+</picture>
+```
+
+## 참고 자료
+
+- [MDN - \<picture\>](https://developer.mozilla.org/ko/docs/Web/HTML/Element/picture) — picture 태그 공식 문서
+- [MDN - srcset](https://developer.mozilla.org/ko/docs/Web/API/HTMLImageElement/srcset) — srcset 속성 공식 문서
+- [web.dev - 반응형 이미지](https://web.dev/articles/responsive-images) — 반응형 이미지 가이드
