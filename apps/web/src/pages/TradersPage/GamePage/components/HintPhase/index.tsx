@@ -8,8 +8,8 @@ import AdWatchScreen from './components/AdWatchScreen';
 import CardMatchGame from './components/CardMatchGame';
 import ChoiceScreen from './components/ChoiceScreen';
 import HintDisplayScreen from './components/HintDisplayScreen';
-import MiniGameSelectScreen from './components/MiniGameSelectScreen';
 import MinigameResultScreen from './components/MinigameResultScreen';
+import MiniGameSelectScreen from './components/MiniGameSelectScreen';
 import PricePredictionGame from './components/PricePredictionGame';
 import QuizResultScreen from './components/QuizResultScreen';
 import QuizScreen from './components/QuizScreen';
@@ -43,7 +43,9 @@ const HintPhase = ({ sessionId, year, stocks, onComplete }: HintPhaseProps) => {
   const { step, setStep } = useFunnel<HintStep>('stockSelect');
   const [selectedStockId, setSelectedStockId] = useState<string | null>(null);
   const [quizResult, setQuizResult] = useState<QuizAnswerResponse | null>(null);
-  const [selectedGameType, setSelectedGameType] = useState<GameType | null>(null);
+  const [selectedGameType, setSelectedGameType] = useState<GameType | null>(
+    null,
+  );
   const [minigameScore, setMinigameScore] = useState(0);
   const [minigameHintLevel, setMinigameHintLevel] = useState(0);
 
@@ -54,13 +56,7 @@ const HintPhase = ({ sessionId, year, stocks, onComplete }: HintPhaseProps) => {
   });
 
   const minigameResultMutation = useMutation({
-    mutationFn: ({
-      gameType,
-      score,
-    }: {
-      gameType: GameType;
-      score: number;
-    }) =>
+    mutationFn: ({ gameType, score }: { gameType: GameType; score: number }) =>
       submitMinigameResult(
         sessionId,
         selectedStockId ?? '',
