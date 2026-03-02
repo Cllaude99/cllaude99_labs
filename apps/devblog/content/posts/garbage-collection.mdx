@@ -60,11 +60,11 @@ graph TB
     Heap --> HeapContents
     References -.참조.-> Objects
 
-    style Stack fill:#e3f2fd
-    style Heap fill:#fff3e0
-    style Primitives fill:#c5e1a5
-    style References fill:#b39ddb
-    style Objects fill:#ffcc80
+    style Stack fill:#e3f2fd,color:#1a1a1a
+    style Heap fill:#fff3e0,color:#1a1a1a
+    style Primitives fill:#c5e1a5,color:#1a1a1a
+    style References fill:#b39ddb,color:#1a1a1a
+    style Objects fill:#ffcc80,color:#1a1a1a
 ```
 
 ### 스택 (Stack)
@@ -127,9 +127,9 @@ graph LR
     A[1. 할당<br/>Allocation] --> B[2. 사용<br/>Usage]
     B --> C[3. 해제<br/>Release]
 
-    style A fill:#c5e1a5
-    style B fill:#fff59d
-    style C fill:#ef9a9a
+    style A fill:#c5e1a5,color:#1a1a1a
+    style B fill:#fff59d,color:#1a1a1a
+    style C fill:#ef9a9a,color:#1a1a1a
 ```
 
 ### 1. 메모리 할당 (Allocation)
@@ -230,10 +230,10 @@ graph TB
     Step2 ==> Step3
     Step3 ==> Step4
 
-    style Obj1 fill:#c5e1a5
-    style Obj2 fill:#fff59d
-    style Obj3 fill:#ffcc80
-    style Obj4 fill:#ef9a9a
+    style Obj1 fill:#c5e1a5,color:#1a1a1a
+    style Obj2 fill:#fff59d,color:#1a1a1a
+    style Obj3 fill:#ffcc80,color:#1a1a1a
+    style Obj4 fill:#ef9a9a,color:#1a1a1a
 ```
 
 **Reference Counting의 치명적인 문제인 순환 참조**
@@ -264,9 +264,9 @@ graph LR
 
     Note["⚠️ 외부에서 접근 불가능하지만<br/>서로를 참조하여<br/>메모리 해제되지 않음"]
 
-    style X fill:#ef9a9a
-    style Y fill:#ef9a9a
-    style Note fill:#fff9c4
+    style X fill:#ef9a9a,color:#1a1a1a
+    style Y fill:#ef9a9a,color:#1a1a1a
+    style Note fill:#fff9c4,color:#1a1a1a
 ```
 
 이러한 문제로 인해 현대 JavaScript 엔진들은 Reference Counting을 주요 가비지 컬렉션 알고리즘으로 사용하지 않습니다.
@@ -293,12 +293,12 @@ graph TB
     D1 -.순환 참조.-> E1
     E1 -.순환 참조.-> D1
 
-    style A1 fill:#c5e1a5,stroke:#333,stroke-width:2px
-    style B1 fill:#c5e1a5,stroke:#333,stroke-width:2px
-    style C1 fill:#c5e1a5,stroke:#333,stroke-width:2px
-    style D1 fill:#ef9a9a,stroke:#333,stroke-width:2px
-    style E1 fill:#ef9a9a,stroke:#333,stroke-width:2px
-    style Root1 fill:#e3f2fd,stroke:#333,stroke-width:2px
+    style A1 fill:#c5e1a5,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style B1 fill:#c5e1a5,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style C1 fill:#c5e1a5,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style D1 fill:#ef9a9a,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style E1 fill:#ef9a9a,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style Root1 fill:#e3f2fd,color:#1a1a1a,stroke:#333,stroke-width:2px
 ```
 
 **2. Sweep 단계: 표시되지 않은 객체 제거**
@@ -311,12 +311,12 @@ graph TB
     D2["객체 D<br/>제거됨"]
     E2["객체 E<br/>제거됨"]
 
-    style A2 fill:#c5e1a5,stroke:#333,stroke-width:2px
-    style B2 fill:#c5e1a5,stroke:#333,stroke-width:2px
-    style C2 fill:#c5e1a5,stroke:#333,stroke-width:2px
-    style D2 fill:#ef9a9a,stroke:#333,stroke-width:2px
-    style E2 fill:#ef9a9a,stroke:#333,stroke-width:2px
-    style Root2 fill:#e3f2fd,stroke:#333,stroke-width:2px
+    style A2 fill:#c5e1a5,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style B2 fill:#c5e1a5,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style C2 fill:#c5e1a5,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style D2 fill:#ef9a9a,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style E2 fill:#ef9a9a,color:#1a1a1a,stroke:#333,stroke-width:2px
+    style Root2 fill:#e3f2fd,color:#1a1a1a,stroke:#333,stroke-width:2px
 ```
 
 이를 코드로 살펴보겠습니다.
@@ -596,9 +596,107 @@ function removeElement() {
 }
 ```
 
+## 약한 참조: WeakRef와 WeakMap/WeakSet
+
+지금까지 살펴본 메모리 누수 패턴들의 공통점은 무엇일까요?
+그것은 바로 객체에 대한 강한 참조가 의도치 않게 유지된다는 것입니다.
+
+전역 변수에 저장된 데이터, 정리되지 않은 이벤트 리스너, DOM 참조를 담은 배열 등 모두 강한 참조로 인해 GC가 해당 객체를 수거하지 못하는 경우였습니다.
+
+그렇다면 참조는 유지하되, GC를 방해하지 않는 방법은 없을까요?
+이것이 바로 약한 참조 의 개념입니다.
+
+### 강한 참조 vs 약한 참조
+
+앞서 힙 섹션에서 `WeakMap`, `WeakSet`이라는 자료구조를 잠깐 언급했었는데, 이들이 바로 약한 참조를 활용한 자료구조입니다.
+
+- **강한 참조**: 변수가 객체를 참조하고 있는 한, GC는 해당 객체를 절대 수거하지 않습니다. 지금까지 본 모든 일반적인 참조가 여기에 해당합니다.
+- **약한 참조**: 객체를 참조하지만 GC를 방해하지 않습니다. 대상 객체에 대한 다른 강한 참조가 모두 사라지면, 약한 참조만 남아있더라도 GC 대상이 됩니다.
+
+### WeakRef 기본 사용법
+
+ES2021에서 도입된 `WeakRef`는 대상 객체에 대한 약한 참조를 생성합니다.
+생성 방법은 `new WeakRef(target)`으로 생성하고, `.deref()` 메서드로 대상 객체에 접근합니다.
+
+```js
+let target = { name: 'heavy data', payload: new Array(100000) };
+const weakRef = new WeakRef(target);
+
+console.log(weakRef.deref()); // { name: 'heavy data', payload: [...] }
+
+target = null; // 강한 참조 제거 → GC 대상이 됨
+// 이후 weakRef.deref()는 undefined를 반환할 수 있음
+```
+
+`.deref()`는 대상 객체가 아직 살아있으면 객체를 반환하고, GC에 의해 수거되었다면 `undefined`를 반환합니다. 이를 통해 객체의 생존 여부를 확인할 수 있습니다.
+
+### 실제 활용 예시: DOM 요소 모니터링
+
+앞서 "DOM 참조 유지" 메모리 누수 패턴을 살펴보았는데요.
+이때 DOM 요소를 배열에 저장하면 요소가 페이지에서 제거되어도 메모리에서 해제되지 않는 문제가 있었습니다.
+
+여기서 WeakRef를 사용하면 이런 문제를 처리해볼 수 있습니다.
+
+아래는 MDN 공식 문서의 예시를 간결하게 정리한 코드입니다.
+
+```js
+class Counter {
+  constructor(element) {
+    // DOM 요소에 대한 약한 참조 유지
+    this.ref = new WeakRef(element);
+    this.start();
+  }
+
+  start() {
+    this.timer = setInterval(() => {
+      const el = this.ref.deref();
+
+      if (el) {
+        // 요소가 아직 존재하면 카운트 증가
+        el.textContent = `${Number(el.textContent || 0) + 1}`;
+      } else {
+        // 요소가 GC되었으면 타이머 정리
+        console.log('요소가 제거되어 타이머를 정리합니다.');
+        clearInterval(this.timer);
+      }
+    }, 1000);
+  }
+}
+```
+
+이 패턴에서는 DOM 요소가 페이지에서 제거되고 다른 강한 참조가 없으면, WeakRef를 통해 자연스럽게 이를 감지하고 타이머를 정리할 수 있습니다.
+앞서 본 "DOM 참조 유지" 문제에서 ID만 저장하는 방식과 비교하면, WeakRef는 객체 자체를 참조하면서도 GC를 방해하지 않는 해결책이라 할 수 있습니다.
+
+### FinalizationRegistry
+
+WeakRef와 함께 ES2021에 도입된 `FinalizationRegistry`는 객체가 GC될 때 콜백을 실행할 수 있게 해주는 동반 API입니다.
+
+```js
+const registry = new FinalizationRegistry((heldValue) => {
+  console.log(`${heldValue}이(가) 가비지 컬렉션되었습니다.`);
+});
+
+let obj = { name: 'heavy object' };
+registry.register(obj, 'heavy object'); // 객체 등록
+
+obj = null; // 강한 참조 제거
+// 이후 GC가 실행되면 콜백이 호출됨:
+// "heavy object이(가) 가비지 컬렉션되었습니다."
+```
+
+이를 통해 리소스 정리, 캐시 무효화 등의 후처리를 GC 시점에 자동으로 수행할 수 있습니다.
+
+### 주의사항
+
+다만 GC의 실행 타이밍은 JavaScript 엔진 구현에 따라 다르므로, `.deref()`가 정확히 언제 `undefined`를 반환할지 예측할 수 없습니다.
+
+MDN 공식 문서에서도 다음과 같이 안내하고 있습니다.
+
+> "Correct use of WeakRef takes careful thought, and it's best avoided if possible."
+
 ## JavaScript와 C언어의 메모리 관리 비교
 
-앞서 설명했던 C언어와의 차이점도 간단하게나마 알아보겠습니다.
+자 이제, 앞서 설명했던 C언어와의 차이점도 간단하게 알아보겠습니다.
 
 ```mermaid
 graph TB
@@ -614,8 +712,8 @@ graph TB
         JS4["✓ 개발자 개입 불필요<br/>✓ 안전성 높음<br/>⚠️ 타이밍 제어 불가"]
     end
 
-    style C4 fill:#ef9a9a
-    style JS4 fill:#c5e1a5
+    style C4 fill:#ef9a9a,color:#1a1a1a
+    style JS4 fill:#c5e1a5,color:#1a1a1a
 ```
 
 C언어의 경우를 먼저 살펴보겠습니다.
@@ -661,6 +759,7 @@ Reference Counting의 순환 참조 문제를 공부하면서는 초기 JavaScri
 ## 참고 자료
 
 - [MDN - Memory Management](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management)
+- [MDN - WeakRef](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakRef)
 - [JavaScript.info - Garbage Collection](https://javascript.info/garbage-collection)
 - [V8 - Trash talk: the Orinoco garbage collector](https://v8.dev/blog/trash-talk)
 - [V8 - Concurrent marking in V8](https://v8.dev/blog/concurrent-marking)
