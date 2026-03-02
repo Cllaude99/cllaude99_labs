@@ -15,7 +15,7 @@ export interface SkeletonStyleProps {
   borderRadius?: string | number;
 }
 
-export const SkeletonContainer = styled.div<SkeletonStyleProps>`
+const SkeletonContainer = styled.div<SkeletonStyleProps>`
   background-color: ${({ theme }) => theme.palette.grey200};
   animation: ${pulse} 1.5s ease-in-out infinite;
 
@@ -46,3 +46,5 @@ export const SkeletonContainer = styled.div<SkeletonStyleProps>`
     animation: none;
   }
 `;
+
+export { SkeletonContainer };
