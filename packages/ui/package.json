@@ -43,7 +43,8 @@
     "@emotion/styled": "^11.11.0",
     "motion": "12.20.1",
     "react": "^18.2.0",
-    "react-hot-toast": "2.6.0"
+    "react-hot-toast": "2.6.0",
+    "react-resizable-panels": "^4.7.1"
   },
   "devDependencies": {
     "@cllaude99/eslint-config": "workspace:*",
