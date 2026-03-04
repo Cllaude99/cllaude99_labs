@@ -16,9 +16,7 @@ author: 'Cllaude99'
 
 ```mermaid
 graph LR
-    subgraph Array["Array (연속 메모리)"]
-        A0["[0]<br/>10"] --- A1["[1]<br/>20"] --- A2["[2]<br/>30"] --- A3["[3]<br/>40"] --- A4["[4]<br/>50"]
-    end
+    A0["[0]<br/>10"] --- A1["[1]<br/>20"] --- A2["[2]<br/>30"] --- A3["[3]<br/>40"] --- A4["[4]<br/>50"]
 
     style A0 fill:#c5e1a5,color:#1a1a1a
     style A1 fill:#c5e1a5,color:#1a1a1a
@@ -177,9 +175,7 @@ graph LR
 
 ```mermaid
 graph LR
-    subgraph Before["할당/해제 반복 후"]
-        B1["사용 중"] --- B2["빈 공간<br/>2KB"] --- B3["사용 중"] --- B4["빈 공간<br/>1KB"] --- B5["사용 중"] --- B6["빈 공간<br/>2KB"]
-    end
+    B1["사용 중"] --- B2["빈 공간<br/>2KB"] --- B3["사용 중"] --- B4["빈 공간<br/>1KB"] --- B5["사용 중"] --- B6["빈 공간<br/>2KB"]
 
     style B1 fill:#ef9a9a,color:#1a1a1a
     style B2 fill:#c5e1a5,color:#1a1a1a
