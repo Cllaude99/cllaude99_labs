@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { SiGithub, SiLinkedin } from 'react-icons/si';
+import { SiGithub } from 'react-icons/si';
+import { FaLinkedin } from 'react-icons/fa';
 import { HiMail } from 'react-icons/hi';
 import { FiCopy, FiCheck, FiGlobe } from 'react-icons/fi';
 
@@ -117,7 +118,7 @@ export function AboutContent() {
             className="relative group text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             aria-label="LinkedIn"
           >
-            <SiLinkedin className="w-6 h-6" />
+            <FaLinkedin className="w-6 h-6" />
             <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
               LinkedIn
             </span>
