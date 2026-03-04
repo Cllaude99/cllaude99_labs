@@ -33,11 +33,45 @@
 - **같은 설정 영역**: 설정 파일들끼리 묶기 (예: `package.json` + `tsconfig.json` + `pnpm-lock.yaml`)
 - **같은 목적의 변경**: 하나의 버그 수정이나 리팩토링에 관련된 파일들
 
-### 합치기 판단
+### 계층별 분리 원칙
 
-- 변경이 적고 기능이 동일한 파일들은 하나의 커밋으로 합칩니다.
-- 전체 변경사항이 하나의 기능에 대한 것이라면 하나의 커밋으로 처리합니다.
-- 무리하게 분리하지 않습니다. 자연스러운 단위로 나눕니다.
+같은 기능이라도 아래 계층이 다르면 **별도 커밋으로 분리**합니다.
+
+1. **의존성 변경**: `package.json`, `pnpm-lock.yaml` 등 의존성 추가/수정/삭제 → `chore`
+2. **핵심 구현**: 컴포넌트, 훅, 유틸리티 등 기능 본체 → `feat` / `fix` / `refactor`
+3. **테스트/스토리**: 테스트 코드(`*.test.*`, `*.spec.*`), 스토리북 스토리(`*.stories.*`) → `test` / `feat`
+4. **설정/라우팅**: 라우트 등록, 설정 파일 변경, barrel export 추가 → `chore` / `feat`
+
+**예시 - Resizable 컴포넌트 추가 시:**
+
+```
+커밋 1: chore: react-resizable-panels 의존성 추가
+  - packages/ui/package.json
+  - pnpm-lock.yaml
+
+커밋 2: feat: Resizable 컴포넌트 추가
+  - packages/ui/src/components/Resizable/index.tsx
+  - packages/ui/src/components/Resizable/Resizable.styles.ts
+
+커밋 3: feat: Resizable 스토리북 스토리 추가
+  - packages/ui/src/components/Resizable/Resizable.stories.tsx
+```
+
+### 분리 vs 합치기 판단
+
+기본 방향은 **각 커밋이 독립적으로 의미를 가지는 단위로 분리**하는 것입니다.
+
+**합치는 경우 (예외):**
+
+- 단일 파일만 변경된 경우
+- 관련 파일이 1~2개뿐이고 모두 같은 계층에 속하는 경우
+- 전체 변경사항이 한 줄짜리 수정 등 극히 사소한 경우
+
+**분리하는 경우 (기본):**
+
+- 계층이 다른 파일들 (의존성 / 구현 / 테스트 / 설정)
+- 도메인이 다른 파일들
+- 목적이 다른 변경들 (버그 수정 + 새 기능 등)
 
 ## 커밋 계획표 출력 형식
 
@@ -49,11 +83,11 @@
 ### 커밋 1: feat: 사용자 프로필 컴포넌트 추가
 - src/components/UserProfile/index.tsx
 - src/components/UserProfile/UserProfile.styles.ts
-변경 요약: 사용자 프로필 카드 컴포넌트를 새로 생성했습니다
+- 사용자 프로필 카드 컴포넌트를 새로 생성했습니다
 
 ### 커밋 2: fix: 로그인 토큰 갱신 오류 수정
 - src/hooks/useAuth.ts
-변경 요약: 토큰 만료 시 갱신 로직에서 발생하던 무한 루프를 수정했습니다
+- 토큰 만료 시 갱신 로직에서 발생하던 무한 루프를 수정했습니다
 
 계속 진행할까요?
 ```
