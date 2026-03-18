@@ -38,13 +38,13 @@ graph TB
 
     Software -.실행.-> Hardware
 
-    style CPU fill:#e3f2fd
-    style Memory fill:#fff3e0
-    style IO fill:#f3e5f5
-    style Bus fill:#c5e1a5
-    style OS fill:#ffccbc
-    style Compiler fill:#ffccbc
-    style Apps fill:#ffccbc
+    style CPU fill:#e3f2fd,color:#1a1a1a
+    style Memory fill:#fff3e0,color:#1a1a1a
+    style IO fill:#f3e5f5,color:#1a1a1a
+    style Bus fill:#c5e1a5,color:#1a1a1a
+    style OS fill:#ffccbc,color:#1a1a1a
+    style Compiler fill:#ffccbc,color:#1a1a1a
+    style Apps fill:#ffccbc,color:#1a1a1a
 ```
 
 ### 하드웨어의 구성
@@ -71,9 +71,9 @@ graph LR
     AddressBus --> Memory
     ControlBus <--> Memory
 
-    style DataBus fill:#c5e1a5
-    style AddressBus fill:#fff59d
-    style ControlBus fill:#ef9a9a
+    style DataBus fill:#c5e1a5,color:#1a1a1a
+    style AddressBus fill:#fff59d,color:#1a1a1a
+    style ControlBus fill:#ef9a9a,color:#1a1a1a
 ```
 
 **데이터 버스 (Data Bus)**
@@ -126,9 +126,9 @@ graph TB
     CU -->|제어 신호| Registers
     Registers <-->|데이터| ALU
 
-    style CU fill:#e3f2fd
-    style ALU fill:#fff3e0
-    style Registers fill:#f3e5f5
+    style CU fill:#e3f2fd,color:#1a1a1a
+    style ALU fill:#fff3e0,color:#1a1a1a
+    style Registers fill:#f3e5f5,color:#1a1a1a
 ```
 
 ### ALU (Arithmetic Logic Unit)
@@ -168,10 +168,10 @@ graph LR
     C --> D["4. 저장<br/>(Store)"]
     D --> A
 
-    style A fill:#c5e1a5
-    style B fill:#fff59d
-    style C fill:#ffcc80
-    style D fill:#ef9a9a
+    style A fill:#c5e1a5,color:#1a1a1a
+    style B fill:#fff59d,color:#1a1a1a
+    style C fill:#ffcc80,color:#1a1a1a
+    style D fill:#ef9a9a,color:#1a1a1a
 ```
 
 **각 단계의 동작**
@@ -193,9 +193,9 @@ graph LR
 
     Note["한 번에 8바이트<br/>(64비트)씩<br/>처리 가능"]
 
-    style CPU fill:#e3f2fd
-    style RAM fill:#fff3e0
-    style Note fill:#fff9c4
+    style CPU fill:#e3f2fd,color:#1a1a1a
+    style RAM fill:#fff3e0,color:#1a1a1a
+    style Note fill:#fff9c4,color:#1a1a1a
 ```
 
 32비트 시스템은 한 번에 32비트(4바이트)를 처리하고, 64비트 시스템은 한 번에 64비트(8바이트)를 처리합니다.
@@ -226,10 +226,10 @@ graph TB
     Speed["← 빠름                느림 →"]
     Size["← 작음                큼 →"]
 
-    style L1 fill:#c5e1a5
-    style L2 fill:#fff59d
-    style L3 fill:#ffcc80
-    style RAM fill:#ef9a9a
+    style L1 fill:#c5e1a5,color:#1a1a1a
+    style L2 fill:#fff59d,color:#1a1a1a
+    style L3 fill:#ffcc80,color:#1a1a1a
+    style RAM fill:#ef9a9a,color:#1a1a1a
 ```
 
 **L1 캐시 (Level 1 Cache)**
@@ -285,8 +285,8 @@ graph TB
     Hit --> End["완료"]
     Return --> End
 
-    style Hit fill:#c5e1a5
-    style Miss fill:#ef9a9a
+    style Hit fill:#c5e1a5,color:#1a1a1a
+    style Miss fill:#ef9a9a,color:#1a1a1a
 ```
 
 **캐시 Hit**는 필요한 데이터가 캐시에 있는 경우로, 빠르게 데이터에 접근할 수 있습니다. 반대로 **캐시 Miss**는 필요한 데이터가 캐시에 없는 경우로, 메인 메모리에서 데이터를 가져와야 합니다.
@@ -347,9 +347,9 @@ graph LR
     Check -->|예| OK["정상"]
     Check -->|아니오| Error["오류 발생"]
 
-    style Data fill:#c5e1a5
-    style WithParity fill:#fff59d
-    style Error fill:#ef9a9a
+    style Data fill:#c5e1a5,color:#1a1a1a
+    style WithParity fill:#fff59d,color:#1a1a1a
+    style Error fill:#ef9a9a,color:#1a1a1a
 ```
 
 **짝수 패리티와 홀수 패리티**
@@ -378,10 +378,10 @@ graph TB
     Check -->|예| Fix["오류 위치 파악<br/>→ 비트 반전"]
     Fix --> Corrected["정정된 데이터"]
 
-    style Send fill:#c5e1a5
-    style Receive fill:#fff59d
-    style Fix fill:#ffcc80
-    style Success fill:#c5e1a5
+    style Send fill:#c5e1a5,color:#1a1a1a
+    style Receive fill:#fff59d,color:#1a1a1a
+    style Fix fill:#ffcc80,color:#1a1a1a
+    style Success fill:#c5e1a5,color:#1a1a1a
 ```
 
 **해밍 코드의 원리**
