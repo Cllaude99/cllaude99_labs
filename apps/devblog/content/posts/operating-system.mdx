@@ -20,9 +20,9 @@ graph LR
     B -->|명령어 인출| C["CPU<br/>(실행)"]
     C -->|결과 저장| B
 
-    style A fill:#fff3e0
-    style B fill:#e3f2fd
-    style C fill:#c5e1a5
+    style A fill:#fff3e0,color:#1a1a1a
+    style B fill:#e3f2fd,color:#1a1a1a
+    style C fill:#c5e1a5,color:#1a1a1a
 ```
 
 사용자가 프로그램을 실행하면 운영체제는 디스크에 저장된 실행 파일을 메모리로 읽어들입니다. 이때 프로그램은 코드 영역, 데이터 영역, 힙 영역, 스택 영역이라는 메모리 구조로 배치됩니다.
@@ -40,10 +40,10 @@ graph TB
     Data -.아래 방향.-> Heap
     Heap -.확장.-> Stack
 
-    style Code fill:#c5e1a5
-    style Data fill:#fff59d
-    style Heap fill:#ffcc80
-    style Stack fill:#ef9a9a
+    style Code fill:#c5e1a5,color:#1a1a1a
+    style Data fill:#fff59d,color:#1a1a1a
+    style Heap fill:#ffcc80,color:#1a1a1a
+    style Stack fill:#ef9a9a,color:#1a1a1a
 ```
 
 ### CPU 실행
@@ -85,8 +85,8 @@ graph TB
     OS -.독립적 관리.-> Process1
     OS -.독립적 관리.-> Process2
 
-    style Process1 fill:#e3f2fd
-    style Process2 fill:#fff3e0
+    style Process1 fill:#e3f2fd,color:#1a1a1a
+    style Process2 fill:#fff3e0,color:#1a1a1a
 ```
 
 ### 스레드란 무엇인가?
@@ -123,10 +123,10 @@ graph TB
     Thread2 -.공유.-> Shared
     Thread3 -.공유.-> Shared
 
-    style Shared fill:#c5e1a5
-    style Thread1 fill:#fff59d
-    style Thread2 fill:#ffcc80
-    style Thread3 fill:#ef9a9a
+    style Shared fill:#c5e1a5,color:#1a1a1a
+    style Thread1 fill:#fff59d,color:#1a1a1a
+    style Thread2 fill:#ffcc80,color:#1a1a1a
+    style Thread3 fill:#ef9a9a,color:#1a1a1a
 ```
 
 ### 프로세스와 스레드의 차이점
@@ -197,8 +197,8 @@ graph TB
     P2 -.-> IPC
     P3 -.-> IPC
 
-    style MultiProcess fill:#e3f2fd
-    style MultiThread fill:#fff3e0
+    style MultiProcess fill:#e3f2fd,color:#1a1a1a
+    style MultiThread fill:#fff3e0,color:#1a1a1a
 ```
 
 ### IPC (Inter-Process Communication)
@@ -219,11 +219,11 @@ graph TB
     P1["프로세스 1"] -->|데이터 전송| IPC
     IPC -->|데이터 수신| P2["프로세스 2"]
 
-    style Pipe fill:#c5e1a5
-    style NamedPipe fill:#fff59d
-    style SharedMemory fill:#ffcc80
-    style MessageQueue fill:#ef9a9a
-    style Socket fill:#e3f2fd
+    style Pipe fill:#c5e1a5,color:#1a1a1a
+    style NamedPipe fill:#fff59d,color:#1a1a1a
+    style SharedMemory fill:#ffcc80,color:#1a1a1a
+    style MessageQueue fill:#ef9a9a,color:#1a1a1a
+    style Socket fill:#e3f2fd,color:#1a1a1a
 ```
 
 **1. 익명 파이프 (Anonymous Pipe)**
@@ -330,9 +330,9 @@ graph TB
     Unlock1 -->|3. 잠금 해제 후<br/>획득 가능| Lock2["잠금 획득"]
     Lock2 --> CS2["임계 영역 실행"]
 
-    style CS1 fill:#c5e1a5
-    style Wait fill:#ef9a9a
-    style CS2 fill:#c5e1a5
+    style CS1 fill:#c5e1a5,color:#1a1a1a
+    style Wait fill:#ef9a9a,color:#1a1a1a
+    style CS2 fill:#c5e1a5,color:#1a1a1a
 ```
 
 **세마포어 (Semaphore)**
@@ -389,10 +389,10 @@ graph TB
     ISR -->|4. 상태 복원| Restore["프로그램 A의<br/>실행 상태 복원"]
     Restore -->|5. 재개| Continue["프로그램 A<br/>실행 재개"]
 
-    style Start fill:#c5e1a5
-    style Interrupt fill:#fff59d
-    style ISR fill:#ffcc80
-    style Continue fill:#c5e1a5
+    style Start fill:#c5e1a5,color:#1a1a1a
+    style Interrupt fill:#fff59d,color:#1a1a1a
+    style ISR fill:#ffcc80,color:#1a1a1a
+    style Continue fill:#c5e1a5,color:#1a1a1a
 ```
 
 ### 인터럽트의 종류
@@ -428,8 +428,8 @@ graph TB
     CPU["CPU"] -.처리.-> Hardware
     CPU -.처리.-> Software
 
-    style Hardware fill:#e3f2fd
-    style Software fill:#fff3e0
+    style Hardware fill:#e3f2fd,color:#1a1a1a
+    style Software fill:#fff3e0,color:#1a1a1a
 ```
 
 ### 시스템 콜은 무엇인가?
@@ -455,9 +455,9 @@ graph TB
     Hardware -->|결과 반환| OS
     OS -->|결과 전달| App
 
-    style UserMode fill:#e3f2fd
-    style KernelMode fill:#fff3e0
-    style Hardware fill:#c5e1a5
+    style UserMode fill:#e3f2fd,color:#1a1a1a
+    style KernelMode fill:#fff3e0,color:#1a1a1a
+    style Hardware fill:#c5e1a5,color:#1a1a1a
 ```
 
 ### 시스템 콜은 왜 필요한가?
@@ -584,9 +584,9 @@ graph TB
         Init -.입양.-> OChild
     end
 
-    style ZChild fill:#ef9a9a
-    style OChild fill:#fff59d
-    style Init fill:#c5e1a5
+    style ZChild fill:#ef9a9a,color:#1a1a1a
+    style OChild fill:#fff59d,color:#1a1a1a
+    style Init fill:#c5e1a5,color:#1a1a1a
 ```
 
 ### Context Switching이란 무엇인가?
@@ -651,10 +651,10 @@ graph TB
 
     OS["운영체제"] -.관리.-> PCB
 
-    style PID fill:#c5e1a5
-    style State fill:#fff59d
-    style PC fill:#ffcc80
-    style Registers fill:#ef9a9a
+    style PID fill:#c5e1a5,color:#1a1a1a
+    style State fill:#fff59d,color:#1a1a1a
+    style PC fill:#ffcc80,color:#1a1a1a
+    style Registers fill:#ef9a9a,color:#1a1a1a
 ```
 
 **PCB에 저장되는 정보**
@@ -676,11 +676,11 @@ graph TB
     Schedule -->|3. 상태 복원| Load["PCB_B에서<br/>상태 로드"]
     Load -->|4. CPU 할당| Run["프로세스 B<br/>실행 재개"]
 
-    style Start fill:#c5e1a5
-    style Save fill:#fff59d
-    style Schedule fill:#ffcc80
-    style Load fill:#ef9a9a
-    style Run fill:#c5e1a5
+    style Start fill:#c5e1a5,color:#1a1a1a
+    style Save fill:#fff59d,color:#1a1a1a
+    style Schedule fill:#ffcc80,color:#1a1a1a
+    style Load fill:#ef9a9a,color:#1a1a1a
+    style Run fill:#c5e1a5,color:#1a1a1a
 ```
 
 **1. 프로세스 A 실행 중**
@@ -758,8 +758,8 @@ graph TB
         Note2["운영체제가<br/>언제든지 중단 가능"]
     end
 
-    style NonPreemptive fill:#e3f2fd
-    style Preemptive fill:#fff3e0
+    style NonPreemptive fill:#e3f2fd,color:#1a1a1a
+    style Preemptive fill:#fff3e0,color:#1a1a1a
 ```
 
 ### 비선점 스케줄링 알고리즘
@@ -824,9 +824,9 @@ graph TB
 
     Note["프로세스 A는 자원 2를 기다림<br/>프로세스 B는 자원 1을 기다림<br/>서로 영원히 대기"]
 
-    style P1 fill:#ef9a9a
-    style P2 fill:#ef9a9a
-    style Note fill:#fff9c4
+    style P1 fill:#ef9a9a,color:#1a1a1a
+    style P2 fill:#ef9a9a,color:#1a1a1a
+    style Note fill:#fff9c4,color:#1a1a1a
 ```
 
 실생활 예시로 생각해보면, 좁은 다리에서 양쪽에서 차가 마주보고 있고 둘 다 비키지 않는 상황과 유사합니다.
@@ -933,8 +933,8 @@ graph TB
 
     Note["모든 철학자가 동시에<br/>왼쪽 젓가락을 들면<br/>오른쪽 젓가락을 기다리며<br/>데드락 발생"]
 
-    style Problem fill:#fff3e0
-    style Note fill:#ef9a9a
+    style Problem fill:#fff3e0,color:#1a1a1a
+    style Note fill:#ef9a9a,color:#1a1a1a
 ```
 
 **문제 상황**
@@ -980,10 +980,10 @@ graph TB
         Note["총 3KB 빈 공간이 있지만<br/>연속되지 않아<br/>3KB 프로세스 할당 불가"]
     end
 
-    style I2 fill:#ef9a9a
-    style E2 fill:#ef9a9a
-    style E4 fill:#ef9a9a
-    style Note fill:#fff9c4
+    style I2 fill:#ef9a9a,color:#1a1a1a
+    style E2 fill:#ef9a9a,color:#1a1a1a
+    style E4 fill:#ef9a9a,color:#1a1a1a
+    style Note fill:#fff9c4,color:#1a1a1a
 ```
 
 ### 페이징 (Paging)
@@ -1018,9 +1018,9 @@ graph LR
     Logical --> PageTable
     PageTable --> Physical
 
-    style Logical fill:#e3f2fd
-    style PageTable fill:#fff59d
-    style Physical fill:#c5e1a5
+    style Logical fill:#e3f2fd,color:#1a1a1a
+    style PageTable fill:#fff59d,color:#1a1a1a
+    style Physical fill:#c5e1a5,color:#1a1a1a
 ```
 
 페이징의 경우 페이지 크기가 고정되어 있어, 어떤 빈 프레임에도 페이지를 할당할 수 있기에 외부 단편화 문제가 발생할 가능성이 적고
@@ -1052,9 +1052,9 @@ graph LR
     Logical --> SegTable
     SegTable --> Physical
 
-    style Logical fill:#e3f2fd
-    style SegTable fill:#fff59d
-    style Physical fill:#c5e1a5
+    style Logical fill:#e3f2fd,color:#1a1a1a
+    style SegTable fill:#fff59d,color:#1a1a1a
+    style Physical fill:#c5e1a5,color:#1a1a1a
 ```
 
 세그먼테이션의 경우 논리적 단위로 나누어 관리하므로, 코드 공유와 보호가 쉽다는 특징이있고 세그먼트 크기가 가변적이기에 내부 단편화가 없다는 특징이 있습니다.
@@ -1096,10 +1096,10 @@ graph LR
     Seg --> Page
     Page --> Physical
 
-    style Program fill:#e3f2fd
-    style Seg fill:#fff59d
-    style Page fill:#ffcc80
-    style Physical fill:#c5e1a5
+    style Program fill:#e3f2fd,color:#1a1a1a
+    style Seg fill:#fff59d,color:#1a1a1a
+    style Page fill:#ffcc80,color:#1a1a1a
+    style Physical fill:#c5e1a5,color:#1a1a1a
 ```
 
 이를 통해 논리적 단위로 관리하면서도, 외부 단편화를 방지할 수 있습니다.
