@@ -15,6 +15,7 @@ import KeyboardPage from '@/pages/A11yPage/KeyboardPage';
 import SemanticPage from '@/pages/A11yPage/SemanticPage';
 import HomePage from '@/pages/HomePage';
 import SketchPage from '@/pages/SketchPage';
+import StatusPage from '@/pages/StatusPage';
 import TradersPage from '@/pages/TradersPage';
 import FloatingThemeToggle from '@/pages/TradersPage/components/FloatingThemeToggle';
 import GameCompletePage from '@/pages/TradersPage/GameCompletePage';
@@ -74,6 +75,10 @@ const router = createBrowserRouter([
             element: <RoomWaitingPage />,
           },
         ],
+      },
+      {
+        path: PATH.STATUS,
+        element: <StatusPage />,
       },
       {
         path: PATH.SKETCH,
