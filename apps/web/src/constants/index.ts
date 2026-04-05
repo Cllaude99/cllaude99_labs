@@ -18,6 +18,9 @@ const PATH = {
   TRADERS_ROOM: `/traders/${TRADERS_ROUTES.ROOM}`,
   TRADERS_ROOM_WAITING: `/traders/${TRADERS_ROUTES.ROOM_WAITING}`,
 
+  /* Sample 페이지 */
+  SAMPLE: '/sample',
+
   /* Sketch 하위 라우트 */
   SKETCH: '/sketch',
 
