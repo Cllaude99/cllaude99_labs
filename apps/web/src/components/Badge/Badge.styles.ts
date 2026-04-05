@@ -5,10 +5,10 @@ interface BadgeStyleProps {
 }
 
 const VARIANT_COLORS = {
-  default: { bg: '#1a1a2e', color: '#8888aa' },
-  success: { bg: '#0a2e1a', color: '#44cc88' },
-  warning: { bg: '#2e2a0a', color: '#ccaa44' },
-  error: { bg: '#2e0a0a', color: '#cc4444' },
+  default: { bg: '#2a2a3e', color: '#aaaacc' },
+  success: { bg: '#0d3b22', color: '#34d399' },
+  warning: { bg: '#3b3510', color: '#fbbf24' },
+  error: { bg: '#3b1010', color: '#f87171' },
 };
 
 const Container = styled.span<BadgeStyleProps>`
