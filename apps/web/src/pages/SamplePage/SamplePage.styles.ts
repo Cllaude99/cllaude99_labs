@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 
-export const Container = styled.div`
+const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,16 +10,18 @@ export const Container = styled.div`
   color: #ffffff;
 `;
 
-export const Title = styled.h1`
+const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
 `;
 
-export const Description = styled.p`
+const Description = styled.p`
   font-size: 1.125rem;
   color: #a0a0a0;
   max-width: 480px;
   text-align: center;
   line-height: 1.6;
 `;
+
+export { Container, Title, Description };
