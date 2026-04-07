@@ -14,6 +14,7 @@ import AriaRolePage from '@/pages/A11yPage/AriaRolePage';
 import KeyboardPage from '@/pages/A11yPage/KeyboardPage';
 import SemanticPage from '@/pages/A11yPage/SemanticPage';
 import HomePage from '@/pages/HomePage';
+import NotFoundPage from '@/pages/NotFoundPage';
 import SketchPage from '@/pages/SketchPage';
 import TradersPage from '@/pages/TradersPage';
 import FloatingThemeToggle from '@/pages/TradersPage/components/FloatingThemeToggle';
@@ -101,7 +102,7 @@ const router = createBrowserRouter([
       },
       {
         path: '*',
-        element: <SomethingWentWrong />,
+        element: <NotFoundPage />,
       },
     ],
   },
