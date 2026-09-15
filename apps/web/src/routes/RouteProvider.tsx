@@ -14,6 +14,7 @@ import AriaRolePage from '@/pages/A11yPage/AriaRolePage';
 import KeyboardPage from '@/pages/A11yPage/KeyboardPage';
 import SemanticPage from '@/pages/A11yPage/SemanticPage';
 import HomePage from '@/pages/HomePage';
+import SamplePage from '@/pages/SamplePage';
 import SketchPage from '@/pages/SketchPage';
 import TradersPage from '@/pages/TradersPage';
 import FloatingThemeToggle from '@/pages/TradersPage/components/FloatingThemeToggle';
@@ -74,6 +75,10 @@ const router = createBrowserRouter([
             element: <RoomWaitingPage />,
           },
         ],
+      },
+      {
+        path: PATH.SAMPLE,
+        element: <SamplePage />,
       },
       {
         path: PATH.SKETCH,
