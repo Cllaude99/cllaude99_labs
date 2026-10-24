@@ -9,6 +9,7 @@ import { PROJECTS } from '@/constants';
 
 import ParticleText from './components/ParticleText';
 import PlanetScene from './components/PlanetScene';
+import QuickStats from './components/QuickStats';
 import * as S from './HomePage.styles';
 
 const PARTICLE_TEXT_LINES = ['Cllaude99_Labs'];
@@ -23,6 +24,7 @@ const HomePage = () => {
         background: '#0a0a0a',
       }}
     >
+      <QuickStats />
       <S.Background />
       <S.Content>
         <S.Header
