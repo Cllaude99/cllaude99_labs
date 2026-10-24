@@ -8,6 +8,7 @@ import Layout from '@/components/Layout';
 import { PROJECTS } from '@/constants';
 
 import ParticleText from './components/ParticleText';
+import PlanetNav from './components/PlanetNav';
 import PlanetScene from './components/PlanetScene';
 import * as S from './HomePage.styles';
 
@@ -73,6 +74,11 @@ const HomePage = () => {
           ))}
         </Carousel>
       </S.Content>
+      <PlanetNav
+        currentIndex={currentIndex}
+        projects={PROJECTS}
+        onIndexChange={setCurrentIndex}
+      />
       <Dock />
     </Layout>
   );
